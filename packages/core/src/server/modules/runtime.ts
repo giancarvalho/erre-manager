@@ -15,6 +15,13 @@ import { AppError, errors } from '../errors';
 import type { MembershipHooks } from '../hooks';
 import { errorHandler } from '../http';
 import { createMembersApi } from '../members';
+import {
+  createNotifier,
+  type ExpoTransport,
+  type NotificationType,
+  type NotifyInput,
+  type WebPushTransport,
+} from '../notifications';
 import { coreProfiles } from '../schema';
 import { requireSession } from '../session';
 import { validate } from '../validate';
@@ -35,8 +42,13 @@ export type ModuleRuntimeDeps = {
   /** Time zone of job schedules (D-020). */
   timezone?: string;
   log: Log;
-  /** Sprint 9 replaces this with Web Push + Expo Push. */
-  notify?: Notify;
+  /** Push transports and the global kill switch (PUSH_ENABLED, P-007). Without it, notify() only logs. */
+  push?: {
+    enabled: boolean;
+    webPush?: WebPushTransport | undefined;
+    expo?: ExpoTransport | undefined;
+    receiptDelayMs?: number;
+  };
 };
 
 class Rollback extends Error {}
@@ -52,17 +64,37 @@ export function createModuleRuntime(deps: ModuleRuntimeDeps) {
   const enabledModules = modules.filter((m) => enabled.has(m.manifest.id));
   const isEnabled = (id: string) => enabled.has(id);
 
-  // notify() is a no-op for disabled modules (ARQUITETURA §5.4); the type's prefix names the module.
-  const baseNotify: Notify =
-    deps.notify ??
-    (async (input) => {
-      log.info({ type: input.type, recipients: input.userIds.length }, 'notify (not sent before Sprint 9)');
-    });
-  const notify: Notify = async (input) => {
-    const owner = input.type.split('.')[0] ?? '';
-    if (!isEnabled(owner)) return;
-    await baseNotify(input);
-  };
+  const notificationTypes: NotificationType[] = enabledModules.flatMap((m) =>
+    m.manifest.notifications.map((n) => ({
+      id: n.id,
+      label: n.label,
+      module: m.manifest.id,
+      defaultEnabled: n.defaultEnabled,
+    })),
+  );
+  const notifier = createNotifier({
+    db,
+    types: notificationTypes,
+    enabled: deps.push?.enabled ?? false,
+    webPush: deps.push?.webPush,
+    expo: deps.push?.expo,
+    log,
+    ...(deps.push?.receiptDelayMs !== undefined ? { receiptDelayMs: deps.push.receiptDelayMs } : {}),
+  });
+
+  /**
+   * notify() for one transaction: collects messages and hands them to the notifier after commit. A no-op
+   * for disabled modules (ARQUITETURA §5.4); the type's prefix names the module.
+   */
+  function collector(): { notify: Notify; pending: NotifyInput[] } {
+    const pending: NotifyInput[] = [];
+    return {
+      pending,
+      notify: async (input) => {
+        if (isEnabled(input.type.split('.')[0] ?? '')) pending.push(input);
+      },
+    };
+  }
 
   /** Core + every registered module (schema and permissions don't depend on the flag). */
   const permissions: PermissionDef[] = [...CORE_PERMISSIONS, ...modules.flatMap((m) => m.manifest.permissions)];
@@ -80,7 +112,9 @@ export function createModuleRuntime(deps: ModuleRuntimeDeps) {
   const community = requireCommunity(db);
 
   async function buildContext(v: CommunityEnv['Variables']): Promise<ModuleContext> {
-    const { tx, community: cc, user, can } = v;
+    const { tx, community: cc, user, can, afterCommit } = v;
+    const { notify, pending } = collector();
+    afterCommit(() => notifier.dispatch(pending));
     const [row] = await tx
       .select({ slug: communities.slug, name: communities.name })
       .from(communities)
@@ -207,9 +241,11 @@ export function createModuleRuntime(deps: ModuleRuntimeDeps) {
         let failed = 0;
         for (const { id } of list) {
           try {
+            const { notify, pending } = collector();
             await withTenantTx(db, { communityId: id, userId: null }, (tx) =>
               job.run({ community: { id }, tx, notify, members: createMembersApi(tx, id), now }),
             );
+            notifier.dispatch(pending);
           } catch (err) {
             failed += 1;
             log.error(
@@ -267,6 +303,8 @@ export function createModuleRuntime(deps: ModuleRuntimeDeps) {
 
   return {
     app,
+    notifier,
+    notificationTypes,
     hooks,
     permissions,
     enabledManifests: enabledModules.map((m) => m.manifest) as ModuleManifest[],

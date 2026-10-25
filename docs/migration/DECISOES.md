@@ -252,3 +252,16 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - **App:** registro estático de UIs (`apps/mobile/src/modules.ts`) ∩ `GET /v1/modules`; seção do hub por módulo; `withModule(id, Tela)` nas rotas finas.
 - **Módulo de teste em `modules/_contrato-teste`:** pastas com `_` ficam fora das migrations de produção e do registro.
 **Motivo:** o contrato é o produto; cada garantia tem teste no módulo de teste, e as que dependem de disciplina (anonimato, React fora da API) ganharam proteção em código.
+
+### D-040 — Notificações
+**Data:** 2026-10-25 · **Status:** aceita (Sprint 9)
+**Decisão:**
+- **Kill switch = `PUSH_ENABLED`** (P-007, opção A, provisória até o humano confirmar). Variáveis VAPID com os nomes do legado (`NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`); sem as três, o Web Push fica desligado sem erro, como no legado. A chave pública vai ao app por `GET /v1/push/config`, sem rebuild.
+- **Envio depois do commit:** o contexto de tenant ganhou `afterCommit`; `ctx.notify` junta as mensagens e o notificador envia em segundo plano quando a transação confirma. Nos jobs, por comunidade, depois do commit dela.
+- **Preferências guardam só as escolhas**; sem linha vale o `defaultEnabled` do manifesto. Tipos listados são os dos módulos ligados.
+- **Uma inscrição por aparelho** (`endpoint` ou token únicos): quem registra por último fica com o aparelho; só o dono remove.
+- **Inscrições inválidas removidas**: Web Push 404/410; Expo `DeviceNotRegistered` no ticket ou no recibo (~15 min depois, melhor esforço, em memória).
+- **Logs só com contagens** (tipo, destinatários, enviadas, removidas).
+- **App:** service worker do legado só na web; `expo-notifications` no nativo (precisa de `extra.eas.projectId`, criado com o projeto EAS); toque abre a rota da notificação. Pedido de permissão só quando a pessoa liga em "Notificações" (o pedido no momento de valor vem com o Errômetro, DESIGN §10.1).
+- **DESIGN §9.17 (proposta):** interruptor (`SwitchRow`), que o DESIGN.md não cobria.
+**Motivo:** notificação nunca sai de algo que foi desfeito, nem segura o banco esperando a rede.

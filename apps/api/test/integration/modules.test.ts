@@ -7,6 +7,7 @@ import {
   createCommunity,
   createCoreApi,
   createModuleRuntime,
+  type WebPushTransport,
 } from '@erre/core/server';
 import {
   addMember,
@@ -38,6 +39,14 @@ const auth = createAuth({
 });
 const silent = createLogger({ level: 'silent' });
 
+const webSent: { endpoint: string; url: string }[] = [];
+const webPush: WebPushTransport = {
+  async send(sub, payload) {
+    webSent.push({ endpoint: sub.endpoint, url: payload.url });
+    return 'sent';
+  },
+};
+
 function build(enabled: string[], cronSecret?: string) {
   const runtime = createModuleRuntime({
     db,
@@ -47,6 +56,7 @@ function build(enabled: string[], cronSecret?: string) {
     enabled: new Set(enabled),
     cronSecret,
     log: silent,
+    push: { enabled: true, webPush },
   });
   const core = createCoreApi({
     db,
@@ -54,6 +64,7 @@ function build(enabled: string[], cronSecret?: string) {
     trustedOrigins: [ORIGIN],
     hooks: runtime.hooks,
     permissions: runtime.permissions,
+    notifications: { types: runtime.notificationTypes, pushEnabled: true, webPushPublicKey: 'chave-publica' },
   });
   return { runtime, app: createApp({ logger: silent, core, modules: runtime.app, webOrigins: [ORIGIN] }) };
 }
@@ -349,5 +360,48 @@ describe('join intent of a module (one request only)', () => {
       },
     );
     expect(res.status).toBe(400);
+  });
+});
+
+describe('notify from a module', () => {
+  it('sends after the transaction commits, to members whose preference allows it', async () => {
+    const subscribe = (u: { cookie: string }, n: string) =>
+      req(on.app, u.cookie, 'POST', '/v1/push/subscriptions', undefined, {
+        kind: 'webpush',
+        endpoint: `https://push.example.com/${n}`,
+        keys: { p256dh: 'BPk', auth: 'aut' },
+      });
+    expect((await subscribe(fx.users.membro, `membro-${fx.communityId}`)).status).toBe(201);
+    expect((await subscribe(fx.users.admin, `admin-${fx.communityId}`)).status).toBe(201);
+    expect((await subscribe(fx.users.outsider, `fora-${fx.communityId}`)).status).toBe(201);
+    // The admin turned this type off.
+    const prefs = await req(on.app, fx.users.admin.cookie, 'PUT', '/v1/notification-preferences', undefined, {
+      type: 'contratoteste.aviso',
+      enabled: false,
+    });
+    expect(prefs.status).toBe(200);
+
+    webSent.length = 0;
+    expect(
+      (await req(on.app, fx.users.owner.cookie, 'POST', '/v1/contratoteste/avisar?falhar=1', fx.communityId)).status,
+    ).toBe(422);
+    await on.runtime.notifier.idle();
+    expect(webSent).toEqual([]);
+
+    expect((await req(on.app, fx.users.owner.cookie, 'POST', '/v1/contratoteste/avisar', fx.communityId)).status).toBe(
+      200,
+    );
+    await on.runtime.notifier.idle();
+    expect(webSent).toEqual([{ endpoint: `https://push.example.com/membro-${fx.communityId}`, url: '/contratoteste' }]);
+  });
+
+  it('preferences list the types of enabled modules only', async () => {
+    const list = (await (await req(on.app, fx.users.membro.cookie, 'GET', '/v1/notification-preferences')).json()) as {
+      type: string;
+    }[];
+    expect(list.map((p) => p.type)).toEqual(['contratoteste.aviso']);
+    expect(await (await req(off.app, fx.users.membro.cookie, 'GET', '/v1/notification-preferences')).json()).toEqual(
+      [],
+    );
   });
 });

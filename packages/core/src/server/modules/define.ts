@@ -5,9 +5,14 @@ import type { ModuleManifest } from '../../shared/manifest';
 import type { MemberHookContext } from '../hooks';
 import type { MembersApi } from '../members';
 
-/** notify() (ARQUITETURA §6). Until Sprint 9 it only records the call; then it sends Web Push and Expo Push. */
-export type NotifyInput = { userIds: string[]; type: string; title: string; body: string; route?: string };
+import type { NotifyInput } from '../notifications';
+
+/**
+ * notify() (ARQUITETURA §6): `type` is a notification declared in the manifest. Sent after the transaction
+ * commits, to the people whose preference allows it; a no-op when the module or push is off.
+ */
 export type Notify = (input: NotifyInput) => Promise<void>;
+export type { NotifyInput };
 
 /** Everything a module route receives (ARQUITETURA §5.1). Nothing else. */
 export type ModuleContext = {

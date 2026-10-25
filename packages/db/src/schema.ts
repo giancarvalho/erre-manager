@@ -21,4 +21,6 @@ export const GLOBAL_TABLES: ReadonlySet<string> = new Set([
   'auth_account',
   'auth_verification',
   'core_profiles',
+  'core_push_subscriptions',
+  'core_notification_preferences',
 ]);

@@ -28,6 +28,17 @@ const EnvSchema = z.object({
   MODULES_ENABLED: z.string().default(''),
   /** Bearer token for POST /v1/internal/jobs/:id/run. Without it the route is off. */
   CRON_SECRET: z.string().min(32).optional(),
+  /** Global push kill switch (P-007, decision A). */
+  PUSH_ENABLED: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((v) => v === 'true'),
+  // Web Push (VAPID): same names as the legacy app. Generate with `npx web-push generate-vapid-keys`.
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().min(1).optional(),
+  VAPID_PRIVATE_KEY: z.string().min(1).optional(),
+  VAPID_SUBJECT: z.string().min(1).optional(),
+  /** Optional Expo access token (push security enabled in the Expo project). */
+  EXPO_ACCESS_TOKEN: z.string().min(1).optional(),
   /** Time zone of votes and job schedules (D-020). */
   VOTING_TIMEZONE: z.string().default('America/Sao_Paulo'),
 });

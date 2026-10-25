@@ -383,6 +383,16 @@ Toda tela que carrega dados tem os quatro estados desenhados:
   - Rotas Expo Router: `(auth)/entrar`, `(app)/index` (hub), `(app)/perfil`, `(app)/perfil/aparencia`, `(app)/errometro/...`, `(app)/eventos/...`, `convite/[codigo]`.
   - Reavaliar barra de abas quando houver 4 ou mais módulos.
 
+### 9.17 Interruptor (proposto no Sprint 9)
+
+Para preferências que ligam e desligam na hora (notificações por tipo, "receber notificações neste aparelho").
+
+- Linha inteira tocável (altura mínima 48): rótulo `body` 500 em `text.primary` e, se houver, descrição `caption` em `text.muted` abaixo; o interruptor à direita.
+- `Switch` nativo do React Native (funciona na web pelo React Native Web), com trilho `accent.solid` quando ligado e `bg.controlSelected` quando desligado; botão `primary.bg` (claro) no tema escuro e `bg.raised` no claro (o próprio sistema desenha a sombra).
+- A mudança vale na hora, sem botão de salvar; em erro, volta ao estado anterior e mostra o motivo em `caption` `danger.text`.
+- Acessibilidade: `accessibilityRole="switch"`, `accessibilityState={{ checked }}`, rótulo da linha como `accessibilityLabel`.
+- Desabilitado: opacidade 0,4 e texto do motivo abaixo (§9.1), como "Seu navegador não aceita notificações."
+
 ---
 
 ## 10. Boas práticas de UX

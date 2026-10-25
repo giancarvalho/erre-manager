@@ -19,6 +19,13 @@ import {
   rejectRequest,
   removeMember,
 } from './members';
+import {
+  deleteSubscription,
+  listPreferences,
+  saveSubscription,
+  setPreference,
+  type NotificationType,
+} from './notifications';
 import { getOrCreateProfile, ProfilePatchSchema, updateProfile } from './profiles';
 import { optionalSession, requireSession } from './session';
 import { validate } from './validate';
@@ -29,6 +36,8 @@ export type CoreApiDeps = {
   trustedOrigins: string[];
   /** Join intents and member hooks declared by modules (Sprint 8 fills them from the manifests). */
   hooks?: MembershipHooks;
+  /** Notification types of enabled modules and push settings (ModuleRuntime.notificationTypes). */
+  notifications?: { types: readonly NotificationType[]; pushEnabled: boolean; webPushPublicKey: string | null };
   /** Permissions seeded in a new community: core + modules (ModuleRuntime.permissions). */
   permissions?: readonly PermissionDef[];
   log?: (message: string, err: unknown) => void;
@@ -41,6 +50,22 @@ const RolePatchSchema = z.object({ role: z.enum(ASSIGNABLE_ROLES) }).strict();
 const InviteParams = z.object({ id: z.uuid(), inviteId: z.uuid() });
 const CreateInviteSchema = z.object({ intent: z.string().min(1).max(100).nullable().optional() }).strict();
 const CodeParams = z.object({ code: z.string().min(1).max(64) });
+const B64URL = z
+  .string()
+  .regex(/^[A-Za-z0-9_-]+=*$/)
+  .max(256);
+const SubscriptionSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      kind: z.literal('webpush'),
+      endpoint: z.url({ protocol: /^https$/ }).max(2048),
+      keys: z.object({ p256dh: B64URL, auth: B64URL }).strict(),
+    })
+    .strict(),
+  z.object({ kind: z.literal('expo'), token: z.string().regex(/^Expo(nent)?PushToken\[[^\]]{1,200}\]$/) }).strict(),
+]);
+const UnsubscribeSchema = z.object({ endpoint: z.string().min(1).max(2048) }).strict();
+const PreferenceSchema = z.object({ type: z.string().min(1).max(100), enabled: z.boolean() }).strict();
 
 /** Core routes, mounted by apps/api under /v1. */
 export function createCoreApi({
@@ -49,6 +74,7 @@ export function createCoreApi({
   trustedOrigins,
   hooks = NO_HOOKS,
   permissions = CORE_PERMISSIONS,
+  notifications = { types: [], pushEnabled: false, webPushPublicKey: null },
   log,
 }: CoreApiDeps) {
   const session = requireSession(auth);
@@ -158,12 +184,39 @@ export function createCoreApi({
       return c.json({ ok: true });
     });
 
+  const push = new Hono()
+    .get('/config', (c) =>
+      c.json({
+        enabled: notifications.pushEnabled,
+        webPushPublicKey: notifications.pushEnabled ? notifications.webPushPublicKey : null,
+      }),
+    )
+    .post('/subscriptions', session, validate('json', SubscriptionSchema), async (c) => {
+      await saveSubscription(db, c.var.user.id, c.req.valid('json'));
+      return c.json({ ok: true }, 201);
+    })
+    .delete('/subscriptions', session, validate('json', UnsubscribeSchema), async (c) => {
+      await deleteSubscription(db, c.var.user.id, c.req.valid('json').endpoint);
+      return c.json({ ok: true });
+    });
+
+  const preferences = new Hono()
+    .get('/', session, async (c) => c.json(await listPreferences(db, c.var.user.id, notifications.types)))
+    .put('/', session, validate('json', PreferenceSchema), async (c) => {
+      const { type, enabled } = c.req.valid('json');
+      if (!notifications.types.some((t) => t.id === type)) throw errors.validation('Tipo de notificação desconhecido.');
+      await setPreference(db, c.var.user.id, type, enabled);
+      return c.json({ type, enabled });
+    });
+
   return new Hono()
     .use('/auth/*', callbackGuard(trustedOrigins))
     .on(['GET', 'POST'], '/auth/*', (c) => auth.handler(c.req.raw))
     .route('/me', me)
     .route('/communities', communities)
-    .route('/invites', invitesApi);
+    .route('/invites', invitesApi)
+    .route('/push', push)
+    .route('/notification-preferences', preferences);
 }
 
 export type CoreApi = ReturnType<typeof createCoreApi>;

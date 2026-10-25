@@ -71,7 +71,7 @@ export default defineModuleApi(manifest, { api, anon, jobs, profileSections, onJ
 | `community` | `{ id, slug, name }` validada pelo core (header `X-Community-Id` + membership aprovada) |
 | `can(permission)` | papel da pessoa na comunidade tem a permissão? |
 | `tx` | transação Drizzle com RLS da comunidade; commit no sucesso, rollback se a rota lançar erro ou responder status ≥ 400 |
-| `notify(input)` | notificação (Sprint 9; até lá só registra). Vira no-op se o módulo estiver desligado |
+| `notify(input)` | `{ userIds, type, title, body, route? }`; `type` declarado no manifesto. Enviado **depois do commit**, só a quem não desligou o tipo; no-op com o módulo ou o push desligado |
 | `members` | `list()`, `get(userId)`, `isApprovedMember(userId)`: membros aprovados com nome e avatar |
 
 Nada além disso. Precisou de mais? Registre `[contrato]` em `DECISOES.md` e proponha.

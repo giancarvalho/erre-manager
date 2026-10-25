@@ -13,6 +13,8 @@ it('Drizzle definitions of the core match the migrations', async () => {
     schema.memberships,
     schema.rolePermissions,
     schema.invites,
+    schema.pushSubscriptions,
+    schema.notificationPreferences,
   ];
   expect(await schemaDifferences(inject('db').admin, tables)).toEqual([]);
 });

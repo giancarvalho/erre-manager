@@ -2,11 +2,15 @@ import { ThemeProvider, useTheme } from '@erre/ui';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+import { registerServiceWorker, useNotificationRouting } from '@/lib/push';
 
 function ThemedStack() {
   const { colors, statusBar } = useTheme();
+  useNotificationRouting();
+  useEffect(registerServiceWorker, []);
   return (
     <>
       <StatusBar style={statusBar} />

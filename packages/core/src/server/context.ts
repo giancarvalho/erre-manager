@@ -15,6 +15,8 @@ export type CommunityEnv = {
     /** Drizzle transaction with RLS scoped to the community. Commits when the route succeeds. */
     tx: Tx;
     can: (permission: string) => Promise<boolean>;
+    /** Runs `fn` after the transaction commits (never on rollback). For side effects like notifications. */
+    afterCommit: (fn: () => void) => void;
   };
 };
 
@@ -34,6 +36,8 @@ export function requireCommunity(db: Db) {
     const communityId = c.req.header(COMMUNITY_HEADER) ?? '';
     if (!isUuid(communityId)) throw forbidden();
     const user = c.var.user;
+    const committed: (() => void)[] = [];
+    c.set('afterCommit', (fn) => committed.push(fn));
     try {
       await withTenantTx(db, { communityId, userId: user.id }, async (tx) => {
         const [m] = await tx
@@ -65,7 +69,9 @@ export function requireCommunity(db: Db) {
       });
     } catch (err) {
       if (!(err instanceof Rollback)) throw err;
+      return;
     }
+    for (const fn of committed) fn();
   });
 }
 

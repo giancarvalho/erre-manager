@@ -21,7 +21,21 @@ const api = createModuleApp()
       .returning();
     return c.json(row, 201);
   })
-  .get('/participants', async (c) => c.json(await c.var.ctx.tx.select().from(participants)));
+  .get('/participants', async (c) => c.json(await c.var.ctx.tx.select().from(participants)))
+  // Notifies every member; with ?falhar=1 the route fails after calling notify (nothing must be sent).
+  .post('/avisar', async (c) => {
+    const { ctx } = c.var;
+    const members = await ctx.members.list();
+    await ctx.notify({
+      userIds: members.map((m) => m.userId),
+      type: 'contratoteste.aviso',
+      title: 'Aviso',
+      body: 'Teste',
+      route: '/contratoteste',
+    });
+    if (c.req.query('falhar')) throw errors.rule('FALHOU', 'Falhou depois de avisar.');
+    return c.json({ ok: true });
+  });
 
 export type ContratoTesteApi = typeof api;
 

@@ -10,7 +10,7 @@ Formato: ID, sprint que bloqueia, contexto, opções, recomendação. Quando res
 | P-004 | Sprint 1 | respondida (D-021) |
 | P-005 | — | sem efeito (D-026: não há grupos) |
 | P-006 | Sprint 6 | respondida (D-022) |
-| P-007 | Sprint 9 | aberta |
+| P-007 | Sprint 9 | decidida provisoriamente (A), confirmar |
 | P-008 | Sprint 18 | aberta |
 | P-009 | Sprint 6 (seed) | aberta |
 | P-010 | Sprint 19 | aberta |
@@ -72,6 +72,7 @@ Formato: ID, sprint que bloqueia, contexto, opções, recomendação. Quando res
 **Contexto:** o legado tem `push_notifications_config` e `POST /api/admin/push-notifications/toggle`.
 - **A. Virar variável de ambiente `PUSH_ENABLED`.** **B. Manter no banco com rota administrativa.**
 **Recomendação:** A, coerente com D-007.
+**Situação (Sprint 9):** implementado A (`PUSH_ENABLED`), seguindo a preferência do humano por desligar pelo deploy (D-007). Trocar para B é uma tabela e uma rota; nenhum outro código muda.
 
 ### P-008 — Imagens de compartilhamento (OG) e ícones dinâmicos
 **Contexto:** o legado gera imagens OG (`/api/og`) e ícones PWA (`/api/pwa-icons/[size]`) dinamicamente. O export web do Expo é estático.

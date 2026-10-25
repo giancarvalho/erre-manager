@@ -19,6 +19,7 @@ Legenda: ✅ verificado · ⏳ verificado só por build/export (falta aparelho) 
 | `better-auth` (cliente) + `@better-auth/expo` | 1.7.7 | ⏳ | ⏳ | ✅ | Login Google (D-017) | Sprint 2: na web, o clique leva ao Google com PKCE e state. Sprint 5: fluxo completo na web (e2e com Google simulado); export nativo verde |
 | `expo-web-browser` | 58 | ⏳ | ⏳ | — | Abre o login do Google no nativo (plugin Expo do Better Auth) | Sprint 5: export nativo |
 | `hono/client` (`hono` 4.13) | 4.13 | ⏳ | ⏳ | ✅ | Cliente RPC tipado por módulo (D-009) | Sprint 8: jest com o módulo de teste; export web e nativo |
+| `expo-notifications` | 58.1 | ⏳ | ⏳ | — | Permissão, token Expo e toque na notificação (D-012) | Sprint 9: export nativo e `expo-doctor` 20/20; falta aparelho e projeto EAS |
 | `zod` | 4.6 | ⏳ | ⏳ | ✅ | Validação no app com as mesmas regras da API (`@erre/core/client`) | Sprint 5: e2e web, export nativo |
 | `@noble/hashes` | 2.4.0 | ✅* | ⏳ | ✅ | SHA-256/384 do cliente da assinatura cega (D-011) | Sprint 2: vitest, navegador e Hermes 0.12 (*motor Hermes via CLI, não aparelho) |
 | `@tanstack/react-query` | 5.104 | ⏳ | ⏳ | ✅ | Cache e estado de servidor no app (ARQUITETURA) | Sprint 3: JS puro; export Android/iOS e e2e web verdes |
@@ -34,6 +35,8 @@ Legenda: ✅ verificado · ⏳ verificado só por build/export (falta aparelho) 
 | `drizzle-orm` | 0.45.4 | ORM e query builder (D-032); schemas dos módulos via `@erre/db/pg-core` | Sprint 4 |
 | `pg` | 8.23 | Driver Postgres (pools `erre_app` e `erre_jobs`, runner de migrations) | Sprint 4 |
 | `node-cron` | 4.6 | Agenda os jobs dos módulos (D-013) | Sprint 8 |
+| `web-push` | 3.6 | Web Push com VAPID para a PWA (D-012; o legado já usava) | Sprint 9 (transporte simulado nos testes) |
+| `expo-server-sdk` | 8.0 | Envio em lotes e recibos do Expo Push (D-012) | Sprint 9 (transporte simulado nos testes) |
 | `pino` | 10.4 | Log estruturado com `redact` (sem dados pessoais) | Sprint 3 |
 | `zod` | 4.6 | Validação de entrada em toda rota | Sprint 3 |
 | `better-auth` | 1.7.7 | Auth (D-017, D-031) | Sprint 2: início do login Google, checagem de origem, guarda do callback |

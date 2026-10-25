@@ -227,7 +227,8 @@ O gerador `create-module` (Sprint 20) cria esses arquivos.
 1. Ignora se o módulo dono do `type` está desligado ou se `PUSH_ENABLED=false`.
 2. Filtra usuários pelas preferências (`core_notification_preferences`, default do manifesto).
 3. Envia por dois transportes: **Web Push** (VAPID, para a PWA) e **Expo Push** (Android/iOS), conforme as inscrições do usuário (`core_push_subscriptions.kind`).
-4. Remove inscrições inválidas (404/410 no Web Push, `DeviceNotRegistered` no Expo).
+4. Remove inscrições inválidas (404/410 no Web Push, `DeviceNotRegistered` no Expo, no ticket ou no recibo ~15 min depois).
+5. **Só depois do commit:** em rotas e jobs, `notify()` junta as mensagens e o envio acontece quando a transação confirma, em segundo plano. Rota que falha não notifica, e a rede de push não segura transação aberta (D-040).
 
 ## 7. Jobs
 

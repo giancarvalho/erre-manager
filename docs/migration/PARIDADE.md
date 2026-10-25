@@ -25,10 +25,10 @@ Classificação: **igual** = migrar como está · **mudança** = migrar com muda
 | CORE-13 | Home com minhas comunidades | `/` logado · `src/lib/groups/home-groups.ts` | — | igual | core | 7 | concluído no Sprint 6 (lista, seleção automática e troca) |
 | CORE-14 | Página de membro | `/group/[id]/member/[userId]` · `MemberProfileLink` | — | igual | core + módulos | 18 | pendente |
 | CORE-15 | Perfil (nome, avatar, troféus, notificações) | `/profile` · `updateProfileAction` | R-MEM-08 | mudança: seções de perfil vêm dos módulos (D-018) | core | 18 | pendente |
-| CORE-16 | Push: inscrever, desinscrever | `api/push/subscribe`, `api/push/unsubscribe` · `sw.js`, `RegisterSW.tsx` | R-NOT-04 | mudança: Web Push + Expo Push (D-012) | core | 9 | pendente |
-| CORE-17 | Preferências de notificação | `api/notification-preferences` · `PushNotificationsToggle.tsx` | R-NOT-02 | mudança: genéricas por tipo declarado no manifesto | core | 9 | pendente |
-| CORE-18 | Kill switch global de push | `api/admin/push-notifications/toggle` | R-NOT-03 | mudança: variável `PUSH_ENABLED` (P-007) | core | 9 | pendente |
-| CORE-19 | Prompt de notificação na primeira visita | `FirstVisitNotificationPrompt.tsx` | — | mudança: pedir no momento de valor (DESIGN §10.1) | core | 9 | pendente |
+| CORE-16 | Push: inscrever, desinscrever | `api/push/subscribe`, `api/push/unsubscribe` · `sw.js`, `RegisterSW.tsx` | R-NOT-04 | mudança: Web Push + Expo Push (D-012) | core | 9 | concluído (web testada sem serviço de push real; nativo depende de aparelho e projeto EAS) |
+| CORE-17 | Preferências de notificação | `api/notification-preferences` · `PushNotificationsToggle.tsx` | R-NOT-02 | mudança: genéricas por tipo declarado no manifesto | core | 9 | concluído |
+| CORE-18 | Kill switch global de push | `api/admin/push-notifications/toggle` | R-NOT-03 | mudança: variável `PUSH_ENABLED` (P-007) | core | 9 | concluído (`PUSH_ENABLED`, P-007 decidida provisoriamente) |
+| CORE-19 | Prompt de notificação na primeira visita | `FirstVisitNotificationPrompt.tsx` | — | mudança: pedir no momento de valor (DESIGN §10.1) | core | 9 | alternância em Notificações concluída; pedido no momento de valor entra no Errômetro (Sprint 14) |
 | CORE-20 | Ícones PWA, manifest, apple-icon | `api/pwa-icons/[size]`, `manifest.ts`, `icon.tsx`, `apple-icon.tsx` | — | mudança: ícones estáticos (P-008) | app | 18 | pendente |
 | CORE-21 | Imagem OG | `api/og` | — | decidir em P-008 | app/api | 18 | pendente |
 | CORE-22 | Links universais iOS | `.well-known/apple-app-site-association` | — | igual (mais `assetlinks.json` Android) | app | 18 | pendente |

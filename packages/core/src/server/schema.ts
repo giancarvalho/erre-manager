@@ -1,5 +1,5 @@
 import { createTenantTable } from '@erre/db';
-import { boolean, pgTable, primaryKey, text, timestamp, unique, uuid } from '@erre/db/pg-core';
+import { boolean, index, jsonb, pgTable, primaryKey, text, timestamp, unique, uuid } from '@erre/db/pg-core';
 
 import { ROLES } from '../shared/community';
 
@@ -105,4 +105,33 @@ export const invites = createTenantTable(
     revokedAt: ts('revoked_at'),
   },
   (t) => [unique('core_community_invites_community_id_secret_key').on(t.communityId, t.secret)],
+);
+
+export const pushSubscriptions = pgTable(
+  'core_push_subscriptions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => authUser.id, { onDelete: 'cascade' }),
+    kind: text('kind', { enum: ['webpush', 'expo'] }).notNull(),
+    endpoint: text('endpoint').notNull().unique(),
+    keys: jsonb('keys').$type<{ p256dh: string; auth: string }>(),
+    createdAt: ts('created_at').notNull().defaultNow(),
+    lastSeenAt: ts('last_seen_at').notNull().defaultNow(),
+  },
+  (t) => [index('core_push_subscriptions_user_id_idx').on(t.userId)],
+);
+
+export const notificationPreferences = pgTable(
+  'core_notification_preferences',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => authUser.id, { onDelete: 'cascade' }),
+    type: text('type').notNull(),
+    enabled: boolean('enabled').notNull(),
+    updatedAt: ts('updated_at').notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.type] })],
 );

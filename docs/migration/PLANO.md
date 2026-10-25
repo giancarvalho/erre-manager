@@ -25,7 +25,7 @@ Leia antes: [`AGENTS.md`](../../AGENTS.md), [`ARQUITETURA.md`](ARQUITETURA.md), 
 | 6 | Comunidades, papéis, `can()` e contexto da requisição | M | 5 | **sim** | concluído (revisão humana assíncrona, D-029) |
 | 7 | Convites, entrada e membros da comunidade | M | 6 | não | concluído |
 | 8 | Runtime de módulos (contrato v0) e shell do app | G | 7 | **sim** | concluído (revisão do contrato pendente, D-029) |
-| 9 | `notify()` e push (Web Push + Expo Push) | M | 8 | não | pendente |
+| 9 | `notify()` e push (Web Push + Expo Push) | M | 8 | não | concluído (aparelho e chaves reais pendentes) |
 | 10 | `packages/ui`: design system | M | 3 | não | pendente |
 | 11 | Pacotes compartilhados: `anon-vote` e `emoji` | M | 3 | não | pendente |
 | 12 | Errômetro API I: participação, voto anônimo, configuração | G | 8, 11 | não | pendente |

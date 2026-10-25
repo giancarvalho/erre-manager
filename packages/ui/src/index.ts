@@ -5,6 +5,7 @@ export { Button, type ButtonProps, type ButtonVariant } from './components/Butto
 export { Card, type CardProps } from './components/Card';
 export { ConfirmCard } from './components/ConfirmCard';
 export { Screen } from './components/Screen';
+export { SwitchRow } from './components/SwitchRow';
 export { ScreenHeader } from './components/ScreenHeader';
 export { ErrorState, LoadingState } from './components/States';
 export { Text, type TextProps, type TextTone, type TextVariant } from './components/Text';

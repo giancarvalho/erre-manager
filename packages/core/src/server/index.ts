@@ -45,3 +45,15 @@ export {
 export { createModuleRuntime, type ModuleRuntime, type ModuleRuntimeDeps } from './modules/runtime';
 export { moduleProblems, parseEnabledModules } from './modules/validate';
 export { defineManifest, type ModuleManifest } from '../shared/manifest';
+export {
+  createNotifier,
+  expoTransport,
+  webPushTransport,
+  type ExpoTicket,
+  type ExpoTransport,
+  type NotificationType,
+  type Notifier,
+  type PushPayload,
+  type WebPushSubscription,
+  type WebPushTransport,
+} from './notifications';
