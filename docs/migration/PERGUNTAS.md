@@ -6,7 +6,7 @@ Formato: ID, sprint que bloqueia, contexto, opções, recomendação. Quando res
 |---|---|---|
 | P-001 | — | sem efeito (D-026: não há grupos) |
 | P-002 | — | respondida (D-023) |
-| P-003 | Sprint 1 (classificação) | aberta |
+| P-003 | Sprint 18 | aberta |
 | P-004 | Sprint 1 | respondida (D-021) |
 | P-005 | — | sem efeito (D-026: não há grupos) |
 | P-006 | Sprint 6 | respondida (D-022) |
@@ -17,6 +17,8 @@ Formato: ID, sprint que bloqueia, contexto, opções, recomendação. Quando res
 | P-011 | Sprint 3 | aberta |
 | P-012 | — | respondida (D-027) |
 | P-013 | — | respondida (D-028) |
+| P-014 | Sprint 16 | aberta |
+| P-015 | Sprint 7 | aberta |
 
 ---
 
@@ -42,6 +44,7 @@ Formato: ID, sprint que bloqueia, contexto, opções, recomendação. Quando res
 **Contexto:** o legado tem um grupo virtual `demo`, sem banco e sem login, usado na landing.
 - **A. Descartar.** **B. Recriar como tela estática de demonstração.** **C. Portar como está.**
 **Recomendação:** A, a menos que a landing dependa dele para converter visitantes.
+**Evidência do Sprint 1:** o demo é o único que usa o caminho de voto HMAC com `VOTER_TAG_SECRET` (R-ANON-08) e a tela "Resultados reservados" (R-RES-06). Descartá-lo elimina esse segredo e esses dois caminhos de código. A landing pode trocar o "Ver grupo demo" por um "Ver como funciona" estático.
 
 ### P-004 — Congelamento do legado
 **Resposta (2026-10-25):** o legado não está sendo mexido (D-021).
@@ -100,3 +103,15 @@ Também: manter ou não um limite de membros por comunidade (no legado, 300 por 
 - **A. Cada grupo do legado vira uma comunidade.** Prós: nada se perde nem se mistura. Contras: quem estava em dois grupos fica em duas comunidades.
 - **B. Fundir grupos numa comunidade** (ex.: "R"). Contras: históricos e configurações de Errômetro conflitantes; precisa escolher qual vale.
 **Recomendação:** A. Não afeta a arquitetura, só o plano de dados (D-016). O Sprint 1 levanta quantos grupos existem e quem está em cada um.
+
+### P-014 — Abrir o link de um evento torna a pessoa participante sem aprovação?
+**Contexto:** no legado, quem abre o link de um evento vira participante na hora, inclusive quem não é membro aprovado (só cria um pedido pendente de entrada). Quem foi rejeitado ou removido fica bloqueado (R-EVT-07). Participante pode votar e recebe votos.
+- **A. Manter:** link de evento = participação imediata, mais um pedido pendente de entrada na comunidade. Prós: paridade; eventos abertos a convidados (ex.: festa). Contras: alguém de fora vota e recebe votos sem aprovação.
+- **B. Só membros aprovados participam;** quem não é membro faz o pedido de entrada com a intenção "participar do evento" (D-023) e entra quando aprovado. Contras: muda o comportamento atual.
+**Recomendação:** B, coerente com "tudo é da comunidade" (D-026), a menos que eventos com convidados de fora sejam um uso real.
+
+### P-015 — Entrar digitando o nome da comunidade
+**Contexto:** no legado, o nome do grupo (slug) é o código de convite, e "Entrar com o nome do grupo" deixa qualquer pessoa que saiba o nome pedir entrada (R-MEM-07). O plano novo usa link de convite com código revogável.
+- **A. Só link/código de convite revogável.** Prós: dá para revogar um link vazado. Contras: some o "digitar o nome".
+- **B. Os dois:** código revogável e também pedir entrada digitando o slug da comunidade. Contras: o slug não é revogável; como todo pedido fica `pending`, o risco é só de spam de pedidos.
+**Recomendação:** B, mantendo a paridade e a aprovação obrigatória.

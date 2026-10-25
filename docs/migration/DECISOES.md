@@ -151,3 +151,8 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 **Decisão:** no plano de dados (D-016), cada grupo do legado vira uma comunidade própria, com seu Errômetro, histórico de rodadas, emojis e eventos.
 **Motivo:** nada se perde nem se mistura; com um Errômetro por comunidade (D-026), fundir grupos obrigaria a fundir históricos e configurações.
 **Consequências:** quem estava em mais de um grupo passa a ter uma membership em cada comunidade correspondente; o app já lida com várias comunidades (seletor, D-014). Não afeta a arquitetura.
+
+### D-029 — Execução contínua das sprints e branch único
+**Data:** 2026-10-25 · **Status:** aceita (instrução do humano)
+**Decisão:** o agente segue para a próxima sprint assim que a anterior termina com todos os checks verdes, sem esperar aprovação, a menos que precise de uma decisão muito importante que não possa ficar para depois. Os "gates humanos" do PLANO viram revisão assíncrona: o humano revisa os relatórios em `docs/migration/relatorios/` e as decisões, e pode pedir mudança a qualquer momento. Nesta execução, todo o trabalho vai para o branch designado da sessão (`claude/practical-darwin-wsd749`), um commit ou mais por sprint, em vez de um branch e um PR por sprint.
+**Consequências:** o que exige o humano ou um dispositivo físico (teste em Android/iOS, conta Google Cloud, conta Apple, publicação) fica registrado como pendência no relatório da sprint, sem travar as seguintes.

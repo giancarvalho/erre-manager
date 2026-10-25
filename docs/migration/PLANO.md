@@ -17,7 +17,7 @@ Leia antes: [`AGENTS.md`](../../AGENTS.md), [`ARQUITETURA.md`](ARQUITETURA.md), 
 
 | # | Sprint | Tam. | Depende de | Gate humano | Status |
 |---|---|---|---|---|---|
-| 1 | Inventário e checklist de paridade (somente leitura) | M | — | **sim** | pendente |
+| 1 | Inventário e checklist de paridade (somente leitura) | M | — | **sim** | concluído |
 | 2 | Protótipo Expo: decisão de go/no-go | G | 1 (parcial) | **sim** | pendente |
 | 3 | Monorepo, ferramentas e CI | M | 2 | não | pendente |
 | 4 | `packages/db`: papéis, RLS e migrations | M | 3 | **sim** | pendente |
@@ -81,7 +81,7 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 - Jobs: `legado:src/instrumentation.ts`, `legado:src/lib/jobs/*`, `legado:src/app/api/cron/*`.
 - Domínio: `legado:src/domain/{voting,events,notifications}/*`, `legado:src/lib/*`.
 - Páginas (16): `/`, `/login`, `/register`, `/onboarding/name`, `/profile`, `/results`, `/group/[id]`, `/group/[id]/vote`, `/group/[id]/settings`, `/group/[id]/member/[userId]`, `/group/[id]/wall`, `/group/[id]/events`, `/group/[id]/events/new`, `/group/[id]/events/[eventId]`, `.../results`, `.../vote`.
-- Route handlers (17) em `legado:src/app/api/**` e `legado:src/app/.well-known/**`.
+- Route handlers (19) em `legado:src/app/api/**` e `legado:src/app/.well-known/**`.
 - Server actions (~45) em `legado:src/app/actions/*` e `legado:src/lib/**/\*actions*.ts`.
 
 **Tarefas:**
@@ -248,7 +248,7 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 
 **Tarefas:**
 1. `core_community_invites` (tenant): `code`, `created_by`, `intent` (opcional, ver 3), `revoked_at`. Regenerar e revogar link (`core.convites.gerenciar`).
-2. Fluxo de entrada: `GET /v1/invites/:code` (prévia pública mínima: nome da comunidade e, se houver, o que o convite inclui), `POST /v1/invites/:code/join` (cria membership `pending`; sempre `pending`, nunca aprovação automática), aprovar/rejeitar/remover/sair, com as mesmas transições do legado (`pending → approved | rejected`, `approved → removed`, quem foi rejeitado ou removido não repede pelo mesmo caminho sem o admin).
+2. Fluxo de entrada: `GET /v1/invites/:code` (prévia pública mínima: nome da comunidade e, se houver, o que o convite inclui), `POST /v1/invites/:code/join` (cria membership `pending`; sempre `pending`, nunca aprovação automática), aprovar/rejeitar/remover/sair, com as mesmas transições do legado (`pending → approved | rejected`, `approved → removed`). Quem foi rejeitado ou removido pode pedir de novo explicitamente (volta a `pending`); a entrada automática ao abrir o hub não repede (R-MEM-02).
 3. **Um pedido só (D-023):** módulos podem declarar no manifesto **intenções de entrada** (`joinIntents`, ex.: `errometro.participar` = "Entrar e participar do Errômetro"). Um convite com `intent` gera um único pedido; quando o admin aprova a entrada, o core chama, na mesma transação, o `onJoinApproved(ctx, intent, userId)` do módulo dono. Se o módulo não puder concluir (ex.: limite de votantes cheio), a pessoa entra na comunidade e o módulo deixa a participação na fila dele, com aviso. Registrar em `docs/CONTRATO.md` como `[contrato]`.
 4. API pública para módulos (`ctx.members`): `list` (membros aprovados com nome de exibição e avatar), `get`, `isApprovedMember`. Módulos **não** leem as tabelas do core.
 5. Lista de membros e pedidos pendentes para `owner`/`admin`; perfil curto de cada membro.
