@@ -24,7 +24,7 @@ packages/
   config/            tsconfig base, ESLint (inclui regras de fronteira), Prettier
   db/                conexão, papéis de banco, communities (âncora do tenant), createTenantTable(),
                      withTenantTx(), runner de migrations, testes de RLS
-  core/              auth, perfis, comunidades, memberships, grupos, papéis, can(), notify(),
+  core/              auth, perfis, comunidades, memberships, convites, papéis, can(), notify(),
                      contexto da requisição, runtime de módulos, jobs
   ui/                design system em React Native (tokens + componentes)
   anon-vote/         assinatura cega RFC 9474 (servidor + cliente), agregação de votos
@@ -67,7 +67,7 @@ Garantidas por ESLint (`eslint-plugin-boundaries` ou equivalente, definido no Sp
 
 - **Comunidade** (`communities`): o tenant. Toda tabela de dados de comunidade tem `community_id` e RLS.
 - **Membership de comunidade** (`core_community_memberships`): papel por comunidade (`owner`, `admin`, `moderador`, `membro`).
-- **Grupo** (`core_groups`): subgrupo dentro da comunidade (ex.: `r-uberlandia` dentro da comunidade "R"). Tem membership própria com fluxo de aprovação e papel de grupo (`admin`, `membro`) (D-006).
+- **Sem subgrupos na v1** (D-026). Tudo o que está no escopo (Errômetro, eventos, perfil) é da comunidade inteira, porque um membro participa de vários subgrupos. Subgrupos (como os do WhatsApp) entram no core só quando houver algo exclusivo de um subgrupo, provavelmente junto com o bot. Nada no modelo atual impede isso: entra como tabela nova e um escopo opcional.
 - **Tabelas globais** (sem `community_id`, sem RLS de tenant): usuários e sessões (Better Auth), perfis, inscrições de push, preferências de notificação. Ficam numa allowlist explícita no teste de cobertura de RLS.
 
 ### 4.2 RLS
@@ -86,7 +86,7 @@ CREATE INDEX ON <tabela> (community_id);
 - `current_setting('app.community_id')` **sem** `missing_ok`: se a variável não foi definida, a consulta falha (fail closed), em vez de vazar.
 - Tabelas filhas (ex.: votos de um evento) têm `community_id` próprio e **FK composta** `(community_id, parent_id) → parent(community_id, id)`, para que uma linha nunca aponte para um pai de outra comunidade (D-015). O pai precisa de `UNIQUE (community_id, id)`.
 - `core_community_memberships` tem uma policy adicional que permite ao usuário ler as próprias linhas em qualquer comunidade (`user_id = current_setting('app.user_id')::uuid`), para listar "minhas comunidades".
-- Módulos podem ter FK para tabelas do core (`communities`, usuários, `core_groups`), nunca para tabelas de outro módulo.
+- Módulos podem ter FK para tabelas do core (`communities`, usuários), nunca para tabelas de outro módulo.
 
 ### 4.3 Papéis de banco
 
@@ -114,7 +114,7 @@ Para quem tem uma comunidade só, o app seleciona a comunidade automaticamente; 
 Montadas em `/v1/<modulo>/anon/*`, **sem** o middleware de sessão (D-010):
 
 - O handler recebe `{ community, tx }` e nada mais. Não há `user`.
-- A comunidade é derivada no servidor a partir do recurso (ex.: `groupId` → `core_groups.community_id`) por uma função do core, nunca do header.
+- A comunidade vem no caminho (`/v1/<modulo>/anon/c/:communityId/...`) e é **validada pela própria credencial anônima**: o handler abre a transação dessa comunidade e verifica a assinatura cega contra a chave do período **dessa** comunidade. Comunidade trocada = assinatura inválida = 401. É a única forma permitida de aceitar `community_id` sem sessão.
 - Cookies e `Authorization` são ignorados (e o cliente não os envia: `credentials: 'omit'` na web, sem header no nativo).
 - O logger dessas rotas não registra IP, user-agent nem identificadores.
 - Uma regra de ESLint proíbe importar helpers de sessão ou de usuário em `modules/*/api/anon/**`.
@@ -132,12 +132,15 @@ export default defineManifest({
   permissions: [
     { id: 'errometro.ver',     defaultRoles: ['owner', 'admin', 'moderador', 'membro'] },
     { id: 'errometro.votar',   defaultRoles: ['owner', 'admin', 'moderador', 'membro'] },
-    { id: 'errometro.moderar', defaultRoles: ['owner', 'admin'], groupAdmin: true },
+    { id: 'errometro.moderar', defaultRoles: ['owner', 'admin'] },
   ],
   menu: [{ label: 'Errômetro', route: '/errometro' }],
   notifications: [
     { id: 'errometro.resultado_pronto', label: 'Resultado liberado', defaultEnabled: true },
     { id: 'errometro.lembrete_fechamento', label: 'Lembrete antes de fechar', defaultEnabled: true },
+  ],
+  joinIntents: [
+    { id: 'errometro.participar', label: 'Entrar e participar do Errômetro' },
   ],
   commands: [], // bot de WhatsApp (fase futura)
 })
@@ -150,6 +153,7 @@ export default defineModuleApi(manifest, {
   anon: errometroAnonApp,     // sub-app Hono sem sessão, montada em /v1/errometro/anon
   jobs: [{ id: 'errometro.fechar_rodadas', schedule: '*/15 * * * *', run: closeRounds }],
   profileSections: [{ id: 'errometro.trofeus', load: loadTrophiesForProfile }],
+  onJoinApproved: { 'errometro.participar': approveParticipationOnJoin }, // roda na transação da aprovação
   data: { export: exportUserData, delete: deleteUserData }, // LGPD (Sprint 19)
 })
 export type ErrometroApi = typeof errometroApp
@@ -168,25 +172,30 @@ export default defineModuleUi(manifest, {
 type ModuleContext = {
   user: { id: string; displayName: string }
   community: { id: string; slug: string; name: string }
-  can(permission: string, scope?: { groupId: string }): Promise<boolean>
+  can(permission: string): Promise<boolean>
   tx: TenantTransaction          // Drizzle, já com RLS configurado
   notify(input: NotifyInput): Promise<void>
-  groups: GroupsPublicApi        // leitura de grupos e memberships do core
+  members: MembersPublicApi      // leitura dos membros aprovados da comunidade, com nome e avatar
 }
 type AnonContext = { community: { id: string }; tx: TenantTransaction }
-type JobContext = { community: { id: string }; tx: TenantTransaction; notify; groups; now: Date }
+type JobContext = { community: { id: string }; tx: TenantTransaction; notify; members; now: Date }
 ```
 
 Nada além disso. Se um módulo precisar de mais, registre `[contrato]` em `DECISOES.md` e proponha ajuste. Não contorne.
 
-### 5.2 Permissões
+### 5.2 Entrada na comunidade e intenções
+
+- Quem entra numa comunidade usa um link de convite e fica `pending` até `owner`/`admin` aprovar (D-023).
+- Um convite pode carregar uma **intenção** declarada por um módulo (`joinIntents`), como "Entrar e participar do Errômetro". A pessoa faz **um pedido só**; quando a entrada é aprovada, o core chama o `onJoinApproved` do módulo na mesma transação.
+- Se o módulo não conseguir concluir (ex.: limite de votantes cheio), a entrada na comunidade vale e o módulo deixa a participação na fila dele, avisando a pessoa.
+
+### 5.3 Permissões
 
 - Strings `modulo.acao`, declaradas no manifesto com `defaultRoles`. O prefixo precisa ser o `id` do módulo (validado no boot).
 - `core_role_permissions (community_id, role, permission)` guarda o mapeamento por comunidade, semeado pelos defaults dos manifestos. Edição pela comunidade fica para depois da migração.
-- `groupAdmin: true` indica que o admin do grupo tem a permissão **no escopo daquele grupo** (`can('errometro.moderar', { groupId })`).
-- Resolução de `can(p, { groupId })`: verdadeiro se o papel de comunidade do usuário tem `p`, ou se `p` tem `groupAdmin` e o usuário é admin aprovado do grupo.
+- `can(p)`: verdadeiro se o papel do usuário na comunidade tem `p`. Não há escopo menor que a comunidade na v1.
 
-### 5.3 Liga/desliga de módulos
+### 5.4 Liga/desliga de módulos
 
 Feature flag de ambiente, para o app inteiro (D-007):
 
@@ -195,12 +204,12 @@ Feature flag de ambiente, para o app inteiro (D-007):
 - As **migrations de módulos desligados continuam rodando**: o schema não depende da flag.
 - Desligar = mudar a variável e reiniciar a API. Não exige novo build do app.
 
-### 5.4 Rotas no app (Expo Router)
+### 5.5 Rotas no app (Expo Router)
 
 O Expo Router é baseado em arquivos, então telas de módulos não são registradas dinamicamente. Cada tela de módulo tem um arquivo fino em `apps/mobile/app/` que reexporta a tela do módulo:
 
 ```tsx
-// apps/mobile/app/(app)/g/[groupId]/errometro/votar.tsx
+// apps/mobile/app/(app)/errometro/votar.tsx
 export { default } from '@erre/errometro/ui/screens/VoteScreen'
 ```
 
@@ -226,7 +235,7 @@ O gerador `create-module` (Sprint 20) cria esses arquivos.
 
 O protocolo do legado é mantido (D-011):
 
-1. Cliente autenticado pede a chave pública do período (`GET`), depois pede um token: envia a mensagem **cegada**; o servidor registra a emissão (uma por usuário/grupo/período, **sem timestamp**) e assina às cegas.
+1. Cliente autenticado pede a chave pública do período (`GET`), depois pede um token: envia a mensagem **cegada**; o servidor registra a emissão (uma por usuário/comunidade/período, **sem timestamp**) e assina às cegas.
 2. Cliente finaliza a assinatura e envia os votos para a **rota anônima** com a mensagem preparada e a assinatura.
 3. O servidor verifica a assinatura com a chave do período e grava os votos com um `voter_tag` derivado do token. Os votos não têm `user_id`.
 

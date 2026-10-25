@@ -33,7 +33,7 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 **Motivo:** no legado a dependência é unidirecional (eventos importam da votação recorrente; o contrário não acontece) e o commit #97 já tinha separado eventos como aplicação própria. Separar força o contrato a resolver pacotes compartilhados e extensão do perfil, que os módulos do hackathon também vão precisar.
 
 ### D-006 — Grupos são subgrupos de comunidade, no core `[contrato]`
-**Data:** 2026-10-25 · **Status:** aceita
+**Data:** 2026-10-25 · **Status:** substituída por D-026
 **Decisão:** `core_groups` e `core_group_memberships` ficam no core. Uma comunidade tem vários grupos. A membership de grupo tem fluxo `pending → approved | rejected`, `approved → removed`, e papel de grupo (`admin`, `membro`).
 **Motivo:** o humano escolheu subgrupos. Como Errômetro e Eventos usam grupos e módulos não podem compartilhar tabelas, grupos precisam ser do core.
 **Consequências:** a aprovação para votar no Errômetro (`votingStatus` do legado, limite de 50 votantes) vira tabela do módulo (`errometro_participants`). Participantes de evento ficam em `eventos_participants`. Módulos consultam grupos pela API pública do core (`ctx.groups`), nunca pelas tabelas.
@@ -42,7 +42,7 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 **Data:** 2026-10-25 · **Status:** aceita
 **Decisão:** não existe `community_modules`. A API lê `MODULES_ENABLED` (lista separada por vírgula). Desligar um módulo = mudar a variável e reiniciar a API.
 **Motivo:** o humano não precisa de liga/desliga por comunidade agora e quer desligar fácil por deploy.
-**Consequências:** ver ARQUITETURA §5.3. Liga/desliga por comunidade fica no backlog.
+**Consequências:** ver ARQUITETURA §5.4. Liga/desliga por comunidade fica no backlog.
 
 ### D-008 — Montagem estática dos módulos na API
 **Data:** 2026-10-25 · **Status:** aceita
@@ -56,7 +56,7 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 
 ### D-010 — Rotas anônimas sem sessão `[contrato]`
 **Data:** 2026-10-25 · **Status:** aceita
-**Decisão:** módulos podem declarar uma sub-app `anon`, montada em `/v1/<id>/anon` sem middleware de sessão, com contexto `{ community, tx }`. A comunidade é derivada no servidor a partir do recurso.
+**Decisão:** módulos podem declarar uma sub-app `anon`, montada em `/v1/<id>/anon` sem middleware de sessão, com contexto `{ community, tx }`. A comunidade vem no caminho e é validada pela própria credencial anônima: a assinatura cega só confere com a chave do período daquela comunidade (revisto com D-026; ARQUITETURA §4.5).
 **Motivo:** no legado, a rota de envio de votos não lê a sessão de propósito (`legado:src/app/api/groups/[id]/vote/route.ts`); se ela souber quem é o usuário, o anonimato acaba. O contrato original entregava `user` em todo contexto.
 
 ### D-011 — Assinatura cega no app nativo: implementação JS pura do cliente
@@ -118,12 +118,10 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 **Decisão:** criar comunidade é uma funcionalidade do app, aberta a qualquer usuário logado. Quem cria vira `owner`.
 **Consequências:** `POST /v1/communities` é a única rota autenticada sem comunidade no contexto; precisa de rate limit e de teste próprio de isolamento (Sprint 6).
 
-### D-023 — Entrada em comunidades e grupos por link de convite, como no Errômetro
-**Data:** 2026-10-25 · **Status:** aceita (resposta a P-001, P-002, P-005); detalhes em confirmação
-**Decisão:** comunidades e grupos têm link de convite. Quem abre o link pede entrada e fica `pending` até aprovação (`owner`/`admin` na comunidade; admin do grupo no grupo), com os mesmos estados do fluxo de grupos do legado. Qualquer membro aprovado da comunidade cria grupos, como qualquer usuário cria grupo no Errômetro hoje.
-**Interpretações aguardando confirmação:**
-- P-001: quem abre o link de um grupo sem ser da comunidade faz um único pedido; aprovado no grupo, vira `membro` da comunidade (sem uma segunda aprovação).
-- P-002: a membership de grupo tem papel (`admin`/`membro`); quem cria o grupo é `admin`; promover outras pessoas fica para depois; `owner`/`admin` da comunidade têm poder de admin em todos os grupos.
+### D-023 — Entrada na comunidade por link de convite, com um pedido só
+**Data:** 2026-10-25 · **Status:** aceita (respostas a P-001, P-002, P-005; revista com D-026)
+**Decisão:** a comunidade tem link de convite. Quem abre o link pede entrada e fica `pending` até `owner`/`admin` aprovar, com os mesmos estados do fluxo de entrada no grupo do legado (`pending → approved | rejected`, `approved → removed`). Um convite pode incluir uma intenção de um módulo (ex.: "Entrar e participar do Errômetro"): a pessoa faz **um pedido só** e uma aprovação vale para os dois (ARQUITETURA §5.2). `owner`/`admin` da comunidade administram tudo dela, inclusive o Errômetro (resposta a P-002).
+**Consequências:** `joinIntents` + `onJoinApproved` entram no contrato de módulo `[contrato]`; se o módulo não puder concluir (limite cheio), a entrada vale e a participação vai para a fila do módulo.
 
 ### D-024 — Referência de design obrigatória
 **Data:** 2026-10-25 · **Status:** aceita
@@ -136,3 +134,9 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 **Decisão:** o app nasce com tema escuro, padrão para todos, e tema claro. A pessoa escolhe em Perfil → Aparência entre "Escuro", "Claro" e "Igual ao sistema". A escolha fica no dispositivo.
 **Motivo:** pedido do humano. O escuro continua sendo a identidade; o claro atende leitura sob luz forte e preferência pessoal.
 **Consequências:** todos os tokens de cor têm valor para os dois temas, com contraste AA conferido em cada um (DESIGN.md §3.2); o modo claro é desenho novo, sem referência no legado, validado no Sprint 2 e na galeria do Sprint 10; toda tela é verificada nos dois temas (definição de pronto, checklist §14); emojis, avatares, cor de evento e ícone do app não mudam com o tema.
+
+### D-026 — Sem subgrupos na v1: tudo é da comunidade `[contrato]`
+**Data:** 2026-10-25 · **Status:** aceita (substitui D-006)
+**Decisão:** não há grupos no core nem nos módulos na v1. A comunidade é o único escopo compartilhado. O Errômetro é **um por comunidade**, com resultados visíveis para qualquer membro aprovado. Eventos são da comunidade, e qualquer membro se inscreve se quiser. Perfil, e no futuro apresentações e cadastro de membros, também são da comunidade.
+**Motivo:** o app é gestão de comunidade; um membro participa de vários subgrupos (como os do WhatsApp), então o que é da pessoa ou da comunidade fica na comunidade. Nada no escopo atual precisa ser exclusivo de um subgrupo. No legado, o "grupo" já funcionava como uma comunidade: um espaço de membros com convite e aprovação, com o Errômetro (segunda aprovação, limite de votantes) e os eventos (inscrição livre) dentro dele; membros aprovados viam resultados sem votar (`legado:src/app/results/page.tsx:222`).
+**Consequências:** sai a Sprint 7 de grupos (vira "Convites, entrada e membros da comunidade"); `can()` não tem escopo menor que a comunidade; o contexto do módulo traz `ctx.members` em vez de `ctx.groups`; a rota anônima recebe a comunidade no caminho, validada pela assinatura (ARQUITETURA §4.5). Subgrupos entram no core quando houver algo exclusivo de um subgrupo (provavelmente com o bot do WhatsApp: estatísticas de um subgrupo, avisos direcionados); entram como tabela nova e escopo opcional, sem refazer o que existe. Em aberto: limites por comunidade (P-012) e como os vários grupos do legado viram comunidades (P-013).

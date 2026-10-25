@@ -29,7 +29,7 @@ Este arquivo vale para qualquer agente (Claude Code ou outro) e para pessoas. Le
 3. **Proibido rodar no legado:** `scripts/drop-all-records.mjs`, `npm run db:push`, `db:migrate`, `db:schema` ou qualquer script com `.env` real.
 4. **Não inventar.** Se uma regra de negócio, tabela ou fluxo não estiver claro, registre em `PERGUNTAS.md` em vez de supor. Comportamento aparentemente bugado também vira pergunta, não correção silenciosa.
 5. **Não ler nem imprimir segredos.** Use apenas `.env.example`. Se encontrar credencial commitada, reporte o caminho sem copiar o valor.
-6. **`community_id` nunca é aceito do cliente sem validação.** Ele chega pelo header `X-Community-Id` e o core o valida contra a membership do usuário antes de abrir a transação. Nunca é gravado como "comunidade ativa" na sessão.
+6. **`community_id` nunca é aceito do cliente sem validação.** Ele chega pelo header `X-Community-Id` e o core o valida contra a membership do usuário antes de abrir a transação. Nunca é gravado como "comunidade ativa" na sessão. Única exceção: rotas anônimas recebem a comunidade no caminho e a validam pela assinatura cega (ARQUITETURA §4.5).
 7. **Todo acesso a dados passa por `packages/db`.** Módulos não criam conexões próprias e só usam o `tx` que recebem do core.
 8. **Módulos não importam internals uns dos outros nem tocam tabelas alheias.** Falam com o core só pela API pública (`@erre/core` entry público). Código compartilhado vai para um pacote em `packages/`.
 9. **Rotas anônimas nunca conhecem o usuário.** Código em `modules/*/api/anon/**` não lê sessão, cookies, `Authorization`, IP nem `user`. Isso protege o anonimato do voto (assinatura cega). Violar isso é bug crítico.

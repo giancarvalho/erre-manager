@@ -277,20 +277,20 @@ Todos vivem em `packages/ui`. Cada componente tem: estados padrão, pressionado,
 |---|---|---|
 | **Primário** | fundo `primary.bg`, texto `primary.text` 14/600 (claro sobre escuro no tema claro, e o inverso no escuro) | a ação principal da tela. **No máximo um por tela.** (Legado: "Criar meu Errômetro", "Continuar", barra de votos) |
 | **Destaque** | fundo `accent.solid`, texto `accent.onSolid` 14/600, brilho ciano opcional | ação dentro de um contexto em destaque (banner de evento aberto) ou momento de celebração ("Ir votar e liberar"). Nunca na mesma tela que um primário |
-| **Secundário** | fundo transparente, borda `border.default`, texto `text.primary` 14/500 | alternativas: "Voltar", "Entrar com o nome do grupo", "Continuar com Google" |
-| **Fantasma** | sem fundo e sem borda, texto `text.muted` → `text.primary` ao pressionar, ícone opcional | navegação secundária: "Ver grupo demo ›", "Entrar" |
+| **Secundário** | fundo transparente, borda `border.default`, texto `text.primary` 14/500 | alternativas: "Voltar", "Entrar com o código de convite", "Continuar com Google" |
+| **Fantasma** | sem fundo e sem borda, texto `text.muted` → `text.primary` ao pressionar, ícone opcional | navegação secundária: "Ver como funciona ›", "Entrar" |
 | **Destrutivo** | fundo `danger.subtle`, borda `danger.border`, texto `danger.text` | remover, excluir, anular. Sempre com confirmação (§10) |
 
 - **Altura mínima 48** (atende 44 pt do iOS e 48 dp do Android), padding horizontal 20, raio 12. Largura total no celular quando for a ação principal.
 - Botão compacto (36 de altura) só dentro de listas e cards densos, com `hitSlop` para completar 48.
 - **Carregando:** mantém a largura, troca o rótulo pelo gerúndio ("Criando conta…", "Enviando…") e desabilita. Spinner só se não houver rótulo.
 - **Desabilitado:** opacidade 0,4 e **um texto abaixo explicando por quê** ("Escolha pelo menos um emoji para continuar.").
-- Rótulo é um verbo da ação ("Criar grupo", "Enviar votos"), nunca "OK" ou "Sim".
+- Rótulo é um verbo da ação ("Criar comunidade", "Enviar votos"), nunca "OK" ou "Sim".
 - **Correção em relação ao legado:** o botão `bg-cyan-600/90` com texto claro (23 usos) tem contraste de 4,2:1 e não passa no AA. Ele vira **Destaque** (ciano claro com texto escuro, 8,2:1) ou **Primário**.
 
 ### 9.2 Campos de formulário
 
-- Rótulo em `overline` **acima** do campo (padrão do legado: "USERNAME", "COMO VOCÊ QUER APARECER PRO GRUPO?"). Placeholder só como exemplo ("ex: Noite"), nunca no lugar do rótulo.
+- Rótulo em `overline` **acima** do campo (padrão do legado: "USERNAME", "COMO VOCÊ QUER APARECER PRO GRUPO?"; no app novo, "pra comunidade"). Placeholder só como exemplo ("ex: Noite"), nunca no lugar do rótulo.
 - Campo: altura 48, fundo `bg.input`, borda `border.input`, raio 12, padding horizontal 16, texto `body` em `text.primary`.
 - Foco: borda `border.focus` e anel de 1 px.
 - Erro: borda `danger.text`, mensagem abaixo em `caption` `danger.text`, shake + háptico de erro. A mensagem diz o que fazer ("Use só letras minúsculas, números e hífens.").
@@ -353,7 +353,7 @@ Topo da tela, `bg.raised`, borda `border.subtle`, sombra, raio 12. Título `body
 
 ### 9.13 Conteúdo reservado
 
-Quando um resultado existe mas o usuário ainda não pode vê-lo (ver `legado/08-resultados-reservados.png`): conteúdo desfocado ao fundo, card central `bg.raised` com título, explicação de uma linha e um botão de destaque que leva à ação que libera ("Ir votar e liberar"). Nunca mostrar dados reais sob o desfoque que possam ser lidos de outra forma (ex.: acessibilidade): os itens desfocados devem ser `accessibilityElementsHidden`.
+**Uso restrito.** No legado, esta tela só aparece no grupo demo (`legado:src/components/results/ResultsPaywall.tsx`); membros aprovados sempre veem os resultados sem precisar votar (`legado:src/app/results/page.tsx:222`), e isso continua valendo (D-026). Use o padrão só quando um conteúdo de fato depende de uma ação da pessoa; se o grupo demo for descartado (P-003), ele pode não ter uso na v1. Quando usado (ver `legado/08-resultados-reservados.png`): conteúdo desfocado ao fundo, card central `bg.raised` com título, explicação de uma linha e um botão de destaque que leva à ação que libera ("Ir votar e liberar"). Nunca mostrar dados reais sob o desfoque que possam ser lidos de outra forma (ex.: acessibilidade): os itens desfocados devem ser `accessibilityElementsHidden`.
 
 ### 9.14 Medalha de troféu e ranking
 
@@ -376,7 +376,7 @@ Toda tela que carrega dados tem os quatro estados desenhados:
 - Navegação em pilha (stack). Cabeçalho: voltar com seta + rótulo do destino ("← Início"), alinhado à esquerda, como no legado.
 - Gesto de voltar nativo sempre ativo (iOS) e botão voltar do Android respeitado.
 - Abaixo do cabeçalho, o padrão de título da §4.
-- Estrutura de navegação do app (início, comunidade, grupo, módulos, perfil) é definida no protótipo do Sprint 2 e registrada aqui; até lá, siga a pilha com cabeçalho de voltar.
+- Estrutura de navegação do app (início, comunidade, módulos, perfil) é definida no protótipo do Sprint 2 e registrada aqui; até lá, siga a pilha com cabeçalho de voltar.
 
 ---
 
@@ -400,7 +400,7 @@ Toda tela que carrega dados tem os quatro estados desenhados:
 
 - Resposta imediata ao toque (pressionado + háptico); seleção otimista na interface.
 - Ações reversíveis não pedem confirmação; oferecem "Desfazer" no toast quando possível.
-- **Confirmação obrigatória** para o que é destrutivo ou irreversível: anular voto, remover membro, excluir evento, sair do grupo. O diálogo diz a consequência e o botão repete o verbo ("Remover Ana").
+- **Confirmação obrigatória** para o que é destrutivo ou irreversível: anular voto, remover membro, excluir evento, sair da comunidade. O diálogo diz a consequência e o botão repete o verbo ("Remover Ana").
 - Valores padrão bons e recomendados ("Clássico — RECOMENDADO").
 
 ### 10.4 Revelação progressiva
@@ -439,12 +439,12 @@ Toda tela que carrega dados tem os quatro estados desenhados:
 ## 11. Escrita de interface (pt-BR)
 
 - **Tom:** informal e direto, segunda pessoa, humor leve. Ex.: "Conta criada. Bora votar.", "Erra com convicção."
-- **Botões:** verbo no infinitivo + objeto quando ajudar ("Criar grupo", "Enviar votos", "Copiar chave"). Primeira letra maiúscula, resto minúsculo.
+- **Botões:** verbo no infinitivo + objeto quando ajudar ("Criar comunidade", "Enviar votos", "Copiar chave"). Primeira letra maiúscula, resto minúsculo.
 - **Eyebrows e rótulos de campo:** CAIXA ALTA (via estilo `overline`, não digitando em maiúsculas no texto).
 - **Erros:** o que aconteceu + o que fazer, sem culpar e sem código técnico. "Esse nome já existe. Tente outro." em vez de "Erro 409".
-- **Vocabulário técnico proibido na interface:** `voter_tag` → "código do seu voto"; "snapshot" → "resultado"; "token" → não aparece; "slug" → "nome do grupo (código de convite)".
+- **Vocabulário técnico proibido na interface:** `voter_tag` → "código do seu voto"; "snapshot" → "resultado"; "token" → não aparece; "slug" → "código de convite".
 - **Datas e números** no formato brasileiro, no fuso da votação (`date-fns` com `ptBR`): "segunda, 12h", "há 3 horas", "1.234".
-- **Consistência de termos:** "rodada" (não "ciclo" e "rodada" misturados), "grupo", "comunidade", "evento", "troféu", "votar". Mantenha uma lista em `packages/ui` se o glossário crescer.
+- **Consistência de termos:** "rodada" (não "ciclo" e "rodada" misturados), "comunidade", "membro", "evento", "troféu", "votar". "Grupo" não aparece na v1 (não há subgrupos, D-026). Mantenha uma lista em `packages/ui` se o glossário crescer.
 - Textos de interface ficam no código do módulo (pt-BR); não há internacionalização na v1, mas nada impede adicioná-la depois (strings não são montadas por concatenação).
 
 ---
@@ -462,7 +462,7 @@ Toda tela que carrega dados tem os quatro estados desenhados:
 | Feedback pensado para mouse | 193 usos de `hover:` contra 20 de `active:` (pressionado) | Estado pressionado em todo tocável; hover é extra na web |
 | Bordas de campo com pouco contraste | `border-zinc-700/800`: 1,7:1 contra o fundo do campo | `border.input` (3,7:1) |
 | Só tema escuro (`className="dark"` fixo) | `legado:src/app/layout.tsx` | Escuro (padrão) e claro, com escolha em Perfil → Aparência (§3.1) |
-| Landing diz "grupos de até 50 pessoas", mas grupos aceitam 300 (50 é o limite de votantes do Errômetro) | `legado/01-landing.png`, `group-limits.ts` | Texto alinhado ao limite real; confirmar redação com o humano |
+| Landing diz "grupos de até 50 pessoas", mas grupos aceitam 300 (50 é o limite de votantes do Errômetro) | `legado/01-landing.png`, `group-limits.ts` | Texto alinhado aos limites por comunidade (P-012) |
 
 ---
 
@@ -615,6 +615,6 @@ Em [`legado/`](legado/), capturadas do app rodando localmente em 390 × 844, sem
 | `05-votacao.png` | cabeçalho, acordeão, controle segmentado, cards de pessoa, grade de emojis, barra fixa |
 | `06-votacao-legenda.png` | acordeão aberto com o significado dos emojis |
 | `07-votacao-selecionado.png` | emoji escolhido e cards com voto brilhando em ciano |
-| `08-resultados-reservados.png` | conteúdo desfocado com card de liberação e botão de destaque com brilho |
+| `08-resultados-reservados.png` | conteúdo desfocado com card de liberação e botão de destaque com brilho (no legado, só no grupo demo) |
 
 As capturas são referência de identidade e de padrões, não de pixel: onde elas contradizem a §12, vale a §12.
