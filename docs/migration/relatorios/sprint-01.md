@@ -1,6 +1,6 @@
 # Sprint 1 — Inventário e checklist de paridade
 
-**O que foi feito.** Leitura do legado em `7c5c5bf` e cinco documentos: [`INVENTARIO.md`](../INVENTARIO.md), [`REGRAS.md`](../REGRAS.md) (55 regras com trecho literal e `arquivo:linha`), [`PARIDADE.md`](../PARIDADE.md) (58 itens; checado por script que cobre as 16 páginas, 19 route handlers e 45 server actions), [`MAPEAMENTO-DADOS.md`](../MAPEAMENTO-DADOS.md) (25 tabelas) e perguntas novas.
+**O que foi feito.** Leitura do legado em `7c5c5bf` e cinco documentos: [`INVENTARIO.md`](../INVENTARIO.md), [`REGRAS.md`](../REGRAS.md) (57 regras com trecho literal e `arquivo:linha`), [`PARIDADE.md`](../PARIDADE.md) (62 itens; checado por script que cobre as 16 páginas, 19 route handlers e 45 server actions), [`MAPEAMENTO-DADOS.md`](../MAPEAMENTO-DADOS.md) (25 tabelas) e perguntas novas.
 
 **Testes do legado (sem `.env` real).** Unitários: 106 arquivos, 1.096 testes, todos verdes. E2E: o único teste falha no commit de referência (espera a tela de voto no hub, que mudou com a separação membro/votante); registrado como dívida, não como regressão nossa.
 
