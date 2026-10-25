@@ -190,3 +190,13 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - **`packages/ui` mínimo já no Sprint 3:** tokens e `ThemeProvider` (copiados do protótipo), para o app nascer com tema escuro e claro (D-025). O Sprint 10 completa o pacote.
 - `turbo.json` com `agentGuidance: false`: o Turborepo 2.11 escreve um bloco de instruções próprio no `AGENTS.md` quando detecta um agente; o arquivo de regras fica só com as regras do projeto.
 **Motivo:** um conjunto mínimo e padrão de ferramentas, que funciona hoje com SDK 58 e TypeScript 6.
+
+### D-035 — Migrations em SQL escrito à mão, RLS por função no banco, sem `drizzle-kit`
+**Data:** 2026-10-25 · **Status:** aceita (Sprint 4); pede revisão humana (gate do Sprint 4, assíncrono pela D-029)
+**Decisão:**
+- Migrations são arquivos SQL `<dono>_<NNNN>_<desc>.sql` por dono, aplicados pelo runner de `@erre/db` (ordem `db` → `core` → módulos em ordem alfabética; tabela `erre_migrations` com checksum; uma transação por arquivo; lock consultivo; seção opcional `-- migrate:down` só para desenvolvimento). Migration aplicada e editada, ou numerada antes de uma já aplicada, faz o runner parar.
+- O lado do banco de uma tabela de comunidade vem da função `erre_tenant_table(regclass)` (migration `db_0001`): valida `community_id uuid NOT NULL` com FK para `communities`, liga e **força** RLS, cria a policy `isolamento_comunidade`, o índice e o `UNIQUE (community_id, id)`. O lado do Drizzle vem de `createTenantTable()`.
+- **Sem `drizzle-kit`.** Ele não gera `FORCE ROW LEVEL SECURITY` nem segue a nomenclatura por dono, e duas fontes de verdade (schema TS gerando SQL + SQL editado) confundem quem chega no hackathon. Em troca, `schemaDifferences()` (em `@erre/db/testing`) compara as tabelas Drizzle com o banco real (colunas, tipos, nulidade, índices nomeados) e roda nos testes.
+- `GLOBAL_TABLES` em `@erre/db` é a allowlist das tabelas sem `community_id`.
+**Motivo:** a garantia de isolamento fica no banco e num único lugar (a função), testável; o fluxo para um módulo novo é escrever um `CREATE TABLE` e uma linha.
+**Consequências:** o desenvolvedor escreve o SQL e o schema Drizzle; o teste de drift pega divergência. Com RLS forçado, nem o dono das tabelas lê dados sem `app.community_id`: migrations de dados (Sprint 19) precisam definir a comunidade por transação. A policy falha já no planejamento da consulta quando a variável não existe, inclusive em tabela vazia.

@@ -15,6 +15,19 @@ pnpm --filter @erre/api dev      # API em http://localhost:3000/v1/health
 pnpm --filter @erre/mobile web   # app na web; use "android" ou "ios" com um aparelho ou emulador
 ```
 
+Banco local (uma vez, depois de `docker compose up -d`; variáveis em `packages/db/.env.example`):
+
+```sh
+export DATABASE_ADMIN_URL=postgres://postgres:postgres@localhost:5432/erre
+export DATABASE_MIGRATOR_URL=postgres://erre_migrator:erre_migrator@localhost:5432/erre
+pnpm --filter @erre/db db:bootstrap   # papéis erre_migrator, erre_app, erre_jobs
+pnpm --filter @erre/db db:migrate     # aplica as migrations de db, core e módulos
+```
+
+Os testes de banco criam e apagam bancos descartáveis usando `DATABASE_ADMIN_URL` (padrão: o Postgres do `docker compose`). Nunca aponte essa variável para produção.
+
+Migration nova: arquivo `<dono>_<NNNN>_<descricao>.sql` na pasta do dono (`packages/db/migrations`, `packages/core/migrations`, `modules/<nome>/db/migrations`), com uma seção `-- migrate:down` quando der para reverter. Tabela de comunidade: `community_id uuid NOT NULL REFERENCES communities(id)` e, logo depois do `CREATE TABLE`, `SELECT erre_tenant_table('<tabela>');`. Migration aplicada não se edita: escreva outra.
+
 Cada app tem um `.env.example`. Copie para `.env` e ajuste. Nunca coloque valores reais em arquivos versionados.
 
 ## Checks

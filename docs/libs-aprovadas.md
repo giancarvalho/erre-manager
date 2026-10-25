@@ -28,6 +28,8 @@ Legenda: ✅ verificado · ⏳ verificado só por build/export (falta aparelho) 
 | Biblioteca | Versão | Motivo | Verificado em |
 |---|---|---|---|
 | `hono` + `@hono/node-server` | 4.13 / 2.1 | API (D-008) | Sprint 2 (spike de auth) |
+| `drizzle-orm` | 0.45.4 | ORM e query builder (D-032); schemas dos módulos via `@erre/db/pg-core` | Sprint 4 |
+| `pg` | 8.23 | Driver Postgres (pools `erre_app` e `erre_jobs`, runner de migrations) | Sprint 4 |
 | `pino` | 10.4 | Log estruturado com `redact` (sem dados pessoais) | Sprint 3 |
 | `zod` | 4.6 | Validação de entrada em toda rota | Sprint 3 |
 | `better-auth` | 1.7.7 | Auth (D-017, D-031) | Sprint 2: início do login Google, checagem de origem, guarda do callback |

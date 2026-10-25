@@ -1,0 +1,32 @@
+{
+  "name": "@erre/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./pg-core": "./src/pg-core.ts",
+    "./testing": "./src/testing.ts"
+  },
+  "scripts": {
+    "db:bootstrap": "tsx src/cli.ts bootstrap",
+    "db:migrate": "tsx src/cli.ts migrate",
+    "db:rollback": "tsx src/cli.ts rollback",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "drizzle-orm": "0.45.4",
+    "pg": "8.23.1"
+  },
+  "devDependencies": {
+    "@erre/config": "workspace:*",
+    "@types/node": "22.20.5",
+    "@types/pg": "8.23.1",
+    "eslint": "9.39.5",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3",
+    "vitest": "5.0.3"
+  }
+}

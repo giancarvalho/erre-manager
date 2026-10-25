@@ -17,7 +17,7 @@
 | Lint falha na fixture de violação | sim (testes de `packages/config`) |
 | App na web | e2e verde (2 testes) |
 | App no Android e iOS | export gera bytecode Hermes para os dois; `expo-doctor` 20/20. Falta abrir num aparelho |
-| CI | ver o resultado da execução no GitHub (link no fim da sessão) |
+| CI | verde no primeiro push ([execução 1](https://github.com/giancarvalho/erre-manager/actions/runs/40187423535)) |
 
 ## Decidido
 

@@ -72,7 +72,7 @@ Garantidas por ESLint (`eslint-plugin-boundaries` ou equivalente, definido no Sp
 
 ### 4.2 RLS
 
-Toda tabela com `community_id` é criada por `createTenantTable()`, que gera:
+Toda tabela com `community_id` tem duas metades: a definição Drizzle com `createTenantTable()` (coluna `community_id` com FK, índice e `UNIQUE (community_id, id)`) e a migration SQL, que logo depois do `CREATE TABLE` chama `SELECT erre_tenant_table('<tabela>')` (D-035). A função valida a coluna e a FK e aplica:
 
 ```sql
 ALTER TABLE <tabela> ENABLE ROW LEVEL SECURITY;
@@ -83,7 +83,8 @@ CREATE POLICY isolamento_comunidade ON <tabela>
 CREATE INDEX ON <tabela> (community_id);
 ```
 
-- `current_setting('app.community_id')` **sem** `missing_ok`: se a variável não foi definida, a consulta falha (fail closed), em vez de vazar.
+- `current_setting('app.community_id')` **sem** `missing_ok`: se a variável não foi definida, a consulta falha (fail closed), em vez de vazar. Depois de uma transação, a conexão fica com a variável vazia; o cast `''::uuid` também falha.
+- Testes em `packages/db` garantem: isolamento (ler, inserir, atualizar, apagar e mover linhas de outra comunidade), fail closed, nada vaza para o próximo uso da conexão, cobertura (toda tabela com `community_id` tem RLS forçado, policy, FK e índice; toda tabela sem ela está em `GLOBAL_TABLES`) e drift entre o Drizzle e o banco. Core e módulos reaproveitam `@erre/db/testing`.
 - Tabelas filhas (ex.: votos de um evento) têm `community_id` próprio e **FK composta** `(community_id, parent_id) → parent(community_id, id)`, para que uma linha nunca aponte para um pai de outra comunidade (D-015). O pai precisa de `UNIQUE (community_id, id)`.
 - `core_community_memberships` tem uma policy adicional que permite ao usuário ler as próprias linhas em qualquer comunidade (`user_id = current_setting('app.user_id')::uuid`), para listar "minhas comunidades".
 - Módulos podem ter FK para tabelas do core (`communities`, usuários), nunca para tabelas de outro módulo.

@@ -20,7 +20,7 @@ Leia antes: [`AGENTS.md`](../../AGENTS.md), [`ARQUITETURA.md`](ARQUITETURA.md), 
 | 1 | Inventário e checklist de paridade (somente leitura) | M | — | **sim** | concluído |
 | 2 | Protótipo Expo: decisão de go/no-go | G | 1 (parcial) | **sim** | concluído (validação em aparelho pendente) |
 | 3 | Monorepo, ferramentas e CI | M | 2 | não | concluído (aparelho pendente) |
-| 4 | `packages/db`: papéis, RLS e migrations | M | 3 | **sim** | pendente |
+| 4 | `packages/db`: papéis, RLS e migrations | M | 3 | **sim** | concluído (revisão humana assíncrona, D-029) |
 | 5 | Auth e perfil | M | 4 | não | pendente |
 | 6 | Comunidades, papéis, `can()` e contexto da requisição | M | 5 | **sim** | pendente |
 | 7 | Convites, entrada e membros da comunidade | M | 6 | não | pendente |
