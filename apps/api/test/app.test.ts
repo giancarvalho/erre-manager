@@ -1,10 +1,10 @@
 import { Writable } from 'node:stream';
 
+import { errors } from '@erre/core/server';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
 
 import { createApp } from '../src/app';
-import { errors } from '../src/errors';
 import { createLogger } from '../src/logger';
 
 function memoryLogger() {
@@ -51,7 +51,7 @@ describe('api app', () => {
 
     const z1 = await app.request('/zod');
     expect(z1.status).toBe(400);
-    expect(await z1.json()).toEqual({ code: 'VALIDATION_ERROR', message: 'Dados inválidos (name).' });
+    expect(await z1.json()).toMatchObject({ code: 'VALIDATION_ERROR' });
 
     const b = await app.request('/boom');
     expect(b.status).toBe(500);

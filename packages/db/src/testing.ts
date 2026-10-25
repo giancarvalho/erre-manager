@@ -49,15 +49,23 @@ export async function createTestDatabase({
   root,
   extraSources = [],
   skipMigrations = false,
+  name: fixedName,
   adminUrl = process.env.DATABASE_ADMIN_URL ?? DEFAULT_ADMIN_URL,
 }: {
   root: string;
   extraSources?: MigrationSource[];
   /** Only create the database and the grants (for testing the migration runner itself). */
   skipMigrations?: boolean;
+  /**
+   * Fixed name (lowercase letters, digits, underscores), dropped first if it exists. For long-running test
+   * servers that may be killed without cleanup (e2e). Default: a random erre_test_* name.
+   */
+  name?: string;
   adminUrl?: string;
 }): Promise<TestDatabase> {
-  const name = `erre_test_${randomBytes(6).toString('hex')}`;
+  if (fixedName !== undefined && !/^erre_[a-z0-9_]+$/.test(fixedName)) throw new Error('invalid test database name');
+  const name = fixedName ?? `erre_test_${randomBytes(6).toString('hex')}`;
+  if (fixedName) await adminQuery(adminUrl, `DROP DATABASE IF EXISTS ${name} WITH (FORCE)`);
   await adminQuery(adminUrl, `CREATE DATABASE ${name}`);
   const dbUrl = new URL(adminUrl);
   dbUrl.pathname = `/${name}`;

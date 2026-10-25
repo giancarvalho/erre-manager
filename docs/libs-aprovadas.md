@@ -16,7 +16,9 @@ Legenda: ✅ verificado · ⏳ verificado só por build/export (falta aparelho) 
 | `expo-status-bar` | 58 | ⏳ | ⏳ | — | Barra de status por tema | Sprint 2 |
 | `expo-secure-store` | 58 | ⏳ | ⏳ | — | Sessão (Better Auth) e token anônimo no nativo | Sprint 2: compila no export |
 | `expo-network` | 58 | ⏳ | ⏳ | ✅ | Exigida pelo plugin Expo do Better Auth | Sprint 2 |
-| `better-auth` (cliente) + `@better-auth/expo` | 1.7.7 | ⏳ | ⏳ | ✅ | Login Google (D-017) | Sprint 2: na web, o clique leva ao Google com PKCE e state |
+| `better-auth` (cliente) + `@better-auth/expo` | 1.7.7 | ⏳ | ⏳ | ✅ | Login Google (D-017) | Sprint 2: na web, o clique leva ao Google com PKCE e state. Sprint 5: fluxo completo na web (e2e com Google simulado); export nativo verde |
+| `expo-web-browser` | 58 | ⏳ | ⏳ | — | Abre o login do Google no nativo (plugin Expo do Better Auth) | Sprint 5: export nativo |
+| `zod` | 4.6 | ⏳ | ⏳ | ✅ | Validação no app com as mesmas regras da API (`@erre/core/client`) | Sprint 5: e2e web, export nativo |
 | `@noble/hashes` | 2.4.0 | ✅* | ⏳ | ✅ | SHA-256/384 do cliente da assinatura cega (D-011) | Sprint 2: vitest, navegador e Hermes 0.12 (*motor Hermes via CLI, não aparelho) |
 | `@tanstack/react-query` | 5.104 | ⏳ | ⏳ | ✅ | Cache e estado de servidor no app (ARQUITETURA) | Sprint 3: JS puro; export Android/iOS e e2e web verdes |
 | `expo-font`, `expo-splash-screen`, `expo-system-ui`, `expo-constants`, `expo-linking` | 58 | ⏳ | ⏳ | ✅ | Módulos do SDK usados pelo Expo Router e pelo tema | Sprint 3: `expo-doctor` 20/20, export das três plataformas |

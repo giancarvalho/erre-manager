@@ -11,10 +11,10 @@ Classificação: **igual** = migrar como está · **mudança** = migrar com muda
 | ID | Funcionalidade | Legado (telas · rotas · actions) | Regras | Classif. | Destino | Sprint | Status |
 |---|---|---|---|---|---|---|---|
 | CORE-01 | Landing com chamada para criar/entrar | `/` · `src/components/landing/*` | — | mudança: criar comunidade e entrar por convite | core | 18 | pendente |
-| CORE-02 | Login com Google | `/login`, `/register` · `api/auth/google`, `api/auth/google/callback` | R-MEM-09 | mudança: Better Auth, sessão no banco (D-017) | core | 5 | pendente |
+| CORE-02 | Login com Google | `/login`, `/register` · `api/auth/google`, `api/auth/google/callback` | R-MEM-09 | mudança: Better Auth, sessão no banco (D-017) | core | 5 | concluído na web (aparelho e Google real pendentes) |
 | CORE-03 | Login por usuário + chave secreta | `/login`, `/register` · `issueRegisterSecretAction`, `registerAction`, `loginAction`, `checkUsernameAvailabilityAction` | — | descartar (D-017); vínculo de contas no plano de dados | — | — | descartado |
-| CORE-04 | Onboarding do nome de exibição | `/onboarding/name` · `updateProfileAction` | R-MEM-08 | igual | core | 5 | pendente |
-| CORE-05 | Sessão deslizante e última comunidade visitada | `src/middleware.ts` · `clearLastGroupFromSessionAction`, `refreshSessionLastGroupAction` | R-MEM-09 | mudança: comunidade escolhida no app, nunca na sessão (D-014) | core | 5–6 | pendente |
+| CORE-04 | Onboarding do nome de exibição | `/onboarding/name` · `updateProfileAction` | R-MEM-08 | igual | core | 5 | concluído |
+| CORE-05 | Sessão deslizante e última comunidade visitada | `src/middleware.ts` · `clearLastGroupFromSessionAction`, `refreshSessionLastGroupAction` | R-MEM-09 | mudança: comunidade escolhida no app, nunca na sessão (D-014) | core | 5–6 | sessão deslizante concluída (Sprint 5); comunidade no Sprint 6 |
 | CORE-06 | Criar comunidade (assistente: como funciona, identidade, nome, tipo) | modal da landing · `wizardIdentityStepAction`, `createGroupWizardAction` | R-MEM-07 | mudança: qualquer usuário cria comunidade (D-022); o "tipo" (clássico/personalizado) vira configuração inicial do Errômetro | core + errometro | 6, 12 | pendente |
 | CORE-07 | Entrar digitando o nome/código | "Entrar com o nome do grupo" · `lookupGroupByNameAction` | R-MEM-07 | mudança: código de convite revogável em vez do slug público (P-015) | core | 7 | pendente |
 | CORE-08 | Pedido de entrada pelo link (com votação junto) | `/group/[id]` (convite universal) · `requestJoinAction` | R-MEM-02, R-MEM-05 | mudança: um pedido só com intenção `errometro.participar` (D-023) | core | 7 | pendente |

@@ -7,7 +7,9 @@
     "icon": "./assets/images/icon.png",
     "scheme": "erre",
     "userInterfaceStyle": "automatic",
-    "ios": { "bundleIdentifier": "com.erre.app" },
+    "ios": {
+      "bundleIdentifier": "com.erre.app"
+    },
     "android": {
       "package": "com.erre.app",
       "adaptiveIcon": {
@@ -26,8 +28,13 @@
       "expo-router",
       [
         "expo-splash-screen",
-        { "backgroundColor": "#09090b", "image": "./assets/images/splash-icon.png", "imageWidth": 76 }
-      ]
+        {
+          "backgroundColor": "#09090b",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 76
+        }
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

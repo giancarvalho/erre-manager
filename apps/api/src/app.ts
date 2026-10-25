@@ -1,13 +1,18 @@
+import { errorHandler, type CoreApi } from '@erre/core/server';
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import type { Logger } from 'pino';
-import { ZodError } from 'zod';
 
-import { AppError, type ErrorBody } from './errors';
 import { createLogger } from './logger';
 
-export type AppDeps = { logger?: Logger };
+export type AppDeps = {
+  logger?: Logger;
+  core?: CoreApi;
+  /** Web origins allowed to call the API with cookies (the app scheme is not an HTTP origin). */
+  webOrigins?: string[];
+};
 
-export function createApp({ logger = createLogger() }: AppDeps = {}) {
+export function createApp({ logger = createLogger(), core, webOrigins = [] }: AppDeps = {}) {
   const app = new Hono();
 
   // Request log: method, path, status and duration only. No headers, query strings or bodies.
@@ -20,21 +25,22 @@ export function createApp({ logger = createLogger() }: AppDeps = {}) {
     );
   });
 
-  app.notFound((c) => c.json<ErrorBody>({ code: 'NOT_FOUND', message: 'Rota não encontrada.' }, 404));
+  app.use(
+    '/v1/*',
+    cors({
+      origin: (origin) => (webOrigins.includes(origin) ? origin : null),
+      credentials: true,
+      allowHeaders: ['content-type', 'x-community-id'],
+      allowMethods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
+      maxAge: 600,
+    }),
+  );
 
-  app.onError((err, c) => {
-    if (err instanceof AppError) return c.json(err.toBody(), err.status);
-    if (err instanceof ZodError) {
-      const first = err.issues[0];
-      const where = first?.path.length ? ` (${first.path.join('.')})` : '';
-      return c.json<ErrorBody>({ code: 'VALIDATION_ERROR', message: `Dados inválidos${where}.` }, 400);
-    }
-    logger.error({ err, method: c.req.method, path: c.req.path }, 'unhandled error');
-    return c.json<ErrorBody>({ code: 'INTERNAL_ERROR', message: 'Erro inesperado. Tente de novo.' }, 500);
-  });
+  app.notFound((c) => c.json({ code: 'NOT_FOUND', message: 'Rota não encontrada.' }, 404));
+  app.onError(errorHandler(logger));
 
   const routes = app.get('/v1/health', (c) => c.json({ status: 'ok' as const }));
-
+  if (core) routes.route('/v1', core);
   return routes;
 }
 

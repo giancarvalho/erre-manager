@@ -12,4 +12,13 @@ export const communities = pgTable('communities', {
  * Tables without community_id. Adding a global table means adding it here on purpose;
  * the RLS coverage test fails for any other table without community_id.
  */
-export const GLOBAL_TABLES: ReadonlySet<string> = new Set(['communities', 'erre_migrations']);
+export const GLOBAL_TABLES: ReadonlySet<string> = new Set([
+  'communities',
+  'erre_migrations',
+  // core: Better Auth and profiles (ARQUITETURA §4.1)
+  'auth_user',
+  'auth_session',
+  'auth_account',
+  'auth_verification',
+  'core_profiles',
+]);

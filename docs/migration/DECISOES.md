@@ -200,3 +200,17 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - `GLOBAL_TABLES` em `@erre/db` é a allowlist das tabelas sem `community_id`.
 **Motivo:** a garantia de isolamento fica no banco e num único lugar (a função), testável; o fluxo para um módulo novo é escrever um `CREATE TABLE` e uma linha.
 **Consequências:** o desenvolvedor escreve o SQL e o schema Drizzle; o teste de drift pega divergência. Com RLS forçado, nem o dono das tabelas lê dados sem `app.community_id`: migrations de dados (Sprint 19) precisam definir a comunidade por transação. A policy falha já no planejamento da consulta quando a variável não existe, inclusive em tabela vazia.
+
+### D-036 — Detalhes de auth e perfil
+**Data:** 2026-10-25 · **Status:** aceita (Sprint 5)
+**Decisão:**
+- **Ids em uuid** (`generateId: 'uuid'`, default `gen_random_uuid()` no banco), para `app.user_id` poder ser comparado como uuid nas policies (Sprint 6).
+- **Sessão deslizante de 400 dias**, renovada uma vez por dia de uso (R-MEM-09). Sem cache de sessão em cookie: revogar vale na hora. Sessões **não guardam IP nem user agent** (dado pessoal sem uso).
+- **Google:** o app entra pelo navegador (plugin Expo), então o login com ID token cru fica **desligado** (`disableIdTokenSignIn`). No fluxo por código, o Better Auth não confere as claims do ID token que vem do endpoint de token do Google; conferimos emissor, audiência, expiração, `sub` e e-mail (`verifiedGoogleUserInfo`). A assinatura não é verificada nesse caminho porque o token chega direto do Google por TLS (OIDC Core §3.1.3.7).
+- **Perfil criado na primeira leitura** (`GET /v1/me`), com o nome do Google ou a parte local do e-mail (regra do legado) e `name_confirmed_at` nulo até o onboarding. Um caminho só, sem depender de hook do Better Auth.
+- **Rotas `/v1/auth/*` seguem o formato do Better Auth** (consumidas pelo cliente dele), exceção ao formato `{ code, message }`. Erros inesperados do Better Auth sobem para o handler da API (`onAPIError.throw`), que registra o erro **sem os parâmetros da consulta**: o `better-call` imprimia o erro inteiro no console, com e-mail e `state`.
+- **Rate limit** do Better Auth por IP, em memória: 100/min no geral, 30/min no início do login e no callback (cabe um grupo entrando junto no mesmo Wi-Fi). Com mais de uma instância, ou atrás de proxy, o Sprint 19 configura armazenamento e o header de IP.
+- **API empacotada num arquivo só** (esbuild com todas as dependências; só `pg-native` fica de fora): o deploy precisa só de `dist/` e Node.
+- **Componentes antecipados do Sprint 10:** `Text`, `Screen`, `ScreenHeader`, `Button` (5 variantes, carregando, motivo do desabilitado), `TextField`, `Avatar`, `LoadingState`, `ErrorState`, e `tokens.ts` idêntico à §13 do DESIGN.md (mais `label`, corpo 14/500, previsto na §4). Movimento e háptico ficam para o Sprint 10.
+- **Onboarding fora do grupo `(app)`**: a rota `/onboarding/nome` faz a própria checagem de sessão; `(app)/_layout` manda para ela enquanto o nome não foi confirmado.
+**Motivo:** cada item fecha uma lacuna encontrada ao testar (ids, vazamento em log, confiança nas claims, IP) ou simplifica o caminho.

@@ -1,5 +1,5 @@
-// Bundles the API for production: workspace packages (@erre/*, TypeScript sources) are inlined,
-// third-party dependencies stay external and come from node_modules at runtime.
+// Bundles the API into a single file for production: workspace packages and third-party dependencies
+// are all inlined, so the deploy needs only dist/ and Node (no node_modules).
 import { build } from 'esbuild';
 
 await build({
@@ -11,12 +11,10 @@ await build({
   target: 'node22',
   sourcemap: true,
   logLevel: 'warning',
-  plugins: [
-    {
-      name: 'external-third-party',
-      setup(b) {
-        b.onResolve({ filter: /^[^./]/ }, (args) => (args.path.startsWith('@erre/') ? undefined : { external: true }));
-      },
-    },
-  ],
+  // Optional native driver that pg tries to load; not installed.
+  external: ['pg-native'],
+  // CommonJS dependencies inside an ESM bundle still call require().
+  banner: {
+    js: "import { createRequire as __erreCreateRequire } from 'node:module'; const require = __erreCreateRequire(import.meta.url);",
+  },
 });

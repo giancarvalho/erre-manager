@@ -9,6 +9,7 @@ const STORAGE_KEY = 'erre:theme';
 type ThemeContextValue = {
   name: ThemeName;
   colors: ThemeColors;
+  statusBar: 'light' | 'dark';
   preference: ThemePreference;
   setPreference: (p: ThemePreference) => void;
 };
@@ -54,6 +55,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     () => ({
       name,
       colors: themes[name],
+      statusBar: name === 'dark' ? 'light' : 'dark',
       preference,
       setPreference: (p) => {
         setPreferenceState(p);

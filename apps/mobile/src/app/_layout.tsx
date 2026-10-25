@@ -6,17 +6,17 @@ import { useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 function ThemedStack() {
-  const { colors } = useTheme();
+  const { colors, statusBar } = useTheme();
   return (
     <>
-      <StatusBar style={colors.statusBar} />
+      <StatusBar style={statusBar} />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg.canvas } }} />
     </>
   );
 }
 
 export default function RootLayout() {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(() => new QueryClient({ defaultOptions: { queries: { retry: 1 } } }));
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>

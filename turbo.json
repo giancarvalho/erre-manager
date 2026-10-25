@@ -16,7 +16,7 @@
     "test:e2e": {
       "dependsOn": ["build"],
       "cache": false,
-      "passThroughEnv": ["CI", "PLAYWRIGHT_BROWSERS_PATH"]
+      "passThroughEnv": ["CI", "PLAYWRIGHT_BROWSERS_PATH", "DATABASE_ADMIN_URL"]
     }
   }
 }
