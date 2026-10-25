@@ -65,6 +65,7 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 - [ ] Tabelas novas registradas em `MAPEAMENTO-DADOS.md` (D-016).
 - [ ] Itens de `PARIDADE.md` atualizados.
 - [ ] Telas novas verificadas em web, Android e iOS (print ou nota no relatório).
+- [ ] Interface segue [`docs/design/DESIGN.md`](../design/DESIGN.md), com o checklist da §14 preenchido no PR.
 - [ ] Relatório em `docs/migration/relatorios/sprint-NN.md` e no PR.
 
 ---
@@ -135,7 +136,8 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 8. **Push:** token Expo Push em Android e iOS (registrar exigências: dev build, conta Apple paga, chave APNs); Web Push na web com o `sw.js` do legado registrado só quando `Platform.OS === 'web'`.
 9. **Seletor de emoji personalizado:** avaliar bibliotecas RN com suporte a web; registrar.
 10. **PWA:** manifest e instalação no Chrome Android e no Safari iOS.
-11. Registrar tudo em `DECISOES.md` (o que funcionou, o que quebrou, o que foi contornado) e criar `docs/libs-aprovadas.md` com as libs testadas.
+11. **Design (`docs/design/DESIGN.md`):** construir as duas telas com os tokens da §13 e validar o que é arriscado em RN: fonte Geist via `expo-font`, brilho ciano/dourado pulsando (inclusive a degradação no Android, §7), blur da barra fixa e do conteúdo reservado, curvas de movimento com Reanimated, háptico. Propor a estrutura de navegação do app (início, comunidade, grupo, módulos, perfil) e registrar na §9.16 do DESIGN.md.
+12. Registrar tudo em `DECISOES.md` (o que funcionou, o que quebrou, o que foi contornado) e criar `docs/libs-aprovadas.md` com as libs testadas.
 
 **Entregáveis:** entradas em `DECISOES.md`, `docs/libs-aprovadas.md`, relatório com prints das três plataformas e recomendação de go/no-go.
 
@@ -219,7 +221,7 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 
 **Objetivo:** multi-tenancy de ponta a ponta: toda requisição autenticada roda numa transação de tenant validada.
 
-**Depende de:** Sprint 5. **Gate humano:** sim (isolamento e modelo de permissões). **Bloqueado por:** P-006, P-009.
+**Depende de:** Sprint 5. **Gate humano:** sim (isolamento e modelo de permissões). Decisões aplicáveis: D-022, D-023.
 
 **Tarefas:**
 1. `core_community_memberships` (tenant, com a policy extra de leitura das próprias linhas): `community_id`, `user_id`, `role` (`owner|admin|moderador|membro`), `status`, datas.
@@ -227,11 +229,13 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 3. Middleware de contexto (ARQUITETURA §4.4) e `can(permission, scope?)` (ARQUITETURA §5.2; o escopo de grupo é completado no Sprint 7).
 4. Helper `validate()` (Zod) para body, query e params, devolvendo 400 no formato padrão.
 5. Rotas: `GET /v1/me/communities`, `GET /v1/communities/:id`, `GET /v1/communities/:id/members`, `PATCH /v1/communities/:id/members/:userId` (mudar papel; só `owner`/`admin`; `owner` não pode ser rebaixado por `admin`).
-6. CLI de plataforma `pnpm --filter api cli community:create` (P-006) e seed de desenvolvimento com duas comunidades e usuários em cada papel.
-7. App: carregar comunidades do usuário; selecionar automaticamente se for uma só; seletor se forem várias; cliente HTTP injeta `X-Community-Id`.
-8. Harness de testes da matriz papel × permissão por rota, reutilizável pelos módulos.
+6. **Criar comunidade (D-022):** `POST /v1/communities`, aberto a qualquer usuário logado; quem cria vira `owner`. Esta rota é exceção ao middleware de contexto (ainda não há comunidade): exige só sessão, e a criação da comunidade e da membership `owner` acontece numa transação com o papel `erre_app`, com a policy de insert ajustada para isso (documentar e testar). Limite de criação por usuário (rate limit) para evitar abuso.
+7. **Entrada por link de convite (D-023):** `core_community_invites` (código, criado por, `revoked_at`); `GET /v1/invites/community/:code` (prévia pública mínima: nome da comunidade), `POST .../join` (cria membership `pending`), aprovar/rejeitar/remover por `owner`/`admin`, regenerar e revogar o link. Mesmos estados do fluxo de grupos do legado (`pending → approved | rejected`, `approved → removed`).
+8. Seed de desenvolvimento com duas comunidades e usuários em cada papel (script local; nunca em produção).
+9. App: criar comunidade, abrir link de convite (deep link e web), estado "aguardando aprovação", gestão de pedidos de entrada; carregar comunidades do usuário; selecionar automaticamente se for uma só; seletor se forem várias; cliente HTTP injeta `X-Community-Id`. Telas seguem `docs/design/DESIGN.md`.
+10. Harness de testes da matriz papel × permissão por rota, reutilizável pelos módulos.
 
-**Testes:** isolamento (usuário de A não acessa B, mesmo forjando `X-Community-Id`: 403); `X-Community-Id` ausente → 403; matriz de permissões das rotas do sprint; listar "minhas comunidades" funciona com RLS ativo.
+**Testes:** isolamento (usuário de A não acessa B, mesmo forjando `X-Community-Id`: 403); `X-Community-Id` ausente → 403; matriz de permissões das rotas do sprint; listar "minhas comunidades" funciona com RLS ativo; criar comunidade não permite escrever em outra comunidade; link revogado não aceita novos pedidos; pedido `pending` não dá acesso a nada da comunidade.
 
 ---
 
@@ -239,7 +243,7 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 
 **Objetivo:** grupos dentro da comunidade, com convite, aprovação e papéis, expostos aos módulos por API pública (D-006).
 
-**Depende de:** Sprint 6. **Gate humano:** não. **Bloqueado por:** P-001, P-002, P-005.
+**Depende de:** Sprint 6. **Gate humano:** não. Decisões aplicáveis: D-023. **Confirmar antes:** P-001 e P-002 (interpretações registradas, aguardando confirmação).
 
 **Referências no legado:** `legado:src/lib/groups/*` (`create-wizard-actions.ts`, `group-name.ts`, `group-slug-schema.ts`, `join-group.ts`, `hub-access.ts`, `membership-access.ts`, `home-groups.ts`, `lookup-group-action.ts`, `group-limits.ts`), `legado:src/app/actions/group-membership.ts`, `legado:src/lib/members/display-members.ts`, `legado:src/infrastructure/groups/*`, `legado:src/app/group/[id]/page.tsx`, `legado:src/app/group/[id]/settings/page.tsx` (parte de membros), `legado:src/components/group/*`.
 
@@ -247,7 +251,7 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 1. `core_groups` (tenant): `id uuid`, `slug` (único por comunidade; herda o formato do id em texto do legado), `name`, `invite_code`, `created_by`, `created_at`.
 2. `core_group_memberships` (tenant, FK composta): `group_id`, `user_id`, `status` (`pending|approved|rejected|removed`), `role` (`admin|membro`), `requested_at`, `reviewed_at`, `reviewed_by`.
 3. Regras portadas com testes: limite de 300 membros, transições de status, criador aprovado automaticamente como `admin`, pedido entra sempre como `pending`, estado de acesso ao hub, buscar grupo por código de convite.
-4. Membership de comunidade ao entrar num grupo conforme P-001.
+4. Entrada no grupo por link de convite com aprovação do admin do grupo (D-023). Quem abre o link de um grupo sem ser da comunidade faz um único pedido; aprovado no grupo, ganha membership `membro` na comunidade (interpretação de P-001; confirmar). Qualquer membro aprovado da comunidade cria grupos (D-023, P-005).
 5. Completar `can()` com escopo de grupo (`groupAdmin`).
 6. API pública para módulos (`ctx.groups`): `get`, `getBySlug`, `isApprovedMember`, `isAdmin`, `listApprovedMembers` (com nome de exibição e avatar), `communityIdOf(groupId)` (para rotas anônimas). Módulos **não** leem as tabelas.
 7. Rotas: criar grupo (assistente), buscar por convite, pedir entrada, sair, aprovar/rejeitar/remover, listar membros, listar meus grupos (home).
@@ -307,17 +311,20 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 
 **Depende de:** Sprint 3 (paralelo à trilha core). **Gate humano:** não.
 
-**Referências no legado:** `legado:src/app/globals.css` (variáveis de cor), `legado:tailwind.config.ts`, `legado:src/app/fonts/*` (Geist), `legado:src/components/**` (padrões visuais), `legado:src/lib/{color,brand,avatar}/*`.
+**Fonte principal:** [`docs/design/DESIGN.md`](../design/DESIGN.md). Este sprint implementa o que ele define; qualquer desvio volta para o DESIGN.md com aprovação humana.
+
+**Referências no legado:** `legado:src/app/globals.css` (variáveis de cor e animações), `legado:tailwind.config.ts`, `legado:src/app/fonts/*` (Geist), `legado:src/components/**` (padrões visuais), `legado:src/lib/{color,brand,avatar}/*`, capturas em `docs/design/legado/`.
 
 **Tarefas:**
-1. Tokens: cores (claro/escuro), tipografia (Geist via `expo-font`), espaçamento, raios, sombras.
-2. Componentes: `Text`, `Heading`, `Button` (variantes), `IconButton` (ícones lucide para RN; verificar web), `Card`, `ListItem`, `Avatar` (variantes do legado), `Badge`, `EmojiChip`, `Banner` (cor RGB, usado em eventos), `Sheet`/bottom sheet, `Dialog` de confirmação, `Toast` (substituto do sonner), `Skeleton`, `EmptyState`, `TextInput`, `Switch`, `SegmentedControl`, `Tabs`, `Screen` (safe area).
-3. Animações com Reanimated (pulso e brilho de troféu).
-4. Acessibilidade: `accessibilityRole`/labels, foco por teclado na web (o legado corrigiu isso no commit `e0dedf0`).
-5. Galeria de componentes numa rota de desenvolvimento do app (`/dev/ui`), fora do build de produção.
-6. Cada lib registrada em `libs-aprovadas.md` com as plataformas testadas.
+1. Tokens exatamente como na §13 do DESIGN.md (cores semânticas, espaço, raio, tipografia, movimento), mais o hash de variante de avatar portado de `legado:src/lib/avatar/variants.ts`.
+2. Componentes da §9 do DESIGN.md: `Text` (com as variantes de tipografia), `ScreenHeader` (overline + título + descrição), `Button` (primário, destaque, secundário, fantasma, destrutivo; carregando; desabilitado com motivo), `IconButton`, `TextField` (rótulo overline, ajuda, erro com shake), `Card` (simples, tocável, selecionável), `EmojiButton`, `Avatar`, `Badge`, `SegmentedControl`, `Accordion`, `StickyActionBar`, `Sheet`, `ConfirmDialog`, `Toast`, `Banner` (informação, aviso, erro, destaque, evento), `ReservedContent`, `TrophyMedallion`, `RankingRow`, `Skeleton`, `EmptyState`, `ErrorState`, `Screen` (safe area, largura máxima 512).
+3. Movimento e háptico da §8 com Reanimated e `expo-haptics`, incluindo o modo "reduzir movimento".
+4. Regra de lint que proíbe hex/rgba literais e `fontSize` numérico fora de `packages/ui`.
+5. Acessibilidade da §10.7: roles e rótulos, estados, foco por teclado na web (o legado corrigiu isso no commit `e0dedf0`), fonte escalável.
+6. Galeria de componentes numa rota de desenvolvimento do app (`/dev/ui`), fora do build de produção, mostrando todos os estados de cada componente.
+7. Cada lib registrada em `libs-aprovadas.md` com as plataformas testadas.
 
-**Critérios de aceite:** galeria renderiza em web, Android e iOS; prints no relatório; teste de snapshot ou Playwright da galeria na web.
+**Critérios de aceite:** galeria renderiza em web, Android e iOS; prints no relatório comparados lado a lado com as capturas do legado; teste de snapshot ou Playwright da galeria na web; contraste dos pares de token verificado por teste automatizado (função de contraste WCAG sobre os tokens); lint de cores literais ativo.
 
 ---
 
@@ -400,6 +407,8 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 
 **Referências no legado:** `legado:src/app/group/[id]/page.tsx`, `legado:src/app/group/[id]/vote/page.tsx`, `legado:src/components/voting/*`, `legado:src/components/group/*` (partes do Errômetro), `legado:src/lib/voting/{client-token,remembered-votes}.ts`.
 
+**Design:** DESIGN.md §9.3 (card de pessoa), §9.4 (botão de emoji), §9.7, §9.8, §9.9 (barra fixa), §8 (háptico de seleção e sucesso), §10.1 (anonimato) e §10.6 (lista virtualizada). Referência visual: `docs/design/legado/05` a `07`.
+
 **Tarefas:**
 1. Seção do Errômetro no hub do grupo: estado da rodada, chamada para votar, estados de participação (sem pedido, pendente, rejeitado, removido, fila do limite de 50).
 2. Tela de votação: grade de alvos, seleção de emoji, legenda ("O que significa cada emoji?"), barra de envio.
@@ -420,6 +429,8 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 **Depende de:** Sprints 13 e 14. **Gate humano:** sim (paridade do Errômetro nas três plataformas).
 
 **Referências no legado:** `legado:src/app/results/page.tsx`, `legado:src/components/results/*`, `legado:src/app/group/[id]/settings/page.tsx`, `legado:src/components/group/*` (configurações), `legado:src/lib/results/*`.
+
+**Design:** DESIGN.md §9.13 (conteúdo reservado), §9.14 (medalha e ranking), §7 (brilhos dourado e prata), §10.3 (confirmação de ações destrutivas: anular, ocultar, remover). Referência visual: `docs/design/legado/08`.
 
 **Tarefas:**
 1. Resultados: ranking, navegação entre dias, banner de rodada oculta, comentários, compartilhar (área de transferência e compartilhamento nativo).
@@ -459,6 +470,8 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 
 **Referências no legado:** `legado:src/app/group/[id]/events/**`, `legado:src/components/group/events/*`, `legado:src/components/voting/events/*`, `legado:src/components/trophies/EventScaleTrophyList.tsx`.
 
+**Design:** DESIGN.md §3.3 (cor de evento: só tinge fundo, borda, ícone e brilho; texto sempre com tokens), §9.12 (banner de evento), §9.10 (assistente em sheet, no máximo 4 passos), §9.14.
+
 **Tarefas:**
 1. Lista de eventos (visão de admin e de membro), seção no hub do grupo.
 2. Criar/editar evento (assistente: tipo, emojis/eixos, modo de liberação, cor).
@@ -474,6 +487,8 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 **Objetivo:** fechar as telas transversais e a experiência de PWA.
 
 **Depende de:** Sprints 15 e 17. **Gate humano:** não. **Bloqueado por:** P-003, P-008.
+
+**Design:** DESIGN.md §9.5 (avatar), §9.14 (medalhas no perfil), §10.1 (pedido de permissão de notificação no momento certo), §10.8 (PWA), §12 (texto da landing alinhado aos limites reais). Referência visual: `docs/design/legado/01` e `02`.
 
 **Referências no legado:** `legado:src/app/profile/page.tsx`, `legado:src/components/profile/*`, `legado:src/components/trophies/*`, `legado:src/app/group/[id]/member/[userId]/page.tsx`, `legado:src/components/member/*`, `legado:src/app/page.tsx`, `legado:src/components/landing/*`, `legado:src/app/api/{og,pwa-icons}/*`, `legado:src/app/.well-known/apple-app-site-association/route.ts`.
 
@@ -499,7 +514,7 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 2. LGPD: `data.export` e `data.delete` em `defineModuleApi` para core, Errômetro e Eventos; rota de exportação e fluxo de exclusão (acionado por admin na v1). Documentar que votos não são ligáveis a pessoas e, por isso, não entram na exportação.
 3. Desempenho: tempo de typecheck do RPC, latência das rotas principais, índices (sempre começando por `community_id`).
 4. Deploy: Dockerfile da API (multi-stage, `turbo prune`), migrations com `erre_migrator` num passo separado, export web do Expo hospedado conforme P-010, perfis de build EAS (dev/preview/prod) sem publicar nas lojas, ambiente de staging com dados falsos, deploy da API só quando ela ou suas dependências mudarem.
-5. Diff do legado desde `7c5c5bf` (se P-004 = não congelar): novos itens em `PARIDADE.md` e implementação ou aprovação para backlog.
+5. Conferir que o legado continua em `7c5c5bf` (D-021). Se tiver recebido commits, fazer o diff, adicionar os itens novos em `PARIDADE.md` e implementar ou levar ao humano para backlog.
 6. Paridade final: todos os itens de `PARIDADE.md` revisados com o humano.
 7. Lista de insumos para o plano de dados (D-016): `MAPEAMENTO-DADOS.md` completo, dúvidas de vínculo de contas.
 
@@ -513,7 +528,7 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 
 **Tarefas:**
 1. `pnpm create-module <id>`: gera `modules/<id>` (manifesto, API com sub-app e rota anônima opcional, UI, pasta de migrations, testes de isolamento e de matriz de permissões já preenchidos), os arquivos de rota em `apps/mobile/app/`, a entrada no registro e a variável em `MODULES_ENABLED` no `.env.example`.
-2. `docs/criando-um-modulo.md` (passo a passo), `docs/libs-aprovadas.md` revisado, `docs/guia-pr-e-migrations.md`.
+2. `docs/criando-um-modulo.md` (passo a passo, com uma seção "Design do seu módulo" que aponta para `docs/design/DESIGN.md` e mostra uma tela de exemplo montada só com `packages/ui`), `docs/libs-aprovadas.md` revisado, `docs/guia-pr-e-migrations.md`. As telas geradas pelo `create-module` já usam `Screen`, `ScreenHeader` e os estados de carregando/vazio/erro.
 3. `docs/CONTRATO.md` v1, consolidando todas as entradas `[contrato]` de `DECISOES.md`.
 4. Módulo de exemplo `avisos` (mural de avisos: listar, publicar, apagar, notificar ao publicar; permissão `avisos.publicar`) construído **por um agente sem contexto prévio**, usando só o gerador e a documentação. Registrar cada dificuldade.
 5. Relatório "o que doeu", com as mudanças feitas no contrato a partir disso.

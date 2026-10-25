@@ -1,6 +1,6 @@
 # Regras para agentes
 
-Este arquivo vale para qualquer agente (Claude Code ou outro) e para pessoas. Leia inteiro antes de qualquer alteração. Em caso de conflito, a ordem de precedência é: instrução explícita do humano > este arquivo > `docs/migration/DECISOES.md` > `docs/migration/ARQUITETURA.md` > `docs/migration/PLANO.md`.
+Este arquivo vale para qualquer agente (Claude Code ou outro) e para pessoas. Leia inteiro antes de qualquer alteração. Em caso de conflito, a ordem de precedência é: instrução explícita do humano > este arquivo > `docs/migration/DECISOES.md` > `docs/design/DESIGN.md` (em assuntos de interface) > `docs/migration/ARQUITETURA.md` > `docs/migration/PLANO.md`.
 
 ## Contexto em três linhas
 
@@ -13,6 +13,7 @@ Este arquivo vale para qualquer agente (Claude Code ou outro) e para pessoas. Le
 1. Leia `docs/migration/PLANO.md` (a seção do seu sprint e a "Definição de pronto global"), `DECISOES.md` e `ARQUITETURA.md`.
 2. Confirme que os sprints de que o seu depende estão concluídos (merge feito na `main`).
 3. Verifique `PERGUNTAS.md`. Se uma pergunta em aberto bloqueia o seu sprint, pare e pergunte (formato abaixo).
+4. **Se o sprint tem qualquer interface (tela, componente, texto, notificação), leia [`docs/design/DESIGN.md`](docs/design/DESIGN.md) inteiro** e olhe as capturas em `docs/design/legado/`. Design é requisito, não acabamento.
 
 ## Referência ao legado
 
@@ -34,6 +35,7 @@ Este arquivo vale para qualquer agente (Claude Code ou outro) e para pessoas. Le
 9. **Rotas anônimas nunca conhecem o usuário.** Código em `modules/*/api/anon/**` não lê sessão, cookies, `Authorization`, IP nem `user`. Isso protege o anonimato do voto (assinatura cega). Violar isso é bug crítico.
 10. **Dependências novas:** antes de adicionar uma biblioteca usada pelo app, confirme que funciona em Android, iOS e web. Registre em `docs/libs-aprovadas.md` (nome, versão, plataformas testadas, motivo). Dependências só de servidor ou de desenvolvimento também são registradas, sem o teste de plataforma.
 11. **Cada sprint termina com relatório + testes verdes + aprovação humana** (merge do PR). Sprints marcados com "Gate humano" exigem revisão explícita antes do próximo.
+12. **Interface segue `docs/design/DESIGN.md`.** Só componentes de `packages/ui` e tokens; nenhuma cor, fonte ou espaçamento fora deles. Todo PR com interface inclui o checklist da §14 do DESIGN.md e prints nas três plataformas. Se o design não cobrir o caso, proponha a adição ao DESIGN.md no mesmo PR em vez de improvisar na tela.
 
 ## Convenções de código
 

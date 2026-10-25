@@ -7,6 +7,7 @@ O repositório está em fase de planejamento. Comece por aqui:
 | Documento | Para quê |
 |---|---|
 | [`AGENTS.md`](AGENTS.md) | Regras obrigatórias para qualquer agente ou pessoa que trabalhe aqui |
+| [`docs/design/DESIGN.md`](docs/design/DESIGN.md) | Referência de design: cores, tipografia, espaçamento, componentes, movimento, UX e escrita. Obrigatória antes de qualquer interface |
 | [`docs/migration/PLANO.md`](docs/migration/PLANO.md) | Plano em 20 sprints, com tarefas, entregáveis e critérios de aceite |
 | [`docs/migration/ARQUITETURA.md`](docs/migration/ARQUITETURA.md) | Arquitetura-alvo, contrato de módulo, multi-tenancy e RLS |
 | [`docs/migration/DECISOES.md`](docs/migration/DECISOES.md) | Registro de decisões (o que já foi decidido e por quê) |

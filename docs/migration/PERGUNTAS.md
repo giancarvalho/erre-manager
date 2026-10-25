@@ -4,12 +4,12 @@ Formato: ID, sprint que bloqueia, contexto, opções, recomendação. Quando res
 
 | ID | Bloqueia | Status |
 |---|---|---|
-| P-001 | Sprint 7 | aberta |
-| P-002 | Sprint 7 | aberta |
+| P-001 | Sprint 7 | respondida (D-023); interpretação aguardando confirmação |
+| P-002 | Sprint 7 | respondida em parte (D-023); interpretação aguardando confirmação |
 | P-003 | Sprint 1 (classificação) | aberta |
-| P-004 | Sprint 1 | aberta |
-| P-005 | Sprint 7 | aberta |
-| P-006 | Sprint 6 | aberta |
+| P-004 | Sprint 1 | respondida (D-021) |
+| P-005 | Sprint 7 | respondida (D-023) |
+| P-006 | Sprint 6 | respondida (D-022) |
 | P-007 | Sprint 9 | aberta |
 | P-008 | Sprint 18 | aberta |
 | P-009 | Sprint 6 (seed) | aberta |
@@ -19,12 +19,16 @@ Formato: ID, sprint que bloqueia, contexto, opções, recomendação. Quando res
 ---
 
 ### P-001 — Entrar num grupo cria membership na comunidade?
+**Resposta (2026-10-25):** "assim como o Errômetro, através de um link de convite". Interpretação registrada em D-023: um único pedido pelo link do grupo; aprovado no grupo, vira `membro` da comunidade. **Confirmar.**
+
 **Contexto:** hoje as pessoas entram em grupos por convite. Na nova estrutura, um grupo está dentro de uma comunidade.
 - **A. Sim, automaticamente como `membro` quando aprovado no grupo.** Prós: mantém o fluxo atual de convite. Contras: a comunidade não aprova separadamente.
 - **B. Exige entrar na comunidade antes.** Prós: controle da comunidade. Contras: um passo a mais; muda o fluxo atual.
 **Recomendação:** A.
 
 ### P-002 — Papéis de grupo
+**Resposta (2026-10-25):** respondida junto com P-001 ("link de convite"), sem tratar de papéis. Assumida a recomendação A até confirmação (D-023).
+
 **Contexto:** no legado, só o criador administra o grupo (`isGroupCreator`).
 - **A. Modelar `role` (`admin`/`membro`) na membership do grupo; o criador vira `admin`; promover outras pessoas fica para depois da migração.** Prós: paridade sem fechar portas.
 - **B. Manter "criador = admin" sem coluna de papel.** Contras: retrabalho quando houver mais de um admin.
@@ -36,17 +40,23 @@ Formato: ID, sprint que bloqueia, contexto, opções, recomendação. Quando res
 **Recomendação:** A, a menos que a landing dependa dele para converter visitantes.
 
 ### P-004 — Congelamento do legado
+**Resposta (2026-10-25):** o legado não está sendo mexido (D-021).
+
 **Contexto:** o legado continua recebendo funcionalidades; a paridade vira alvo móvel.
 - **A. Congelar funcionalidades no legado (só correções) a partir do Sprint 1.**
 - **B. Não congelar; o Sprint 19 faz o diff desde `7c5c5bf` e traz o que faltar.**
 **Recomendação:** A.
 
 ### P-005 — Quem cria grupos?
+**Resposta (2026-10-25):** como no Errômetro: qualquer membro (D-023).
+
 **Contexto:** no legado, qualquer usuário logado cria grupo pelo assistente.
 - **A. Permissão `core.grupos.criar` dada a `membro` por padrão (paridade).** **B. Só admin da comunidade.**
 **Recomendação:** A.
 
 ### P-006 — Quem cria comunidades?
+**Resposta (2026-10-25):** qualquer pessoa com conta (D-022).
+
 - **A. Só administradores da plataforma, por script/CLI, na v1.** **B. Qualquer usuário pelo app.**
 **Recomendação:** A. Criar comunidade pelo app é funcionalidade nova, não paridade.
 

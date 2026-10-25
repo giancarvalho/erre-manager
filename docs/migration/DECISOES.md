@@ -108,3 +108,25 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 ### D-020 — Fuso horário global na primeira versão
 **Data:** 2026-10-25 · **Status:** aceita
 **Decisão:** paridade com o legado: `VOTING_TIMEZONE` global (default `America/Sao_Paulo`). Fuso por comunidade fica no backlog.
+
+### D-021 — Legado parado no commit de referência
+**Data:** 2026-10-25 · **Status:** aceita (resposta a P-004)
+**Decisão:** o legado não está recebendo mudanças; `7c5c5bf` é a referência de paridade. O Sprint 19 só confere se isso continua verdade.
+
+### D-022 — Qualquer usuário com conta cria comunidades
+**Data:** 2026-10-25 · **Status:** aceita (resposta a P-006)
+**Decisão:** criar comunidade é uma funcionalidade do app, aberta a qualquer usuário logado. Quem cria vira `owner`.
+**Consequências:** `POST /v1/communities` é a única rota autenticada sem comunidade no contexto; precisa de rate limit e de teste próprio de isolamento (Sprint 6).
+
+### D-023 — Entrada em comunidades e grupos por link de convite, como no Errômetro
+**Data:** 2026-10-25 · **Status:** aceita (resposta a P-001, P-002, P-005); detalhes em confirmação
+**Decisão:** comunidades e grupos têm link de convite. Quem abre o link pede entrada e fica `pending` até aprovação (`owner`/`admin` na comunidade; admin do grupo no grupo), com os mesmos estados do fluxo de grupos do legado. Qualquer membro aprovado da comunidade cria grupos, como qualquer usuário cria grupo no Errômetro hoje.
+**Interpretações aguardando confirmação:**
+- P-001: quem abre o link de um grupo sem ser da comunidade faz um único pedido; aprovado no grupo, vira `membro` da comunidade (sem uma segunda aprovação).
+- P-002: a membership de grupo tem papel (`admin`/`membro`); quem cria o grupo é `admin`; promover outras pessoas fica para depois; `owner`/`admin` da comunidade têm poder de admin em todos os grupos.
+
+### D-024 — Referência de design obrigatória
+**Data:** 2026-10-25 · **Status:** aceita
+**Decisão:** `docs/design/DESIGN.md` é a referência de design de todo o app e de todos os módulos. Preserva a identidade do legado (escuro, zinc, ciano, dourado, emoji como protagonista) e corrige problemas medidos: dois estilos de botão principal em vez de quatro, contraste AA nos textos e controles, tamanho mínimo de fonte 12, raio único de 12 em controles.
+**Motivo:** design é ponto importante para o humano, e módulos de várias pessoas só parecem um app se partirem dos mesmos tokens e componentes.
+**Consequências:** regra 12 do `AGENTS.md`, item na definição de pronto, `packages/ui` implementa exatamente o DESIGN.md (Sprint 10), lint contra cores literais.
