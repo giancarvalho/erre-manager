@@ -85,7 +85,7 @@ export function areaOfImport(specifier, fileAbs, root) {
   const part =
     rest[0] === 'api' || rest[0] === 'ui' || rest[0] === 'db'
       ? rest[0]
-      : rest[0] === 'manifest' || rest.length === 0
+      : rest[0] === 'manifest' || rest[0] === undefined
         ? 'root'
         : rest[0];
   return { kind: 'module', module: pkg, part, subpath };

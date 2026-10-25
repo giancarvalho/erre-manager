@@ -2,7 +2,7 @@
 
 Plataforma de gestão de comunidades, organizada em módulos. O primeiro módulo é o **Errômetro**, migrado do repositório legado [`giancarvalho/queridometro`](https://github.com/giancarvalho/queridometro). No legado ele também aparece como Queridômetro ou Karmômetro; é tudo a mesma coisa.
 
-O repositório está em fase de planejamento. Comece por aqui:
+Para rodar e contribuir, veja [`CONTRIBUTING.md`](CONTRIBUTING.md). Documentos principais:
 
 | Documento | Para quê |
 |---|---|

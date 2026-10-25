@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: erre_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_ADMIN_URL: postgres://postgres:postgres@localhost:5432/erre_test
+      TURBO_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # PRs run only affected packages, unless a shared file changed (PLANO, Sprint 3, task 7).
+      # Pushes run everything.
+      - name: Scope
+        id: scope
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          filter=""
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            changed=$(git diff --name-only "origin/${BASE_REF}...HEAD")
+            run_all='^(package\.json|pnpm-lock\.yaml|pnpm-workspace\.yaml|turbo\.json|.*tsconfig[^/]*\.json|\.github/workflows/.*|packages/(config|db|core)/.*|.*/migrations/.*)$'
+            if echo "$changed" | grep -Eq "$run_all"; then
+              echo "Shared files changed: running everything."
+            else
+              filter="--filter=...[origin/${BASE_REF}]"
+            fi
+          fi
+          echo "filter=${filter}" >> "$GITHUB_OUTPUT"
+
+      - run: pnpm format:check
+
+      - run: pnpm turbo run lint typecheck test build ${{ steps.scope.outputs.filter }}
+
+      - run: pnpm --filter @erre/mobile exec playwright install --with-deps chromium
+
+      - run: pnpm turbo run test:e2e ${{ steps.scope.outputs.filter }}
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/*/playwright-report
+          if-no-files-found: ignore

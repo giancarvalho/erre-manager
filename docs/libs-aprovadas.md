@@ -18,6 +18,9 @@ Legenda: ✅ verificado · ⏳ verificado só por build/export (falta aparelho) 
 | `expo-network` | 58 | ⏳ | ⏳ | ✅ | Exigida pelo plugin Expo do Better Auth | Sprint 2 |
 | `better-auth` (cliente) + `@better-auth/expo` | 1.7.7 | ⏳ | ⏳ | ✅ | Login Google (D-017) | Sprint 2: na web, o clique leva ao Google com PKCE e state |
 | `@noble/hashes` | 2.4.0 | ✅* | ⏳ | ✅ | SHA-256/384 do cliente da assinatura cega (D-011) | Sprint 2: vitest, navegador e Hermes 0.12 (*motor Hermes via CLI, não aparelho) |
+| `@tanstack/react-query` | 5.104 | ⏳ | ⏳ | ✅ | Cache e estado de servidor no app (ARQUITETURA) | Sprint 3: JS puro; export Android/iOS e e2e web verdes |
+| `expo-font`, `expo-splash-screen`, `expo-system-ui`, `expo-constants`, `expo-linking` | 58 | ⏳ | ⏳ | ✅ | Módulos do SDK usados pelo Expo Router e pelo tema | Sprint 3: `expo-doctor` 20/20, export das três plataformas |
+| `@babel/runtime` | 7.29 | ⏳ | ⏳ | ✅ | Helpers do Babel; precisa ser dependência direta do app com o layout isolado do pnpm | Sprint 3 |
 | `@expo-google-fonts/geist`, `@expo-google-fonts/geist-mono` | 0.4 | | | | Fontes TTF para o nativo (DESIGN §4) | a verificar no Sprint 10 |
 
 ## Servidor
@@ -25,6 +28,8 @@ Legenda: ✅ verificado · ⏳ verificado só por build/export (falta aparelho) 
 | Biblioteca | Versão | Motivo | Verificado em |
 |---|---|---|---|
 | `hono` + `@hono/node-server` | 4.13 / 2.1 | API (D-008) | Sprint 2 (spike de auth) |
+| `pino` | 10.4 | Log estruturado com `redact` (sem dados pessoais) | Sprint 3 |
+| `zod` | 4.6 | Validação de entrada em toda rota | Sprint 3 |
 | `better-auth` | 1.7.7 | Auth (D-017, D-031) | Sprint 2: início do login Google, checagem de origem, guarda do callback |
 | `@cloudflare/blindrsa-ts` | 0.4.6 | Assinatura cega no servidor (D-011) | Sprint 2: interoperabilidade com o cliente JS puro |
 
@@ -34,4 +39,12 @@ Legenda: ✅ verificado · ⏳ verificado só por build/export (falta aparelho) 
 |---|---|---|
 | `typescript` | 6.0 | Não usar 7 enquanto `typescript-eslint` exigir `<6.1` (D-032) |
 | `vitest` | 5.0 | Testes unitários e de integração |
-| `tsx`, `esbuild`, `@babel/*` | — | Só no spike do Hermes (`prototypes/anon-vote`) |
+| `tsx` | 4.23 | `dev` da API com recarga |
+| `esbuild` | 0.28 | Empacota a API para produção (inclui `@erre/*`, deixa as libs de fora) |
+| `@babel/*` | — | Só no spike do Hermes (`prototypes/anon-vote`) |
+| `eslint` + `typescript-eslint` + `eslint-plugin-react-hooks` | 9.39 / 8 / 7 | Lint. ESLint 9 e não 10: o plugin de hooks ainda não declara suporte ao 10 (D-034) |
+| `prettier` | 3.9 | Formatação |
+| `turbo` | 2.11 | Orquestra tarefas e cache no monorepo |
+| `jest` + `jest-expo` + `@testing-library/react-native` | 30 / 58 / 14 | Testes unitários do app com o preset do SDK |
+| `@playwright/test` | 1.63 | E2E contra o export web |
+| `serve` | 14.2 | Servidor estático do export web no e2e |

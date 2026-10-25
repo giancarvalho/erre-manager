@@ -178,3 +178,15 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 **Data:** 2026-10-25 · **Status:** proposta (DESIGN.md §9.16); revisar com o humano quando houver telas reais
 **Decisão:** pilha (stack) sem barra de abas na v1. Sem sessão: tela de entrada. Com sessão e sem comunidade: criar comunidade ou abrir convite. Com comunidade: o **hub da comunidade** é a tela inicial, com uma seção por módulo habilitado; o perfil abre pelo avatar no cabeçalho; o seletor de comunidade aparece no cabeçalho só para quem tem mais de uma.
 **Motivo:** com dois módulos, uma barra de abas acrescenta pouco e ocupa espaço; a pilha com cabeçalho de voltar é o padrão do legado. Reavaliar com 4 ou mais módulos.
+
+### D-034 — Ferramentas do monorepo
+**Data:** 2026-10-25 · **Status:** aceita (Sprint 3)
+**Decisão:**
+- **Lint:** ESLint 9.39 (não 10), porque `eslint-plugin-react-hooks` ainda não declara suporte ao 10. Regras próprias em `packages/config/eslint`: `erre/boundaries` (ARQUITETURA §3) e `erre/no-identity-in-anon` (AGENTS.md, regra 9).
+- **Testes unitários:** Vitest em pacotes e na API; `jest-expo` + Testing Library no app, porque o preset do SDK já resolve os mocks nativos e o Babel do Metro.
+- **E2E:** Playwright contra o **export web estático** do app (o mesmo artefato que vai para produção), não contra o servidor de desenvolvimento.
+- **TypeScript:** `strict`, `noUncheckedIndexedAccess` e `exactOptionalPropertyTypes` em todo lugar. O app estende `expo/tsconfig.base` (exigido pelo Metro e pelas rotas tipadas) e repete as flags estritas.
+- **CI:** em push roda tudo; em PR roda só o afetado (`--filter=...[origin/<base>]`), e tudo quando muda arquivo compartilhado (lockfile, `turbo.json`, `tsconfig*`, workflows, `packages/{config,db,core}`, migrations). Postgres 16 como service container.
+- **`packages/ui` mínimo já no Sprint 3:** tokens e `ThemeProvider` (copiados do protótipo), para o app nascer com tema escuro e claro (D-025). O Sprint 10 completa o pacote.
+- `turbo.json` com `agentGuidance: false`: o Turborepo 2.11 escreve um bloco de instruções próprio no `AGENTS.md` quando detecta um agente; o arquivo de regras fica só com as regras do projeto.
+**Motivo:** um conjunto mínimo e padrão de ferramentas, que funciona hoje com SDK 58 e TypeScript 6.

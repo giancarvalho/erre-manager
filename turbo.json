@@ -1,10 +1,12 @@
 {
   "$schema": "https://turborepo.com/schema.json",
+  "agentGuidance": false,
   "globalDependencies": ["packages/config/tsconfig.base.json", "packages/config/eslint/**", ".prettierrc.json"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "outputs": ["dist/**"],
+      "env": ["EXPO_PUBLIC_*"]
     },
     "lint": {},
     "typecheck": {},
@@ -13,7 +15,8 @@
     },
     "test:e2e": {
       "dependsOn": ["build"],
-      "cache": false
+      "cache": false,
+      "passThroughEnv": ["CI", "PLAYWRIGHT_BROWSERS_PATH"]
     }
   }
 }
