@@ -15,8 +15,8 @@ Formato: ID, sprint que bloqueia, contexto, opções, recomendação. Quando res
 | P-009 | Sprint 6 (seed) | aberta |
 | P-010 | Sprint 19 | aberta |
 | P-011 | Sprint 3 | aberta |
-| P-012 | Sprint 7 e 12 | aberta |
-| P-013 | plano de dados (D-016) | aberta |
+| P-012 | — | respondida (D-027) |
+| P-013 | — | respondida (D-028) |
 
 ---
 
@@ -86,6 +86,7 @@ Formato: ID, sprint que bloqueia, contexto, opções, recomendação. Quando res
 **Recomendação:** criar `main` a partir do merge deste plano e proteger com CI obrigatório a partir do Sprint 3.
 
 ### P-012 — Limites por comunidade
+**Resposta (2026-10-25):** manter 50 votantes (D-027). Limite de membros mantido em 300 por paridade.
 **Contexto:** no legado, os limites eram por grupo: até 300 membros e até 50 votantes no Errômetro (os demais ficam na fila). Agora o Errômetro é um por comunidade (D-026), então uma comunidade grande teria só 50 votantes.
 - **A. Manter 50 votantes por comunidade.** Prós: votar em mais de 50 pessoas por rodada é cansativo, e a tela foi pensada para isso. Contras: numa comunidade de 300, a maioria fica de fora.
 - **B. Aumentar o limite** (ex.: 100). Contras: rodada longa; a grade de votação precisa de busca e filtro.
@@ -94,6 +95,7 @@ Também: manter ou não um limite de membros por comunidade (no legado, 300 por 
 **Recomendação:** A para a migração (paridade) e reavaliar com uso real.
 
 ### P-013 — Grupos do legado viram quais comunidades?
+**Resposta (2026-10-25):** cada grupo vira uma comunidade (D-028).
 **Contexto:** o legado tem vários grupos (os scripts citam, por exemplo, `r-uberlandia` e `r-esportes`), cada um com seu próprio Errômetro, histórico de rodadas, emojis e eventos. Com um Errômetro por comunidade, dois grupos não podem virar a mesma comunidade sem fundir rodadas e históricos.
 - **A. Cada grupo do legado vira uma comunidade.** Prós: nada se perde nem se mistura. Contras: quem estava em dois grupos fica em duas comunidades.
 - **B. Fundir grupos numa comunidade** (ex.: "R"). Contras: históricos e configurações de Errômetro conflitantes; precisa escolher qual vale.
