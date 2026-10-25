@@ -462,7 +462,7 @@ Toda tela que carrega dados tem os quatro estados desenhados:
 | Feedback pensado para mouse | 193 usos de `hover:` contra 20 de `active:` (pressionado) | Estado pressionado em todo tocável; hover é extra na web |
 | Bordas de campo com pouco contraste | `border-zinc-700/800`: 1,7:1 contra o fundo do campo | `border.input` (3,7:1) |
 | Só tema escuro (`className="dark"` fixo) | `legado:src/app/layout.tsx` | Escuro (padrão) e claro, com escolha em Perfil → Aparência (§3.1) |
-| Landing diz "grupos de até 50 pessoas", mas grupos aceitam 300 (50 é o limite de votantes do Errômetro) | `legado/01-landing.png`, `group-limits.ts` | Texto alinhado aos limites por comunidade (P-012) |
+| Landing diz "grupos de até 50 pessoas", mas grupos aceitam 300 (50 é o limite de votantes do Errômetro) | `legado/01-landing.png`, `group-limits.ts` | Texto alinhado aos limites por comunidade: até 50 votantes, até 300 membros (D-027) |
 
 ---
 
