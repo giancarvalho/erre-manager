@@ -127,6 +127,12 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 
 ### D-024 — Referência de design obrigatória
 **Data:** 2026-10-25 · **Status:** aceita
-**Decisão:** `docs/design/DESIGN.md` é a referência de design de todo o app e de todos os módulos. Preserva a identidade do legado (escuro, zinc, ciano, dourado, emoji como protagonista) e corrige problemas medidos: dois estilos de botão principal em vez de quatro, contraste AA nos textos e controles, tamanho mínimo de fonte 12, raio único de 12 em controles.
+**Decisão:** `docs/design/DESIGN.md` é a referência de design de todo o app e de todos os módulos. Preserva a identidade do legado (escuro como padrão, zinc, ciano, dourado, emoji como protagonista) e corrige problemas medidos: dois estilos de botão principal em vez de quatro, contraste AA nos textos e controles, tamanho mínimo de fonte 12, raio único de 12 em controles.
 **Motivo:** design é ponto importante para o humano, e módulos de várias pessoas só parecem um app se partirem dos mesmos tokens e componentes.
 **Consequências:** regra 12 do `AGENTS.md`, item na definição de pronto, `packages/ui` implementa exatamente o DESIGN.md (Sprint 10), lint contra cores literais.
+
+### D-025 — Dois temas: escuro (padrão) e claro (diurno)
+**Data:** 2026-10-25 · **Status:** aceita
+**Decisão:** o app nasce com tema escuro, padrão para todos, e tema claro. A pessoa escolhe em Perfil → Aparência entre "Escuro", "Claro" e "Igual ao sistema". A escolha fica no dispositivo.
+**Motivo:** pedido do humano. O escuro continua sendo a identidade; o claro atende leitura sob luz forte e preferência pessoal.
+**Consequências:** todos os tokens de cor têm valor para os dois temas, com contraste AA conferido em cada um (DESIGN.md §3.2); o modo claro é desenho novo, sem referência no legado, validado no Sprint 2 e na galeria do Sprint 10; toda tela é verificada nos dois temas (definição de pronto, checklist §14); emojis, avatares, cor de evento e ícone do app não mudam com o tema.

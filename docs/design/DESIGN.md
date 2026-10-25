@@ -4,6 +4,7 @@
 
 Este documento parte da análise do app legado (código em `queridometro@7c5c5bf` e capturas reais em [`legado/`](legado/)). Ele preserva a identidade que funciona, corrige o que medimos como problema (contraste, inconsistências) e traduz tudo para React Native.
 
+- **Dois temas:** escuro (padrão) e claro (diurno). O legado só tinha o escuro; o claro é desenho novo sobre a mesma identidade (§3.1).
 - **Fonte de verdade da implementação:** `packages/ui` (Sprint 10). Este documento define o que o pacote deve conter. Se os dois divergirem, corrija o que estiver errado e registre em `docs/migration/DECISOES.md`.
 - **Mudanças neste documento** exigem aprovação humana, como qualquer decisão.
 
@@ -12,7 +13,7 @@ Este documento parte da análise do app legado (código em `queridometro@7c5c5bf
 ## 1. Princípios
 
 1. **O emoji é o protagonista.** A interface é neutra (cinzas zinc sobre quase-preto) para que os emojis, os avatares coloridos e os troféus sejam as únicas coisas coloridas da tela. Não adicione cor decorativa.
-2. **Escuro, noturno, íntimo.** O app é só escuro (o legado força `className="dark"`). Na v1 não há tema claro, mas os tokens são semânticos para permitir um no futuro.
+2. **Escuro por padrão, claro quando a pessoa quiser.** O escuro é a identidade (o legado só tinha ele) e é o padrão para todos. O modo claro (diurno) existe para leitura sob luz forte e preferência pessoal, com a mesma hierarquia e o mesmo destaque ciano (§3.1). Toda tela é desenhada e conferida nos dois.
 3. **Brincadeira com respeito.** A voz é irreverente ("Ritual de iniciação", "Erra com convicção", "Bora votar"), mas o anonimato é sério: nunca brinque com ele nem dê margem a dúvida sobre ele.
 4. **Uma ação principal por tela.** Sempre fica óbvio o que fazer a seguir.
 5. **Rápido de usar com uma mão.** Votar leva segundos; alvos de toque grandes; ação principal ao alcance do polegar (barra fixa embaixo).
@@ -32,79 +33,99 @@ Este documento parte da análise do app legado (código em `queridometro@7c5c5bf
 
 ## 3. Cores
 
-### 3.1 Tokens semânticos
+### 3.1 Temas
 
-Use **sempre** o token, nunca o hex nem o nome Tailwind direto no código de tela. Hex e rgba abaixo são os valores de implementação.
+O app tem dois temas: **escuro (padrão)** e **claro (diurno)** (D-025).
+
+- **Padrão:** escuro, para todo mundo, inclusive na primeira abertura. É a identidade do app.
+- **Escolha:** em Perfil → Aparência, com três opções: "Escuro" (padrão), "Claro" e "Igual ao sistema" (segue o celular ou o navegador e muda junto quando o sistema muda).
+- **Onde fica a escolha:** no dispositivo (AsyncStorage no nativo, `localStorage` na web), não no servidor. É preferência de tela, não de conta.
+- **Sem piscar o tema errado:** a escolha é lida antes da primeira pintura. Na web, um script inline no `<head>` aplica o tema antes do bundle carregar; no nativo, a splash fica até o tema estar resolvido.
+- **Troca instantânea**, sem reiniciar o app, com transição de cor de 150 ms (`motion.color`), desligada com "reduzir movimento".
+- **Junto com o tema mudam:** barra de status (`expo-status-bar`: texto claro no escuro, escuro no claro), cor de fundo da janela e da splash, `theme-color` e `color-scheme` na web, teclado (`keyboardAppearance`).
+- **Não mudam com o tema:** emojis, cores de avatar (são fundos com o próprio texto), cor escolhida para um evento, ícone do app e da PWA (sempre o 🦄 sobre fundo escuro).
+- O modo claro **não existe no legado**: é desenho novo, a partir da mesma identidade. Não há capturas de referência para ele; valide no protótipo (Sprint 2) e na galeria do Sprint 10.
+
+### 3.2 Tokens semânticos
+
+Use **sempre** o token, nunca o hex nem o nome Tailwind direto no código de tela. O componente pede `bg.surface`; o tema decide o valor. Os contrastes indicados foram calculados (WCAG 2) nos dois temas.
 
 **Fundos e superfícies**
 
-| Token | Valor | Uso | Origem no legado |
+| Token | Escuro (padrão) | Claro | Uso |
 |---|---|---|---|
-| `bg.canvas` | `#09090b` | fundo do app | `zinc-950` |
-| `bg.surface` | `rgba(24,24,27,0.5)` | cards, listas, acordeões | `zinc-900/40–50` |
-| `bg.surfacePressed` | `rgba(24,24,27,0.7)` | card interativo pressionado | `zinc-900/70` |
-| `bg.raised` | `#18181b` | sheets, modais, toasts, menus | `zinc-900` |
-| `bg.input` | `#18181b` | campos de texto | `zinc-900` |
-| `bg.control` | `#27272a` | botões de emoji, segmentos inativos | `zinc-800` |
-| `bg.controlSelected` | `#3f3f46` | emoji selecionado, segmento ativo | `zinc-700` |
-| `bg.overlay` | `rgba(9,9,11,0.95)` | barras fixas com blur | `zinc-950/95` |
-| `bg.scrim` | `rgba(0,0,0,0.6)` | atrás de sheets e modais | — |
+| `bg.canvas` | `#09090b` | `#fafafa` | fundo do app |
+| `bg.surface` | `rgba(24,24,27,0.5)` | `#ffffff` | cards, listas, acordeões |
+| `bg.surfacePressed` | `rgba(24,24,27,0.7)` | `#f4f4f5` | card interativo pressionado |
+| `bg.raised` | `#18181b` | `#ffffff` (com sombra) | sheets, modais, toasts, menus |
+| `bg.input` | `#18181b` | `#ffffff` | campos de texto |
+| `bg.control` | `#27272a` | `#f4f4f5` | botões de emoji, segmentos inativos |
+| `bg.controlSelected` | `#3f3f46` | `#e4e4e7` | emoji selecionado, segmento ativo |
+| `bg.overlay` | `rgba(9,9,11,0.95)` | `rgba(250,250,250,0.95)` | barras fixas com blur |
+| `bg.scrim` | `rgba(0,0,0,0.6)` | `rgba(9,9,11,0.4)` | atrás de sheets e modais |
 
 **Bordas**
 
-| Token | Valor | Uso |
-|---|---|---|
-| `border.subtle` | `rgba(39,39,42,0.8)` | contorno de cards e separadores (decorativo) |
-| `border.default` | `#3f3f46` | botões secundários, segmentos (identificados pelo próprio texto) |
-| `border.input` | `#71717a` | borda de campo de texto (3,7:1 contra `bg.input`; um campo vazio só é identificável pela borda, e o WCAG pede 3:1) |
-| `border.focus` | `#a1a1aa` | foco de teclado e de campo (não-destaque) |
-
-**Texto**
-
-| Token | Valor | Contraste sobre `bg.canvas` | Uso |
+| Token | Escuro | Claro | Uso |
 |---|---|---|---|
-| `text.primary` | `#fafafa` | 19,1:1 | títulos, nomes, valores |
-| `text.secondary` | `#d4d4d8` | 13,5:1 | corpo de texto |
-| `text.muted` | `#a1a1aa` | 7,8:1 | descrições, legendas, eyebrows, metadados |
-| `text.disabled` | `#52525b` | 2,6:1 | **só** texto desabilitado ou decorativo |
-| `text.placeholder` | `#71717a` | 3,7:1 sobre `bg.input` | placeholder (exemplo, nunca substitui o rótulo) |
-| `text.inverse` | `#09090b` | — | texto sobre botão primário e de destaque |
+| `border.subtle` | `rgba(39,39,42,0.8)` | `#e4e4e7` | contorno de cards e separadores (decorativo) |
+| `border.default` | `#3f3f46` | `#d4d4d8` | botões secundários, segmentos (identificados pelo próprio texto) |
+| `border.input` | `#71717a` (3,7:1 contra o campo) | `#71717a` (4,8:1) | borda de campo de texto: um campo vazio só é identificável pela borda, e o WCAG pede 3:1 |
+| `border.focus` | `#a1a1aa` (7,8:1) | `#52525b` (7,7:1) | foco de teclado e de campo |
+
+**Texto** (contraste sobre `bg.canvas` / sobre `bg.control`)
+
+| Token | Escuro | Claro | Uso |
+|---|---|---|---|
+| `text.primary` | `#fafafa` (19,1 / 15,2) | `#09090b` (19,1 / 18,1) | títulos, nomes, valores |
+| `text.secondary` | `#d4d4d8` (13,5 / 10,7) | `#3f3f46` (10,0 / 9,5) | corpo de texto |
+| `text.muted` | `#a1a1aa` (7,8 / 5,8) | `#52525b` (7,4 / 7,0) | descrições, legendas, eyebrows, metadados |
+| `text.disabled` | `#52525b` (2,6) | `#a1a1aa` (2,5) | **só** texto desabilitado ou decorativo |
+| `text.placeholder` | `#71717a` (3,7 no campo) | `#71717a` (4,8 no campo) | placeholder (exemplo, nunca substitui o rótulo) |
+
+**Botão primário** (inverte com o tema)
+
+| Token | Escuro | Claro |
+|---|---|---|
+| `primary.bg` | `#f4f4f5` | `#18181b` |
+| `primary.text` | `#09090b` (18,1:1) | `#fafafa` (17,0:1) |
 
 **Destaque (ciano, a cor da marca)**
 
-| Token | Valor | Uso |
-|---|---|---|
-| `accent.solid` | `#06b6d4` | fundo do botão de destaque (com `text.inverse`, 8,2:1) |
-| `accent.text` | `#67e8f9` | texto e ícone em destaque sobre fundo escuro (13,7:1) |
-| `accent.subtle` | `rgba(6,182,212,0.12)` | fundo de selo, ícone em caixa, banner de destaque |
-| `accent.border` | `rgba(6,182,212,0.4)` | borda de banner e de card em destaque |
-| `accent.ring` | `#22d3ee` | anel de seleção (card escolhido, emoji votado) |
-| `accent.glow` | `34 211 238` (rgb) | brilho "seu voto está aqui" |
+| Token | Escuro | Claro | Uso |
+|---|---|---|---|
+| `accent.solid` | `#06b6d4` | `#06b6d4` | fundo do botão de destaque |
+| `accent.onSolid` | `#09090b` (8,2:1) | `#09090b` (8,2:1) | texto sobre `accent.solid`; nunca branco |
+| `accent.text` | `#67e8f9` (13,7:1) | `#0e7490` (5,1:1; 4,8:1 sobre `accent.subtle`) | texto e ícone em destaque |
+| `accent.subtle` | `rgba(6,182,212,0.12)` | `rgba(6,182,212,0.12)` | fundo de selo, ícone em caixa, banner de destaque |
+| `accent.border` | `rgba(6,182,212,0.4)` | `rgba(8,145,178,0.4)` | borda de banner e de card em destaque |
+| `accent.ring` | `#22d3ee` (11,0:1) | `#0891b2` (3,5:1) | anel de seleção (card escolhido, emoji votado) |
+| `accent.glow` | `34 211 238` (rgb) | `6 182 212` (rgb) | brilho "seu voto está aqui" (no claro, discreto) |
 
 **Troféus**
 
-| Token | Valor | Uso |
-|---|---|---|
-| `trophy.gold` | `#fbbf24` | anel do troféu e do 1º lugar |
-| `trophy.goldStrong` | `#f59e0b` | selo do troféu, brilho dourado |
-| `trophy.silver` | `#cbd5e1` | "quase" (empate) e 2º/3º lugar |
-| `trophy.goldSubtle` | `rgba(245,158,11,0.08)` | fundo do card de quem ganhou troféu |
+| Token | Escuro | Claro | Uso |
+|---|---|---|---|
+| `trophy.gold` | `#fbbf24` | `#d97706` (3,2:1) | anel do troféu e do 1º lugar |
+| `trophy.goldStrong` | `#f59e0b` | `#f59e0b` | selo do troféu (com texto escuro), brilho dourado |
+| `trophy.silver` | `#cbd5e1` | `#64748b` (4,8:1) | "quase" (empate) e 2º/3º lugar |
+| `trophy.goldSubtle` | `rgba(245,158,11,0.08)` | `rgba(245,158,11,0.1)` | fundo do card de quem ganhou troféu |
 
 **Feedback**
 
-| Token | Valor | Uso |
-|---|---|---|
-| `danger.text` | `#f87171` | mensagens de erro, ações destrutivas (7,2:1) |
-| `danger.subtle` | `rgba(239,68,68,0.1)` | fundo de alerta de erro e botão destrutivo |
-| `danger.border` | `rgba(239,68,68,0.3)` | borda do botão destrutivo |
-| `warning.text` | `#fcd34d` | avisos (12,1:1 sobre o fundo de aviso) |
-| `warning.subtle` | `rgba(245,158,11,0.1)` | fundo de aviso |
-| `warning.border` | `rgba(245,158,11,0.2)` | borda de aviso |
-| `success.text` | `#34d399` | confirmação |
+| Token | Escuro | Claro | Uso |
+|---|---|---|---|
+| `danger.text` | `#f87171` (7,2:1) | `#b91c1c` (6,5:1) | mensagens de erro, ações destrutivas |
+| `danger.subtle` | `rgba(239,68,68,0.1)` | `rgba(239,68,68,0.08)` | fundo de alerta de erro e botão destrutivo |
+| `danger.border` | `rgba(239,68,68,0.3)` | `rgba(185,28,28,0.3)` | borda do botão destrutivo |
+| `warning.text` | `#fcd34d` (12,1:1 no fundo de aviso) | `#b45309` (4,6:1 no fundo de aviso) | avisos |
+| `warning.subtle` | `rgba(245,158,11,0.1)` | `rgba(245,158,11,0.12)` | fundo de aviso |
+| `warning.border` | `rgba(245,158,11,0.2)` | `rgba(180,83,9,0.25)` | borda de aviso |
+| `success.text` | `#34d399` (10,4:1) | `#047857` (5,5:1) | confirmação |
 
-### 3.2 Avatares
+### 3.3 Avatares
 
-Oito variantes, escolhidas de forma determinística pelo id do usuário (hash FNV-1a em `legado:src/lib/avatar/variants.ts`; portar exatamente igual, para cada pessoa manter a cor que já tem). O usuário pode trocar no perfil.
+Oito variantes, escolhidas de forma determinística pelo id do usuário (hash FNV-1a em `legado:src/lib/avatar/variants.ts`; portar exatamente igual, para cada pessoa manter a cor que já tem). O usuário pode trocar no perfil. **Iguais nos dois temas.**
 
 | Variante | Fundo | Texto |
 |---|---|---|
@@ -119,15 +140,15 @@ Oito variantes, escolhidas de forma determinística pelo id do usuário (hash FN
 
 Contraste das iniciais: de 3,3:1 (emerald, teal) a 7,0:1 (amber). Isso passa como texto grande, não como texto normal. Por isso: a inicial é sempre peso 600 e pelo menos 16; e o avatar **nunca é o único identificador** da pessoa: o nome aparece ao lado em texto (e é o rótulo de acessibilidade).
 
-### 3.3 Cor de evento
+### 3.4 Cor de evento
 
-Eventos têm uma cor de banner escolhida pelo criador (`banner_rgb`). Regras: a cor só tinge fundo (10–15% de opacidade), borda (25–40%), ícone e o brilho do voto naquele evento. **Texto continua com os tokens de texto**, nunca na cor do evento, para garantir contraste com qualquer cor escolhida.
+Eventos têm uma cor de banner escolhida pelo criador (`banner_rgb`). Regras: a cor só tinge fundo (10–15% de opacidade), borda (25–40%), ícone e o brilho do voto naquele evento. **Texto continua com os tokens de texto**, nunca na cor do evento, para garantir contraste com qualquer cor escolhida, nos dois temas. Ícone na cor do evento precisa de 3:1 sobre o fundo do tema; se a cor escolhida não alcançar (ex.: amarelo claro no tema claro), o ícone usa `text.secondary`.
 
-### 3.4 Regras de uso
+### 3.5 Regras de uso
 
-- **Contraste mínimo WCAG AA:** 4,5:1 para texto normal, 3:1 para texto grande (≥ 18 pt, ou 14 pt em negrito) e para ícones e bordas que identificam um controle. Os tokens acima já cumprem isso; combinações novas precisam ser medidas.
+- **Contraste mínimo WCAG AA nos dois temas:** 4,5:1 para texto normal, 3:1 para texto grande (≥ 18 pt, ou 14 pt em negrito) e para ícones e bordas que identificam um controle. Os tokens acima já cumprem isso; combinações novas precisam ser medidas nos dois temas.
 - **Cor nunca é o único sinal.** Selecionado também muda forma ou peso (anel, borda mais grossa, ícone de check); erro também tem mensagem em texto.
-- **Proibido** hex ou rgba literal fora de `packages/ui/tokens`. Uma regra de lint garante isso a partir do Sprint 10.
+- **Proibido** hex ou rgba literal fora de `packages/ui/tokens`, e proibido decidir cor por `if (tema === 'escuro')` numa tela: se um valor precisa mudar com o tema, ele vira token. Uma regra de lint cobre o primeiro caso a partir do Sprint 10.
 
 ---
 
@@ -200,7 +221,7 @@ O app é **plano**: profundidade vem de superfície translúcida + borda sutil, 
 
 | Efeito | Quando usar | Especificação |
 |---|---|---|
-| Sombra | só em camadas sobrepostas: sheet, modal, toast, menu | iOS/web `shadowColor #000, opacity 0.5, radius 24, offset y 8`; Android `elevation 12` |
+| Sombra | só em camadas sobrepostas: sheet, modal, toast, menu | escuro: iOS/web `shadowColor #000, opacity 0.5, radius 24, offset y 8`; claro: `opacity 0.12, radius 24, offset y 8`; Android `elevation 12` nos dois. No tema claro, `bg.raised` é branco sobre `bg.canvas` quase branco: a sombra e a borda `border.subtle` são o que separa a camada |
 | **Brilho ciano** | "seu voto está aqui": card de pessoa que já recebeu seu voto; emoji escolhido | anel `accent.ring` 1–2 px + brilho `accent.glow` pulsando (§8) |
 | **Brilho dourado** | troféu ganho, 1º lugar | anel `trophy.gold` 2 px + brilho na cor do emoji do troféu (fallback `trophy.goldStrong`) pulsando |
 | Brilho prata | "quase" (empate), 2º e 3º lugares | anel `trophy.silver` 2 px, brilho fixo suave, sem pulsar |
@@ -211,6 +232,8 @@ Regras:
 - **Brilho tem significado.** Ciano = sua ação; dourado = troféu; prata = quase. Não use brilho para enfeitar.
 - **O botão em gradiente ciano→violeta do legado (botão "Criar" do assistente) não vem para o app novo.** Use o botão primário.
 - **Degradação no Android:** sombra colorida não é confiável em todas as versões. O brilho precisa funcionar só com o anel animado; a sombra colorida é um extra no iOS e na web.
+- **No tema claro, o anel carrega o significado.** Brilho colorido sobre fundo claro quase não aparece; ele fica discreto (opacidade menor) e o anel em `accent.ring` ou `trophy.gold`, que têm 3:1 ou mais sobre o fundo claro, é o que diz "seu voto" ou "troféu".
+- **Desfoque no tema claro** usa `bg.overlay` claro; o conteúdo reservado continua ilegível (desfoque + opacidade), nos dois temas.
 
 ---
 
@@ -251,8 +274,8 @@ Todos vivem em `packages/ui`. Cada componente tem: estados padrão, pressionado,
 
 | Variante | Visual | Quando |
 |---|---|---|
-| **Primário** | fundo `#f4f4f5`, texto `text.inverse` 14/600 | a ação principal da tela. **No máximo um por tela.** (Legado: "Criar meu Errômetro", "Continuar", barra de votos) |
-| **Destaque** | fundo `accent.solid`, texto `text.inverse` 14/600, brilho ciano opcional | ação dentro de um contexto em destaque (banner de evento aberto) ou momento de celebração ("Ir votar e liberar"). Nunca na mesma tela que um primário |
+| **Primário** | fundo `primary.bg`, texto `primary.text` 14/600 (claro sobre escuro no tema claro, e o inverso no escuro) | a ação principal da tela. **No máximo um por tela.** (Legado: "Criar meu Errômetro", "Continuar", barra de votos) |
+| **Destaque** | fundo `accent.solid`, texto `accent.onSolid` 14/600, brilho ciano opcional | ação dentro de um contexto em destaque (banner de evento aberto) ou momento de celebração ("Ir votar e liberar"). Nunca na mesma tela que um primário |
 | **Secundário** | fundo transparente, borda `border.default`, texto `text.primary` 14/500 | alternativas: "Voltar", "Entrar com o nome do grupo", "Continuar com Google" |
 | **Fantasma** | sem fundo e sem borda, texto `text.muted` → `text.primary` ao pressionar, ícone opcional | navegação secundária: "Ver grupo demo ›", "Entrar" |
 | **Destrutivo** | fundo `danger.subtle`, borda `danger.border`, texto `danger.text` | remover, excluir, anular. Sempre com confirmação (§10) |
@@ -289,7 +312,7 @@ Todos vivem em `packages/ui`. Cada componente tem: estados padrão, pressionado,
 
 ### 9.5 Avatar
 
-Círculo com a inicial (ou foto, no futuro), variante de cor (§3.2), anel 1 px na cor clara da variante a 30%. Tamanhos 32 (listas), 40 (cabeçalhos, ranking), 64 (votação, perfil).
+Círculo com a inicial (ou foto, no futuro), variante de cor (§3.3), anel 1 px na cor clara da variante a 30%. Tamanhos 32 (listas), 40 (cabeçalhos, ranking), 64 (votação, perfil).
 
 ### 9.6 Selos e pílulas
 
@@ -325,7 +348,7 @@ Topo da tela, `bg.raised`, borda `border.subtle`, sombra, raio 12. Título `body
 | Aviso | `warning.subtle` / `warning.border` / `warning.text` | "Faltam 3h pra fechar", algo exige atenção |
 | Erro | `danger.subtle` / `danger.border` / `danger.text` | falha que bloqueia |
 | Destaque | gradiente de destaque / `accent.border`; ícone em caixa 40 × 40 com `accent.subtle` e `accent.text` | evento aberto, rodada liberada; tem uma ação de destaque |
-| Evento | como o destaque, tingido com a cor do evento (§3.3) | banner de evento |
+| Evento | como o destaque, tingido com a cor do evento (§3.4) | banner de evento |
 
 ### 9.13 Conteúdo reservado
 
@@ -397,7 +420,7 @@ Toda tela que carrega dados tem os quatro estados desenhados:
 
 ### 10.7 Acessibilidade
 
-- Contraste AA (§3.4) e alvos de toque de 48 (§9.1).
+- Contraste AA nos dois temas (§3.5) e alvos de toque de 48 (§9.1).
 - Todo controle tem `accessibilityRole` e `accessibilityLabel` em pt-BR; botões só com ícone sempre têm rótulo ("Fechar", "Copiar chave").
 - Estados anunciados (`accessibilityState`: selected, disabled, expanded) e mudanças importantes anunciadas (`AccessibilityInfo.announceForAccessibility`: "Votos enviados").
 - Ordem de foco lógica; na web, tudo alcançável por teclado com foco visível (o legado corrigiu isso no commit `e0dedf0`).
@@ -437,6 +460,7 @@ Toda tela que carrega dados tem os quatro estados desenhados:
 | Raio de botões alternando entre 8 e 12 | `rounded-lg` (119) e `rounded-xl` (121) | 12 para todo controle tocável |
 | Feedback pensado para mouse | 193 usos de `hover:` contra 20 de `active:` (pressionado) | Estado pressionado em todo tocável; hover é extra na web |
 | Bordas de campo com pouco contraste | `border-zinc-700/800`: 1,7:1 contra o fundo do campo | `border.input` (3,7:1) |
+| Só tema escuro (`className="dark"` fixo) | `legado:src/app/layout.tsx` | Escuro (padrão) e claro, com escolha em Perfil → Aparência (§3.1) |
 | Landing diz "grupos de até 50 pessoas", mas grupos aceitam 300 (50 é o limite de votantes do Errômetro) | `legado/01-landing.png`, `group-limits.ts` | Texto alinhado ao limite real; confirmar redação com o humano |
 
 ---
@@ -445,7 +469,8 @@ Toda tela que carrega dados tem os quatro estados desenhados:
 
 ```ts
 // packages/ui/src/tokens.ts
-export const color = {
+// Os dois temas têm exatamente as mesmas chaves; um teste garante isso.
+const dark = {
   bg: {
     canvas: '#09090b',
     surface: 'rgba(24,24,27,0.5)',
@@ -458,16 +483,11 @@ export const color = {
     scrim: 'rgba(0,0,0,0.6)',
   },
   border: { subtle: 'rgba(39,39,42,0.8)', default: '#3f3f46', input: '#71717a', focus: '#a1a1aa' },
-  text: {
-    primary: '#fafafa',
-    secondary: '#d4d4d8',
-    muted: '#a1a1aa',
-    disabled: '#52525b',
-    placeholder: '#71717a',
-    inverse: '#09090b',
-  },
+  text: { primary: '#fafafa', secondary: '#d4d4d8', muted: '#a1a1aa', disabled: '#52525b', placeholder: '#71717a' },
+  primary: { bg: '#f4f4f5', text: '#09090b' },
   accent: {
     solid: '#06b6d4',
+    onSolid: '#09090b',
     text: '#67e8f9',
     subtle: 'rgba(6,182,212,0.12)',
     border: 'rgba(6,182,212,0.4)',
@@ -478,7 +498,61 @@ export const color = {
   danger: { text: '#f87171', subtle: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)' },
   warning: { text: '#fcd34d', subtle: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.2)' },
   success: { text: '#34d399' },
-  primaryButton: { bg: '#f4f4f5', text: '#09090b' },
+  shadow: { color: '#000000', opacity: 0.5 },
+  statusBar: 'light',
+} as const
+
+const light: ThemeColors = {
+  bg: {
+    canvas: '#fafafa',
+    surface: '#ffffff',
+    surfacePressed: '#f4f4f5',
+    raised: '#ffffff',
+    input: '#ffffff',
+    control: '#f4f4f5',
+    controlSelected: '#e4e4e7',
+    overlay: 'rgba(250,250,250,0.95)',
+    scrim: 'rgba(9,9,11,0.4)',
+  },
+  border: { subtle: '#e4e4e7', default: '#d4d4d8', input: '#71717a', focus: '#52525b' },
+  text: { primary: '#09090b', secondary: '#3f3f46', muted: '#52525b', disabled: '#a1a1aa', placeholder: '#71717a' },
+  primary: { bg: '#18181b', text: '#fafafa' },
+  accent: {
+    solid: '#06b6d4',
+    onSolid: '#09090b',
+    text: '#0e7490',
+    subtle: 'rgba(6,182,212,0.12)',
+    border: 'rgba(8,145,178,0.4)',
+    ring: '#0891b2',
+    glowRgb: '6 182 212',
+  },
+  trophy: { gold: '#d97706', goldStrong: '#f59e0b', silver: '#64748b', goldSubtle: 'rgba(245,158,11,0.1)' },
+  danger: { text: '#b91c1c', subtle: 'rgba(239,68,68,0.08)', border: 'rgba(185,28,28,0.3)' },
+  warning: { text: '#b45309', subtle: 'rgba(245,158,11,0.12)', border: 'rgba(180,83,9,0.25)' },
+  success: { text: '#047857' },
+  shadow: { color: '#000000', opacity: 0.12 },
+  statusBar: 'dark',
+}
+
+type Widen<T> = { [K in keyof T]: T[K] extends string ? string : T[K] extends number ? number : Widen<T[K]> }
+export type ThemeColors = Widen<typeof dark>
+export type ThemeName = 'dark' | 'light'
+export type ThemePreference = ThemeName | 'system'
+
+export const themes: Record<ThemeName, ThemeColors> = { dark, light }
+export const DEFAULT_THEME: ThemeName = 'dark'
+// Preferência salva no dispositivo; "system" segue Appearance/prefers-color-scheme.
+
+// Iguais nos dois temas
+export const avatar = {
+  indigo: { bg: '#4f46e5', text: '#e0e7ff' },
+  violet: { bg: '#7c3aed', text: '#ede9fe' },
+  emerald: { bg: '#059669', text: '#d1fae5' },
+  amber: { bg: '#f59e0b', text: '#451a03' },
+  sky: { bg: '#0284c7', text: '#e0f2fe' },
+  rose: { bg: '#e11d48', text: '#ffe4e6' },
+  slate: { bg: '#475569', text: '#f1f5f9' },
+  teal: { bg: '#0d9488', text: '#ccfbf1' },
 } as const
 
 export const space = { 0.5: 2, 1: 4, 1.5: 6, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 8: 32, 10: 40, 12: 48 } as const
@@ -518,12 +592,12 @@ Copie no PR e marque:
 - [ ] Só componentes de `packages/ui` e tokens; nenhum hex/rgba literal, nenhum tamanho de fonte fora da escala.
 - [ ] No máximo um botão primário; botões desabilitados explicam o motivo.
 - [ ] Estados de carregando, vazio, erro e sem conexão implementados.
-- [ ] Contraste AA conferido para qualquer combinação nova de cor.
+- [ ] Contraste AA conferido nos dois temas para qualquer combinação nova de cor; nenhuma cor decidida por `if` de tema na tela.
 - [ ] Alvos de toque ≥ 48; rótulos e estados de acessibilidade em pt-BR; testado com leitor de tela em pelo menos uma plataforma.
 - [ ] Funciona com fonte do sistema aumentada e com "reduzir movimento".
 - [ ] Ações destrutivas têm confirmação; ações reversíveis não.
 - [ ] Textos seguem a §11 (tom, verbos, sem jargão técnico).
-- [ ] Prints da tela em web, Android e iOS no PR.
+- [ ] Prints da tela em web, Android e iOS no PR, no tema escuro; e pelo menos uma plataforma no tema claro.
 
 ---
 

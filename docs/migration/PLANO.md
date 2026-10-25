@@ -65,7 +65,7 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 - [ ] Tabelas novas registradas em `MAPEAMENTO-DADOS.md` (D-016).
 - [ ] Itens de `PARIDADE.md` atualizados.
 - [ ] Telas novas verificadas em web, Android e iOS (print ou nota no relatório).
-- [ ] Interface segue [`docs/design/DESIGN.md`](../design/DESIGN.md), com o checklist da §14 preenchido no PR.
+- [ ] Interface segue [`docs/design/DESIGN.md`](../design/DESIGN.md) nos dois temas (escuro, padrão, e claro), com o checklist da §14 preenchido no PR.
 - [ ] Relatório em `docs/migration/relatorios/sprint-NN.md` e no PR.
 
 ---
@@ -136,7 +136,7 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 8. **Push:** token Expo Push em Android e iOS (registrar exigências: dev build, conta Apple paga, chave APNs); Web Push na web com o `sw.js` do legado registrado só quando `Platform.OS === 'web'`.
 9. **Seletor de emoji personalizado:** avaliar bibliotecas RN com suporte a web; registrar.
 10. **PWA:** manifest e instalação no Chrome Android e no Safari iOS.
-11. **Design (`docs/design/DESIGN.md`):** construir as duas telas com os tokens da §13 e validar o que é arriscado em RN: fonte Geist via `expo-font`, brilho ciano/dourado pulsando (inclusive a degradação no Android, §7), blur da barra fixa e do conteúdo reservado, curvas de movimento com Reanimated, háptico. Propor a estrutura de navegação do app (início, comunidade, grupo, módulos, perfil) e registrar na §9.16 do DESIGN.md.
+11. **Design (`docs/design/DESIGN.md`):** construir as duas telas com os tokens da §13 e validar o que é arriscado em RN: fonte Geist via `expo-font`, brilho ciano/dourado pulsando (inclusive a degradação no Android, §7), blur da barra fixa e do conteúdo reservado, curvas de movimento com Reanimated, háptico, e a **troca de tema** escuro/claro (§3.1: tema resolvido antes da primeira pintura na web e no nativo, barra de status, troca sem reiniciar). Propor a estrutura de navegação do app (início, comunidade, grupo, módulos, perfil) e registrar na §9.16 do DESIGN.md.
 12. Registrar tudo em `DECISOES.md` (o que funcionou, o que quebrou, o que foi contornado) e criar `docs/libs-aprovadas.md` com as libs testadas.
 
 **Entregáveis:** entradas em `DECISOES.md`, `docs/libs-aprovadas.md`, relatório com prints das três plataformas e recomendação de go/no-go.
@@ -316,15 +316,16 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 **Referências no legado:** `legado:src/app/globals.css` (variáveis de cor e animações), `legado:tailwind.config.ts`, `legado:src/app/fonts/*` (Geist), `legado:src/components/**` (padrões visuais), `legado:src/lib/{color,brand,avatar}/*`, capturas em `docs/design/legado/`.
 
 **Tarefas:**
-1. Tokens exatamente como na §13 do DESIGN.md (cores semânticas, espaço, raio, tipografia, movimento), mais o hash de variante de avatar portado de `legado:src/lib/avatar/variants.ts`.
-2. Componentes da §9 do DESIGN.md: `Text` (com as variantes de tipografia), `ScreenHeader` (overline + título + descrição), `Button` (primário, destaque, secundário, fantasma, destrutivo; carregando; desabilitado com motivo), `IconButton`, `TextField` (rótulo overline, ajuda, erro com shake), `Card` (simples, tocável, selecionável), `EmojiButton`, `Avatar`, `Badge`, `SegmentedControl`, `Accordion`, `StickyActionBar`, `Sheet`, `ConfirmDialog`, `Toast`, `Banner` (informação, aviso, erro, destaque, evento), `ReservedContent`, `TrophyMedallion`, `RankingRow`, `Skeleton`, `EmptyState`, `ErrorState`, `Screen` (safe area, largura máxima 512).
-3. Movimento e háptico da §8 com Reanimated e `expo-haptics`, incluindo o modo "reduzir movimento".
-4. Regra de lint que proíbe hex/rgba literais e `fontSize` numérico fora de `packages/ui`.
-5. Acessibilidade da §10.7: roles e rótulos, estados, foco por teclado na web (o legado corrigiu isso no commit `e0dedf0`), fonte escalável.
-6. Galeria de componentes numa rota de desenvolvimento do app (`/dev/ui`), fora do build de produção, mostrando todos os estados de cada componente.
-7. Cada lib registrada em `libs-aprovadas.md` com as plataformas testadas.
+1. Tokens exatamente como na §13 do DESIGN.md (os dois temas de cor, espaço, raio, tipografia, movimento), mais o hash de variante de avatar portado de `legado:src/lib/avatar/variants.ts`.
+2. **Temas (D-025):** `ThemeProvider` + `useTheme()` com preferência `dark` (padrão) | `light` | `system`, salva no dispositivo (AsyncStorage / `localStorage`, com try/catch e padrão escuro se falhar); `system` acompanha `Appearance` / `prefers-color-scheme` ao vivo; barra de status, fundo da janela, `theme-color`, `color-scheme` e `keyboardAppearance` seguem o tema; na web, script inline aplica o tema antes do primeiro paint. Se o estilo escolhido no Sprint 2 for NativeWind, os tokens viram variáveis CSS por tema; se for `StyleSheet`, estilos são criados a partir do tema (sem `if` de tema nas telas).
+3. Componentes da §9 do DESIGN.md: `Text` (com as variantes de tipografia), `ScreenHeader` (overline + título + descrição), `Button` (primário, destaque, secundário, fantasma, destrutivo; carregando; desabilitado com motivo), `IconButton`, `TextField` (rótulo overline, ajuda, erro com shake), `Card` (simples, tocável, selecionável), `EmojiButton`, `Avatar`, `Badge`, `SegmentedControl`, `Accordion`, `StickyActionBar`, `Sheet`, `ConfirmDialog`, `Toast`, `Banner` (informação, aviso, erro, destaque, evento), `ReservedContent`, `TrophyMedallion`, `RankingRow`, `Skeleton`, `EmptyState`, `ErrorState`, `Screen` (safe area, largura máxima 512).
+4. Movimento e háptico da §8 com Reanimated e `expo-haptics`, incluindo o modo "reduzir movimento".
+5. Regra de lint que proíbe hex/rgba literais e `fontSize` numérico fora de `packages/ui`.
+6. Acessibilidade da §10.7: roles e rótulos, estados, foco por teclado na web (o legado corrigiu isso no commit `e0dedf0`), fonte escalável.
+7. Galeria de componentes numa rota de desenvolvimento do app (`/dev/ui`), fora do build de produção, mostrando todos os estados de cada componente, com alternância de tema.
+8. Cada lib registrada em `libs-aprovadas.md` com as plataformas testadas.
 
-**Critérios de aceite:** galeria renderiza em web, Android e iOS; prints no relatório comparados lado a lado com as capturas do legado; teste de snapshot ou Playwright da galeria na web; contraste dos pares de token verificado por teste automatizado (função de contraste WCAG sobre os tokens); lint de cores literais ativo.
+**Critérios de aceite:** galeria renderiza em web, Android e iOS, nos dois temas; teste garante que os dois temas têm as mesmas chaves; prints no relatório comparados lado a lado com as capturas do legado; teste de snapshot ou Playwright da galeria na web; contraste dos pares de token verificado por teste automatizado nos dois temas (função de contraste WCAG sobre os tokens); lint de cores literais ativo.
 
 ---
 
@@ -470,7 +471,7 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 
 **Referências no legado:** `legado:src/app/group/[id]/events/**`, `legado:src/components/group/events/*`, `legado:src/components/voting/events/*`, `legado:src/components/trophies/EventScaleTrophyList.tsx`.
 
-**Design:** DESIGN.md §3.3 (cor de evento: só tinge fundo, borda, ícone e brilho; texto sempre com tokens), §9.12 (banner de evento), §9.10 (assistente em sheet, no máximo 4 passos), §9.14.
+**Design:** DESIGN.md §3.4 (cor de evento: só tinge fundo, borda, ícone e brilho; texto sempre com tokens), §9.12 (banner de evento), §9.10 (assistente em sheet, no máximo 4 passos), §9.14.
 
 **Tarefas:**
 1. Lista de eventos (visão de admin e de membro), seção no hub do grupo.
@@ -495,7 +496,7 @@ Os sprints 12 e 16 podem rodar em paralelo depois do 8, 9 e 11. Dois agentes nun
 **Tarefas:**
 1. Tela de perfil do core montada com `profileSections` dos módulos habilitados (troféus do Errômetro e de Eventos).
 2. Página de membro do grupo e links para o perfil em todos os lugares onde o legado tem `MemberProfileLink`.
-3. Edição de perfil (nome, avatar) e preferências de notificação por tipo.
+3. Edição de perfil (nome, avatar), preferências de notificação por tipo e **Aparência** (Escuro, padrão / Claro / Igual ao sistema; DESIGN.md §3.1).
 4. Landing (e o destino do grupo demo, conforme P-003).
 5. PWA: manifest, ícones estáticos, instalação no Android e no iOS, arquivos `.well-known` para links universais (iOS e Android).
 6. Imagens OG conforme P-008.
