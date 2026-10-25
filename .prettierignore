@@ -1,0 +1,9 @@
+node_modules
+dist
+.expo
+.turbo
+coverage
+pnpm-lock.yaml
+prototypes
+docs
+*.md
