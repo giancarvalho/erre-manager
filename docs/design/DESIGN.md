@@ -4,6 +4,7 @@
 
 Este documento parte da análise do app legado (código em `queridometro@7c5c5bf` e capturas reais em [`legado/`](legado/)). Ele preserva a identidade que funciona, corrige o que medimos como problema (contraste, inconsistências) e traduz tudo para React Native.
 
+- **Versão visual:** o design system com tokens, componentes ao vivo nos dois temas e capturas do legado está em https://claude.ai/artifact/6JyXWiTBAsmNXfZKrDhc5x (privado: abre para quem o dono compartilhar). Este documento continua sendo a fonte de verdade; se os dois divergirem, vale este e o artifact é atualizado.
 - **Dois temas:** escuro (padrão) e claro (diurno). O legado só tinha o escuro; o claro é desenho novo sobre a mesma identidade (§3.1).
 - **Fonte de verdade da implementação:** `packages/ui` (Sprint 10). Este documento define o que o pacote deve conter. Se os dois divergirem, corrija o que estiver errado e registre em `docs/migration/DECISOES.md`.
 - **Mudanças neste documento** exigem aprovação humana, como qualquer decisão.
