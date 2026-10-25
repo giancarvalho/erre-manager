@@ -18,7 +18,7 @@ Leia antes: [`AGENTS.md`](../../AGENTS.md), [`ARQUITETURA.md`](ARQUITETURA.md), 
 | # | Sprint | Tam. | Depende de | Gate humano | Status |
 |---|---|---|---|---|---|
 | 1 | Inventário e checklist de paridade (somente leitura) | M | — | **sim** | concluído |
-| 2 | Protótipo Expo: decisão de go/no-go | G | 1 (parcial) | **sim** | pendente |
+| 2 | Protótipo Expo: decisão de go/no-go | G | 1 (parcial) | **sim** | concluído (validação em aparelho pendente) |
 | 3 | Monorepo, ferramentas e CI | M | 2 | não | pendente |
 | 4 | `packages/db`: papéis, RLS e migrations | M | 3 | **sim** | pendente |
 | 5 | Auth e perfil | M | 4 | não | pendente |

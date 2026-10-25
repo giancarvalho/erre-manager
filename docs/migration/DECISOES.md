@@ -60,7 +60,7 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 **Motivo:** no legado, a rota de envio de votos não lê a sessão de propósito (`legado:src/app/api/groups/[id]/vote/route.ts`); se ela souber quem é o usuário, o anonimato acaba. O contrato original entregava `user` em todo contexto.
 
 ### D-011 — Assinatura cega no app nativo: implementação JS pura do cliente
-**Data:** 2026-10-25 · **Status:** aceita (validação no Sprint 2)
+**Data:** 2026-10-25 · **Status:** aceita e validada no Sprint 2 (`prototypes/anon-vote`: vetor RFC 9474 A.1, interoperabilidade com `@cloudflare/blindrsa-ts` e execução no Hermes)
 **Decisão:** o servidor mantém `@cloudflare/blindrsa-ts`. O cliente usa uma implementação JS pura das etapas do cliente da RFC 9474 (preparar, cegar, finalizar) com `@noble/hashes`, `BigInt` do Hermes e `expo-crypto`, testada contra os vetores da RFC e contra a biblioteca do servidor.
 **Motivo:** o Hermes não tem WebCrypto `subtle`. `react-native-quick-crypto` exigiria dev build e não tem cobertura de RSA-PSS confirmada. Trocar de esquema mudaria o servidor sem necessidade.
 **Consequências:** votação no app nativo não é publicada sem essa peça. Na web, o navegador tem `crypto.subtle`, mas usar a mesma implementação nas três plataformas simplifica os testes. Se o Sprint 2 provar que não funciona, a decisão volta ao humano.
@@ -156,3 +156,25 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 **Data:** 2026-10-25 · **Status:** aceita (instrução do humano)
 **Decisão:** o agente segue para a próxima sprint assim que a anterior termina com todos os checks verdes, sem esperar aprovação, a menos que precise de uma decisão muito importante que não possa ficar para depois. Os "gates humanos" do PLANO viram revisão assíncrona: o humano revisa os relatórios em `docs/migration/relatorios/` e as decisões, e pode pedir mudança a qualquer momento. Nesta execução, todo o trabalho vai para o branch designado da sessão (`claude/practical-darwin-wsd749`), um commit ou mais por sprint, em vez de um branch e um PR por sprint.
 **Consequências:** o que exige o humano ou um dispositivo físico (teste em Android/iOS, conta Google Cloud, conta Apple, publicação) fica registrado como pendência no relatório da sprint, sem travar as seguintes.
+
+### D-030 — Estilo com `StyleSheet` e tokens tipados, sem NativeWind
+**Data:** 2026-10-25 · **Status:** aceita (Sprint 2)
+**Decisão:** componentes estilizados com `StyleSheet` do React Native a partir dos tokens de `packages/ui` (DESIGN.md §13), com estilos criados a partir do tema ativo. Sem NativeWind, Uniwind ou Tailwind.
+**Motivo:** a documentação do Expo SDK 58 diz que Tailwind padrão só funciona na web e aponta NativeWind/Uniwind como camada extra de compatibilidade; com React Native 0.88 e Reanimated 4, é risco e dependência a mais. O protótipo mostrou que `StyleSheet` + tokens cobre os dois temas, o brilho animado e as três plataformas (exports web, Android e iOS verdes). Para o hackathon, tokens tipados com autocompletar são mais simples que aprender as particularidades do NativeWind.
+**Consequências:** mais verboso que classes utilitárias; o lint contra cores literais (Sprint 10) garante o uso dos tokens.
+
+### D-031 — Better Auth: checagem de origem fixa e guarda própria do `callbackURL`
+**Data:** 2026-10-25 · **Status:** aceita (Sprint 2)
+**Decisão:** a configuração do Better Auth fixa `advanced.disableOriginCheck: false`, e a API valida `callbackURL`, `errorCallbackURL` e `newUserCallbackURL` contra a lista de origens confiáveis antes de repassar ao Better Auth.
+**Motivo:** medido no spike (`prototypes/auth-spike`): (1) o Better Auth desliga sozinho a checagem de origem quando detecta ambiente de teste (`dist/context/create-context.mjs:211`, `isTest() ? true`), então os testes passariam com uma proteção diferente da de produção; (2) sem cookie na requisição (primeiro login num navegador), ele aceita qualquer `callbackURL`.
+**Consequências:** testes do Sprint 5 cobrem callback externo, relativo ao protocolo (`//host`) e domínio parecido (`localhost:8081.evil.example`).
+
+### D-032 — Versões base
+**Data:** 2026-10-25 · **Status:** aceita (Sprint 2)
+**Decisão:** Expo SDK 58 (React Native 0.88, React 19.3, Expo Router 58), Better Auth 1.7, Hono 4.13, Drizzle ORM 0.45, TypeScript **6.0** (não o 7: `typescript-eslint` aceita até `<6.1`), Node 22 LTS, pnpm 10.
+**Motivo:** versões que o próprio Expo fixa para o SDK 58 e que funcionaram juntas no protótipo.
+
+### D-033 — Navegação do app (proposta do protótipo)
+**Data:** 2026-10-25 · **Status:** proposta (DESIGN.md §9.16); revisar com o humano quando houver telas reais
+**Decisão:** pilha (stack) sem barra de abas na v1. Sem sessão: tela de entrada. Com sessão e sem comunidade: criar comunidade ou abrir convite. Com comunidade: o **hub da comunidade** é a tela inicial, com uma seção por módulo habilitado; o perfil abre pelo avatar no cabeçalho; o seletor de comunidade aparece no cabeçalho só para quem tem mais de uma.
+**Motivo:** com dois módulos, uma barra de abas acrescenta pouco e ocupa espaço; a pilha com cabeçalho de voltar é o padrão do legado. Reavaliar com 4 ou mais módulos.

@@ -155,7 +155,7 @@ Eventos têm uma cor de banner escolhida pelo criador (`banner_rgb`). Regras: a 
 
 ## 4. Tipografia
 
-- **Família:** Geist (texto) e Geist Mono (códigos: chave, código do voto, convite), via `expo-font`. Arquivos em `legado:src/app/fonts/`.
+- **Família:** Geist (texto) e Geist Mono (códigos: chave, código do voto, convite), via `expo-font`. No nativo o `expo-font` precisa de TTF/OTF (o legado só tem WOFF e um TTF Bold): usar `@expo-google-fonts/geist` e `@expo-google-fonts/geist-mono` (TTF, licença OFL), um arquivo por peso.
 - **Peso:** 400 regular, 500 médio (padrão de rótulos e botões), 600 semibold (títulos e botões principais), 700 bold (só título de marca).
 
 | Token | Tamanho / altura de linha | Peso | Uso | Origem |
@@ -376,7 +376,12 @@ Toda tela que carrega dados tem os quatro estados desenhados:
 - Navegação em pilha (stack). Cabeçalho: voltar com seta + rótulo do destino ("← Início"), alinhado à esquerda, como no legado.
 - Gesto de voltar nativo sempre ativo (iOS) e botão voltar do Android respeitado.
 - Abaixo do cabeçalho, o padrão de título da §4.
-- Estrutura de navegação do app (início, comunidade, módulos, perfil) é definida no protótipo do Sprint 2 e registrada aqui; até lá, siga a pilha com cabeçalho de voltar.
+- **Estrutura (D-033, proposta do Sprint 2):** pilha sem barra de abas na v1.
+  - Sem sessão → `Entrar`. Com sessão e sem comunidade → criar comunidade ou abrir convite.
+  - Com comunidade → **hub da comunidade** como tela inicial, com uma seção por módulo habilitado (Errômetro, Eventos); telas de módulo entram na pilha.
+  - Perfil (e Aparência dentro dele) pelo avatar no canto do cabeçalho do hub; seletor de comunidade no cabeçalho só para quem tem mais de uma.
+  - Rotas Expo Router: `(auth)/entrar`, `(app)/index` (hub), `(app)/perfil`, `(app)/perfil/aparencia`, `(app)/errometro/...`, `(app)/eventos/...`, `convite/[codigo]`.
+  - Reavaliar barra de abas quando houver 4 ou mais módulos.
 
 ---
 
