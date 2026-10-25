@@ -21,7 +21,7 @@ Classificação: **igual** = migrar como está · **mudança** = migrar com muda
 | CORE-09 | Pedido de entrada só na comunidade | hub · `requestGroupOnlyJoinAction` | R-MEM-02 | igual | core | 7 | concluído |
 | CORE-10 | Aprovar, rejeitar, remover membro | `/group/[id]/settings` · `approveMemberAction`, `rejectMemberAction`, `removeMemberAction` | R-MEM-01, R-MEM-03, R-MEM-05 | igual (com cascata para a votação via `onJoinApproved`) | core | 7 | concluído (cascata para módulos via `onMemberLeft`) |
 | CORE-11 | Sair da comunidade (criador não sai) | hub · `leaveGroupAction` | R-MEM-06 | mudança: `owner` não sai sem transferir (confirmar no Sprint 7) | core | 7 | concluído (`owner` não sai nem é removido; transferência de posse fica fora da v1) |
-| CORE-12 | Hub da comunidade com seções dos módulos | `/group/[id]` | R-RES-06 | mudança: seções vêm dos módulos habilitados | core | 7–8 | casca no Sprint 7 (membros, convites); seções dos módulos no Sprint 8 |
+| CORE-12 | Hub da comunidade com seções dos módulos | `/group/[id]` | R-RES-06 | mudança: seções vêm dos módulos habilitados | core | 7–8 | concluído (casca no Sprint 7; seções dos módulos no Sprint 8) |
 | CORE-13 | Home com minhas comunidades | `/` logado · `src/lib/groups/home-groups.ts` | — | igual | core | 7 | concluído no Sprint 6 (lista, seleção automática e troca) |
 | CORE-14 | Página de membro | `/group/[id]/member/[userId]` · `MemberProfileLink` | — | igual | core + módulos | 18 | pendente |
 | CORE-15 | Perfil (nome, avatar, troféus, notificações) | `/profile` · `updateProfileAction` | R-MEM-08 | mudança: seções de perfil vêm dos módulos (D-018) | core | 18 | pendente |

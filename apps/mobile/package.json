@@ -43,6 +43,7 @@
   },
   "devDependencies": {
     "@erre/config": "workspace:*",
+    "@erre/contrato-teste": "workspace:*",
     "@playwright/test": "1.63.0",
     "@testing-library/react-native": "14.1.0",
     "@types/jest": "30.0.0",

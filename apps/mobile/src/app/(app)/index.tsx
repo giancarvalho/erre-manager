@@ -1,9 +1,10 @@
-import { Avatar, Button, ErrorState, LoadingState, Screen, ScreenHeader, space, Text } from '@erre/ui';
+import { Avatar, Button, Card, ErrorState, LoadingState, Screen, ScreenHeader, space, Text } from '@erre/ui';
 import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
 import { ROLE_LABEL, useCommunity, useCommunityDetails } from '@/lib/community';
 import { useMyRequests } from '@/lib/members';
+import { ModuleHost, useModules } from '@/lib/modules';
 import { useMe, useSignOut } from '@/lib/session';
 
 // Home (Sprint 6). Sprint 8 turns it into the community hub with one section per module (D-033).
@@ -43,6 +44,7 @@ function CommunityHome({ id, many }: { id: string; many: boolean }) {
       <Text variant="caption" tone="muted" style={styles.role}>
         {`Seu papel: ${ROLE_LABEL[details.data.role]}`}
       </Text>
+      <ModuleSections />
       <View style={styles.actions}>
         <Button label="Membros" variant="secondary" fullWidth onPress={() => router.push('/comunidade/membros')} />
         {details.data.permissions.includes('core.convites.gerenciar') ? (
@@ -66,6 +68,38 @@ function CommunityHome({ id, many }: { id: string; many: boolean }) {
       <PendingRequests />
       <Account />
     </Screen>
+  );
+}
+
+/** One section per enabled module (D-033): the module's hub section and its menu entries. */
+function ModuleSections() {
+  const { modules } = useModules();
+  const { current } = useCommunity();
+  if (modules.length === 0 || !current) return null;
+  const community = { id: current.id, name: current.name, role: current.role };
+  return (
+    <ModuleHost>
+      <View style={styles.modules}>
+        {modules.map((m) => {
+          const Section = m.hubSection;
+          return (
+            <Card key={m.manifest.id}>
+              <View style={styles.actions}>
+                {Section ? <Section community={community} /> : <Text variant="titleMd">{m.manifest.name}</Text>}
+                {m.manifest.menu.map((item) => (
+                  <Button
+                    key={item.route}
+                    label={item.label}
+                    variant="secondary"
+                    onPress={() => router.push(item.route as never)}
+                  />
+                ))}
+              </View>
+            </Card>
+          );
+        })}
+      </View>
+    </ModuleHost>
   );
 }
 
@@ -117,5 +151,6 @@ const styles = StyleSheet.create({
   actions: { gap: space[3] },
   account: { marginTop: space[10], gap: space[3] },
   pending: { marginTop: space[8], gap: space[2] },
+  modules: { gap: space[3], marginBottom: space[6] },
   row: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
 });

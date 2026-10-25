@@ -3,7 +3,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { createAuth, createCoreApi } from '@erre/core/server';
+import { createAuth, createCoreApi, createModuleRuntime } from '@erre/core/server';
 import { installFakeGoogle } from '@erre/core/testing';
 import { closeDb, createDb } from '@erre/db';
 import { createTestDatabase } from '@erre/db/testing';
@@ -11,6 +11,7 @@ import { serve } from '@hono/node-server';
 
 import { createApp } from '../src/app';
 import { createLogger } from '../src/logger';
+import { MODULES } from '../src/modules';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const port = Number(process.env.E2E_API_PORT ?? 3000);
@@ -32,13 +33,24 @@ const auth = createAuth({
   rateLimit: { enabled: false },
   log: (level, message) => logger[level](message),
 });
-const app = createApp({ logger, core: createCoreApi({ db, auth, trustedOrigins }), webOrigins: [webOrigin] });
+const jobsDb = createDb(testDb.urls.jobs, { max: 1 });
+const runtime = createModuleRuntime({
+  db,
+  jobsDb,
+  auth,
+  modules: MODULES,
+  enabled: new Set(MODULES.map((m) => m.manifest.id)),
+  log: logger,
+});
+const core = createCoreApi({ db, auth, trustedOrigins, hooks: runtime.hooks, permissions: runtime.permissions });
+const app = createApp({ logger, core, modules: runtime.app, webOrigins: [webOrigin] });
 const server = serve({ fetch: app.fetch, port }, () => console.warn(`e2e api on http://localhost:${port}`));
 
 async function shutdown() {
   server.close();
   google.restore();
   await closeDb(db);
+  await closeDb(jobsDb);
   await testDb.drop();
   process.exit(0);
 }

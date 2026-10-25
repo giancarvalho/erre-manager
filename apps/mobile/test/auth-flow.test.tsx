@@ -49,6 +49,7 @@ function mockMe(me: Me | null, communities: Community[] = []) {
     ) => {
       if (path === '/v1/me/communities') return communities;
       if (path === '/v1/me/requests') return [];
+      if (path === '/v1/modules') return [];
       const invite = /^\/v1\/invites\/([^/]+)(\/join)?$/.exec(path);
       if (invite) {
         if (invite[1] === 'revogado')

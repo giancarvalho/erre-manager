@@ -7,6 +7,9 @@ import { areaOfImport, areaOfPath, findWorkspaceRoot } from './areas.js';
 
 const isCoreServer = (/** @type {{ subpath?: string }} */ to) =>
   to.subpath === 'server' || to.subpath?.startsWith('server/');
+// @erre/core/client carries React (module host); the API and manifests use @erre/core/manifest instead.
+const isCoreClient = (/** @type {{ subpath?: string }} */ to) =>
+  to.subpath === 'client' || to.subpath?.startsWith('client/');
 
 /**
  * @param {Area} from
@@ -41,6 +44,7 @@ export function checkImport(from, to, typeOnly) {
       return checkFromModule(from, to, typeOnly);
     case 'app-api':
       if (to.kind === 'ui') return 'apps/api não importa packages/ui';
+      if (to.kind === 'core' && isCoreClient(to)) return 'apps/api não importa @erre/core/client (traz React)';
       if (to.kind === 'module' && to.part === 'ui') return 'apps/api não importa a UI de um módulo';
       if (to.kind === 'app-mobile') return 'apps/api não importa apps/mobile';
       return null;
@@ -82,6 +86,8 @@ function checkFromModule(from, to, typeOnly) {
   if (part === 'root') {
     if (to.kind === 'db' || (to.kind === 'core' && isCoreServer(to)))
       return 'o manifesto do módulo só usa partes do core sem servidor';
+    if (to.kind === 'core' && isCoreClient(to))
+      return 'o manifesto do módulo importa @erre/core/manifest, não @erre/core/client (a API também importa o manifesto)';
     if (to.kind === 'ui') return 'o manifesto do módulo não importa packages/ui';
     return null;
   }
@@ -90,6 +96,8 @@ function checkFromModule(from, to, typeOnly) {
   }
   // api and tests
   if (to.kind === 'ui' && part !== 'tests') return 'a API de um módulo não importa packages/ui';
+  if (part === 'api' && to.kind === 'core' && isCoreClient(to))
+    return 'a API de um módulo não importa @erre/core/client';
   return null;
 }
 

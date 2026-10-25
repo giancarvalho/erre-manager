@@ -9,6 +9,7 @@ const valid = {
   GOOGLE_CLIENT_ID: 'id',
   GOOGLE_CLIENT_SECRET: 'secret-value',
   TRUSTED_ORIGINS: 'http://localhost:8081, erre://',
+  DATABASE_JOBS_URL: 'postgres://erre_jobs:pw@localhost:5432/erre',
 };
 
 describe('env', () => {

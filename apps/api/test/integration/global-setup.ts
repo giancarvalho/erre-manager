@@ -13,7 +13,11 @@ declare module 'vitest' {
 }
 
 export default async function setup(project: TestProject) {
-  const db = await createTestDatabase({ root });
+  // The contract test module's migrations are added explicitly (modules/_* are skipped by default).
+  const db = await createTestDatabase({
+    root,
+    extraSources: [{ owner: 'contratoteste', dir: path.join(root, 'modules/_contrato-teste/db/migrations') }],
+  });
   project.provide('db', db.urls);
   return () => db.drop();
 }

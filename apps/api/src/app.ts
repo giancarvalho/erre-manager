@@ -8,11 +8,13 @@ import { createLogger } from './logger';
 export type AppDeps = {
   logger?: Logger;
   core?: CoreApi;
+  /** Module runtime app (ModuleRuntime.app): module routes, /v1/modules, profile sections, internal jobs. */
+  modules?: Hono;
   /** Web origins allowed to call the API with cookies (the app scheme is not an HTTP origin). */
   webOrigins?: string[];
 };
 
-export function createApp({ logger = createLogger(), core, webOrigins = [] }: AppDeps = {}) {
+export function createApp({ logger = createLogger(), core, modules, webOrigins = [] }: AppDeps = {}) {
   const app = new Hono();
 
   // Request log: method, path, status and duration only. No headers, query strings or bodies.
@@ -41,6 +43,7 @@ export function createApp({ logger = createLogger(), core, webOrigins = [] }: Ap
 
   const routes = app.get('/v1/health', (c) => c.json({ status: 'ok' as const }));
   if (core) routes.route('/v1', core);
+  if (modules) routes.route('/', modules);
   return routes;
 }
 

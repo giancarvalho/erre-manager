@@ -2,6 +2,14 @@
 export { AVATAR_VARIANTS, deriveAvatarVariantFromSeed, isAvatarVariant, type AvatarVariant } from '../shared/avatar';
 export { ASSIGNABLE_ROLES, CommunityNameSchema, ROLES, type Role } from '../shared/community';
 export { DisplayNameSchema } from '../shared/display-name';
+export {
+  defineManifest,
+  ManifestSchema,
+  manifestProblems,
+  RESERVED_MODULE_IDS,
+  type ModuleManifest,
+  type ModuleManifestInput,
+} from '../shared/manifest';
 export { safeAppPath } from '../shared/redirect';
 export type {
   CommunityDetails,
@@ -14,3 +22,15 @@ export type {
   MyCommunity,
   MyRequest,
 } from '../shared/types';
+export {
+  defineModuleUi,
+  ModuleHostProvider,
+  useModuleClient,
+  useModuleHost,
+  type HostCommunity,
+  type HubSectionProps,
+  type ModuleHost,
+  type ModuleUi,
+  type ModuleUiDefinition,
+  type ProfileSectionProps,
+} from './host';

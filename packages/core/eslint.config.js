@@ -1,3 +1,3 @@
-import { base } from '@erre/config/eslint';
+import { react } from '@erre/config/eslint';
 
-export default base;
+export default react;

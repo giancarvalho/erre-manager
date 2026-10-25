@@ -22,6 +22,14 @@ const EnvSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().min(1),
   /** Web origins and the app scheme, comma separated (e.g. https://app.example.com,erre://). */
   TRUSTED_ORIGINS: list,
+  /** erre_jobs connection: only lists communities for the job runner (D-013). */
+  DATABASE_JOBS_URL: z.url(),
+  /** Modules turned on, comma separated (D-007). Empty: none. */
+  MODULES_ENABLED: z.string().default(''),
+  /** Bearer token for POST /v1/internal/jobs/:id/run. Without it the route is off. */
+  CRON_SECRET: z.string().min(32).optional(),
+  /** Time zone of votes and job schedules (D-020). */
+  VOTING_TIMEZONE: z.string().default('America/Sao_Paulo'),
 });
 
 export type Env = z.output<typeof EnvSchema>;

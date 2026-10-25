@@ -72,7 +72,10 @@ export async function loadMigrations(sources: MigrationSource[]): Promise<Migrat
   return result;
 }
 
-/** Migration folders in the workspace: packages/db, packages/core and modules/<name>/db. */
+/**
+ * Migration folders in the workspace: packages/db, packages/core and modules/<name>/db. Folders starting
+ * with `_` (test-only modules, e.g. modules/_contrato-teste) are skipped: tests add them explicitly.
+ */
 export function discoverSources(root: string): MigrationSource[] {
   const candidates: MigrationSource[] = [
     { owner: 'db', dir: path.join(root, 'packages/db/migrations') },
@@ -80,7 +83,9 @@ export function discoverSources(root: string): MigrationSource[] {
   ];
   const modulesDir = path.join(root, 'modules');
   if (existsSync(modulesDir)) {
-    const names = readdirSync(modulesDir).filter((n) => statSync(path.join(modulesDir, n)).isDirectory());
+    const names = readdirSync(modulesDir).filter(
+      (n) => !n.startsWith('_') && statSync(path.join(modulesDir, n)).isDirectory(),
+    );
     for (const name of names.sort()) {
       candidates.push({ owner: name, dir: path.join(modulesDir, name, 'db/migrations') });
     }

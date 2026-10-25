@@ -42,15 +42,24 @@ importers:
       '@erre/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@erre/contrato-teste':
+        specifier: workspace:*
+        version: link:../../modules/_contrato-teste
       '@types/node':
         specifier: 22.20.5
         version: 22.20.5
+      '@types/pg':
+        specifier: 8.23.1
+        version: 8.23.1
       esbuild:
         specifier: 0.28.2
         version: 0.28.2
       eslint:
         specifier: 9.39.5
         version: 9.39.5
+      pg:
+        specifier: 8.23.1
+        version: 8.23.1
       tsx:
         specifier: 4.23.15
         version: 4.23.15
@@ -142,6 +151,9 @@ importers:
       '@erre/config':
         specifier: workspace:*
         version: link:../../packages/config
+      '@erre/contrato-teste':
+        specifier: workspace:*
+        version: link:../../modules/_contrato-teste
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -169,6 +181,55 @@ importers:
       typescript:
         specifier: 6.0.3
         version: 6.0.3
+
+  modules/_contrato-teste:
+    dependencies:
+      '@erre/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@erre/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@erre/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      hono:
+        specifier: 4.13.13
+        version: 4.13.13
+      zod:
+        specifier: 4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@erre/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@tanstack/react-query':
+        specifier: 5.104.5
+        version: 5.104.5(@types/react@19.3.0)(react@19.3.0)
+      '@types/node':
+        specifier: 22.20.5
+        version: 22.20.5
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
+      eslint:
+        specifier: 9.39.5
+        version: 9.39.5
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
+      react-native:
+        specifier: 0.88.0
+        version: 0.88.0(@babel/core@7.29.7)(@react-native/metro-config@0.88.0(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.3.0)
+      react-native-safe-area-context:
+        specifier: ~5.10.1
+        version: 5.10.1(react-native@0.88.0(@babel/core@7.29.7)(@react-native/metro-config@0.88.0(@babel/core@7.29.7))(@types/react@19.3.0)(react@19.3.0))(react@19.3.0)
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@22.20.5)(jsdom@26.1.0)(vite@8.3.5(@types/node@22.20.5)(esbuild@0.28.2)(terser@5.51.2)(tsx@4.23.15))
 
   packages/config:
     dependencies:
@@ -212,6 +273,9 @@ importers:
       hono:
         specifier: 4.13.13
         version: 4.13.13
+      node-cron:
+        specifier: 4.6.0
+        version: 4.6.0
       zod:
         specifier: 4.6.5
         version: 4.6.5
@@ -225,6 +289,9 @@ importers:
       '@types/pg':
         specifier: 8.23.1
         version: 8.23.1
+      '@types/react':
+        specifier: 19.3.0
+        version: 19.3.0
       eslint:
         specifier: 9.39.5
         version: 9.39.5
@@ -234,6 +301,9 @@ importers:
       pino:
         specifier: 10.4.0
         version: 10.4.0
+      react:
+        specifier: 19.3.0
+        version: 19.3.0
       tsx:
         specifier: 4.23.15
         version: 4.23.15
@@ -4242,6 +4312,10 @@ packages:
   node-addon-api@7.1.1:
     resolution: {integrity: sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==}
 
+  node-cron@4.6.0:
+    resolution: {integrity: sha512-Si/bzYiKRHOB8/a99T2+SDGN582ONDMSTlJr5oCkT6GtnqPjZ2s10eoQRYkW9ZHwjVxONL+W8Fb+qR0AHMQsdg==}
+    engines: {node: '>=20'}
+
   node-fetch@2.7.0:
     resolution: {integrity: sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==}
     engines: {node: 4.x || >=6.0.0}
@@ -7346,7 +7420,9 @@ snapshots:
       metro-runtime: 0.87.1
     transitivePeerDependencies:
       - '@babel/core'
+      - bufferutil
       - supports-color
+      - utf-8-validate
 
   '@react-native/normalize-colors@0.74.89': {}
 
@@ -9913,6 +9989,8 @@ snapshots:
       content-type: 2.1.0
 
   node-addon-api@7.1.1: {}
+
+  node-cron@4.6.0: {}
 
   node-fetch@2.7.0:
     dependencies:

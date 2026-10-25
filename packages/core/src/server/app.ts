@@ -2,7 +2,7 @@ import type { Db } from '@erre/db';
 import { Hono } from 'hono';
 import { z } from 'zod';
 
-import { ASSIGNABLE_ROLES, CommunityNameSchema } from '../shared/community';
+import { ASSIGNABLE_ROLES, CommunityNameSchema, CORE_PERMISSIONS, type PermissionDef } from '../shared/community';
 import type { Auth } from './auth/auth';
 import { callbackGuard } from './auth/redirect';
 import { changeMemberRole, createCommunity, getCommunityDetails, listMyCommunities } from './communities';
@@ -29,6 +29,8 @@ export type CoreApiDeps = {
   trustedOrigins: string[];
   /** Join intents and member hooks declared by modules (Sprint 8 fills them from the manifests). */
   hooks?: MembershipHooks;
+  /** Permissions seeded in a new community: core + modules (ModuleRuntime.permissions). */
+  permissions?: readonly PermissionDef[];
   log?: (message: string, err: unknown) => void;
 };
 
@@ -41,7 +43,14 @@ const CreateInviteSchema = z.object({ intent: z.string().min(1).max(100).nullabl
 const CodeParams = z.object({ code: z.string().min(1).max(64) });
 
 /** Core routes, mounted by apps/api under /v1. */
-export function createCoreApi({ db, auth, trustedOrigins, hooks = NO_HOOKS, log }: CoreApiDeps) {
+export function createCoreApi({
+  db,
+  auth,
+  trustedOrigins,
+  hooks = NO_HOOKS,
+  permissions = CORE_PERMISSIONS,
+  log,
+}: CoreApiDeps) {
   const session = requireSession(auth);
   const community = requireCommunity(db);
 
@@ -72,7 +81,7 @@ export function createCoreApi({ db, auth, trustedOrigins, hooks = NO_HOOKS, log 
   const communities = new Hono()
     // Only authenticated route without a community context (D-022).
     .post('/', session, validate('json', CreateCommunitySchema), async (c) =>
-      c.json(await createCommunity(db, c.var.user.id, c.req.valid('json').name), 201),
+      c.json(await createCommunity(db, c.var.user.id, c.req.valid('json').name, permissions), 201),
     )
     .get('/:id', session, community, validate('param', CommunityParams), async (c) => {
       sameCommunity(c.req.valid('param').id, c.var.community.id);

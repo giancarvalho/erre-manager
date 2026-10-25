@@ -45,3 +45,17 @@ export async function api<T>(path: string, init: ApiInit = {}): Promise<T> {
   }
   return data as T;
 }
+
+/**
+ * fetch for module clients (hc): same session and X-Community-Id handling as api(), returning the raw
+ * Response so the typed client can read it.
+ */
+export function moduleFetch(communityId: string): typeof fetch {
+  return (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
+    const headers = new Headers(init?.headers);
+    headers.set('x-community-id', communityId);
+    const cookie = await sessionCookie();
+    if (cookie) headers.set('cookie', cookie);
+    return fetch(input, { ...init, headers, ...(Platform.OS === 'web' ? { credentials: 'include' as const } : {}) });
+  }) as typeof fetch;
+}

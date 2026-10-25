@@ -239,3 +239,16 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - **Lista de membros visível a todo membro aprovado** (nome, avatar, papel); pedidos pendentes só para `core.membros.gerenciar`; links só para `core.convites.gerenciar`.
 - **P-015 continua aberta:** só o link foi implementado (vale para A e B).
 **Motivo:** paridade com o legado nas regras de entrada, com o isolamento garantido pelo banco também nas rotas sem sessão.
+
+### D-039 — Runtime de módulos (contrato v0)
+**Data:** 2026-10-25 · **Status:** aceita (Sprint 8); **pede revisão humana** (gate do Sprint 8) antes dos módulos reais
+**Decisão:**
+- **Contexto via `c.var.ctx`** (Hono): `createModuleApp()` e `createAnonApp()` já tipam o contexto; o runtime monta `user`, `community`, `can`, `tx`, `notify`, `members` depois da sessão e da comunidade.
+- **Rotas anônimas recebem uma cópia da requisição** só com `content-type`, `accept` e `accept-language`, executada num app separado, sem os middlewares de sessão. O lint continua valendo; o runtime garante mesmo que o lint falhe.
+- **`@erre/core/manifest`** é a entrada pura para manifestos; `@erre/core/client` traz React (host de módulo e `useModuleClient`). O lint proíbe o manifesto, a API de módulo e `apps/api` de importarem `@erre/core/client`. Achado ao testar: o manifesto puxava React para a API.
+- **Intenções só de módulos ligados; `onMemberLeft` de todos os registrados.** Permissões semeadas de todos os registrados (o schema não depende da flag).
+- **Jobs:** `node-cron` no fuso global, lock consultivo `hashtext('job:<id>')` numa conexão dedicada, comunidades listadas pelo pool `erre_jobs`, uma transação de tenant por comunidade, erro isolado por comunidade. Rota interna com comparação em tempo constante.
+- **Seções de perfil** em savepoint; falha esconde só a seção.
+- **App:** registro estático de UIs (`apps/mobile/src/modules.ts`) ∩ `GET /v1/modules`; seção do hub por módulo; `withModule(id, Tela)` nas rotas finas.
+- **Módulo de teste em `modules/_contrato-teste`:** pastas com `_` ficam fora das migrations de produção e do registro.
+**Motivo:** o contrato é o produto; cada garantia tem teste no módulo de teste, e as que dependem de disciplina (anonimato, React fora da API) ganharam proteção em código.

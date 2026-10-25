@@ -116,7 +116,7 @@ Montadas em `/v1/<modulo>/anon/*`, **sem** o middleware de sessão (D-010):
 
 - O handler recebe `{ community, tx }` e nada mais. Não há `user`.
 - A comunidade vem no caminho (`/v1/<modulo>/anon/c/:communityId/...`) e é **validada pela própria credencial anônima**: o handler abre a transação dessa comunidade e verifica a assinatura cega contra a chave do período **dessa** comunidade. Comunidade trocada = assinatura inválida = 401. É a única forma permitida de aceitar `community_id` sem sessão.
-- Cookies e `Authorization` são ignorados (e o cliente não os envia: `credentials: 'omit'` na web, sem header no nativo).
+- Cookies e `Authorization` são ignorados (e o cliente não os envia: `credentials: 'omit'` na web, sem header no nativo). O runtime repassa ao módulo uma cópia da requisição só com `content-type`, `accept` e `accept-language` (D-039).
 - O logger dessas rotas não registra IP, user-agent nem identificadores.
 - Uma regra de ESLint proíbe importar helpers de sessão ou de usuário em `modules/*/api/anon/**`.
 
@@ -166,6 +166,8 @@ export default defineModuleUi(manifest, {
   profileSections: { 'errometro.trofeus': TrophiesProfileSection },
 })
 ```
+
+Referência prática, com o que já está implementado e testado: [`docs/CONTRATO.md`](../CONTRATO.md). O manifesto importa `defineManifest` de `@erre/core/manifest` (sem React), para a API poder importá-lo (D-039).
 
 ### 5.1 Contexto entregue ao módulo
 

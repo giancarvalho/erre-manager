@@ -6,6 +6,7 @@
   "exports": {
     "./server": "./src/server/index.ts",
     "./client": "./src/client/index.ts",
+    "./manifest": "./src/manifest/index.ts",
     "./testing": "./src/server/testing.ts"
   },
   "scripts": {
@@ -19,17 +20,23 @@
     "@erre/db": "workspace:*",
     "better-auth": "1.7.7",
     "hono": "4.13.13",
+    "node-cron": "4.6.0",
     "zod": "4.6.5"
   },
   "devDependencies": {
     "@erre/config": "workspace:*",
     "@types/node": "22.20.5",
     "@types/pg": "8.23.1",
+    "@types/react": "19.3.0",
     "eslint": "9.39.5",
     "pg": "8.23.1",
     "pino": "10.4.0",
+    "react": "19.3.0",
     "tsx": "4.23.15",
     "typescript": "6.0.3",
     "vitest": "5.0.3"
+  },
+  "peerDependencies": {
+    "react": "*"
   }
 }

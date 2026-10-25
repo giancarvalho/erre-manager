@@ -3,6 +3,7 @@
 import { randomUUID } from 'node:crypto';
 
 import { withTenantTx, type Db } from '@erre/db';
+import { getTableConfig, type PgTable } from '@erre/db/pg-core';
 
 import type { Role } from '../shared/community';
 import { memberships } from './schema';
@@ -34,7 +35,7 @@ export function encodedCode(profile: FakeGoogleProfile): string {
 export function installFakeGoogle(clientId: string, { acceptEncodedCodes = false } = {}): FakeGoogle {
   const original = globalThis.fetch;
   const codes = new Map<string, Record<string, unknown>>();
-  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+  globalThis.fetch = (async (input: Parameters<typeof fetch>[0], init?: RequestInit) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
     if (!url.startsWith('https://oauth2.googleapis.com/token')) return original(input, init);
     const body = new URLSearchParams(String(init?.body ?? ''));
@@ -217,4 +218,12 @@ export async function permissionMatrix(
     if (!shouldPass && res.status !== 403) problems.push(`${who}: expected 403, got ${res.status}`);
   }
   return { statuses, problems };
+}
+
+/** Module tables must be prefixed with the module id (AGENTS.md conventions; PLANO Sprint 8, task 7). */
+export function tablePrefixProblems(manifest: { id: string }, tables: readonly PgTable[]): string[] {
+  return tables
+    .map((t) => getTableConfig(t).name)
+    .filter((name) => !name.startsWith(`${manifest.id}_`))
+    .map((name) => `table "${name}" must start with "${manifest.id}_"`);
 }

@@ -1,10 +1,11 @@
-import { createAuth, createCoreApi } from '@erre/core/server';
+import { createAuth, createCoreApi, createModuleRuntime, parseEnabledModules } from '@erre/core/server';
 import { createDb } from '@erre/db';
 import { serve } from '@hono/node-server';
 
 import { createApp } from './app';
 import { parseEnv } from './env';
 import { createLogger } from './logger';
+import { MODULES } from './modules';
 
 const env = parseEnv();
 const logger = createLogger({ level: env.LOG_LEVEL });
@@ -17,9 +18,31 @@ const auth = createAuth({
   trustedOrigins: env.TRUSTED_ORIGINS,
   log: (level, message) => logger[level === 'debug' ? 'debug' : level](message),
 });
-const core = createCoreApi({ db, auth, trustedOrigins: env.TRUSTED_ORIGINS });
+const jobsDb = createDb(env.DATABASE_JOBS_URL, { max: 2, applicationName: 'erre-jobs' });
+const runtime = createModuleRuntime({
+  db,
+  jobsDb,
+  auth,
+  modules: MODULES,
+  enabled: parseEnabledModules(env.MODULES_ENABLED, MODULES),
+  cronSecret: env.CRON_SECRET,
+  timezone: env.VOTING_TIMEZONE,
+  log: logger,
+});
+const core = createCoreApi({
+  db,
+  auth,
+  trustedOrigins: env.TRUSTED_ORIGINS,
+  hooks: runtime.hooks,
+  permissions: runtime.permissions,
+  log: (message, err) => logger.error({ err: { name: (err as Error).name } }, message),
+});
 const webOrigins = env.TRUSTED_ORIGINS.filter((o) => /^https?:\/\//.test(o));
 
-serve({ fetch: createApp({ logger, core, webOrigins }).fetch, port: env.PORT }, (info) => {
+await runtime.syncPermissions();
+runtime.startJobs();
+logger.info({ modules: runtime.enabledManifests.map((m) => m.id), jobs: runtime.scheduledJobs }, 'modules ready');
+
+serve({ fetch: createApp({ logger, core, modules: runtime.app, webOrigins }).fetch, port: env.PORT }, (info) => {
   logger.info({ port: info.port }, 'api listening');
 });
