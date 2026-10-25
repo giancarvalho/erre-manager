@@ -1,26 +1,76 @@
-import { Avatar, Button, Screen, ScreenHeader, space, Text } from '@erre/ui';
+import { Avatar, Button, ErrorState, LoadingState, Screen, ScreenHeader, space, Text } from '@erre/ui';
 import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
+import { ROLE_LABEL, useCommunity, useCommunityDetails } from '@/lib/community';
 import { useMe, useSignOut } from '@/lib/session';
 
-// Placeholder home (Sprint 5). Sprint 8 replaces it with the community hub (D-033).
+// Home (Sprint 6). Sprint 8 turns it into the community hub with one section per module (D-033).
 export default function Home() {
-  const me = useMe();
-  const signOut = useSignOut();
-  if (!me.data) return null;
+  const { current, communities } = useCommunity();
+  if (!current) return <NoCommunity />;
+  return <CommunityHome id={current.id} many={communities.length > 1} />;
+}
+
+function NoCommunity() {
   return (
     <Screen>
       <ScreenHeader
         overline="Erre"
-        title={`Oi, ${me.data.displayName}`}
-        description="O app da comunidade está chegando."
+        title="Você ainda não está em nenhuma comunidade"
+        description="Crie uma para chamar a galera, ou abra o link de convite que alguém te mandou."
       />
+      <Button label="Criar comunidade" variant="primary" fullWidth onPress={() => router.push('/comunidades/nova')} />
+      <Account />
+    </Screen>
+  );
+}
+
+function CommunityHome({ id, many }: { id: string; many: boolean }) {
+  const details = useCommunityDetails(id);
+  if (details.isPending) return <LoadingState />;
+  if (details.isError)
+    return <ErrorState message="Não deu pra abrir a comunidade." onRetry={() => details.refetch()} />;
+  return (
+    <Screen>
+      <ScreenHeader
+        overline="Comunidade"
+        title={details.data.name}
+        description="O que rola por aqui vai aparecer nesta tela."
+      />
+      <Text variant="caption" tone="muted" style={styles.role}>
+        {`Seu papel: ${ROLE_LABEL[details.data.role]}`}
+      </Text>
+      <View style={styles.actions}>
+        {many ? (
+          <Button
+            label="Trocar de comunidade"
+            variant="secondary"
+            fullWidth
+            onPress={() => router.push('/comunidades')}
+          />
+        ) : null}
+        <Button label="Criar outra comunidade" variant="ghost" onPress={() => router.push('/comunidades/nova')} />
+      </View>
+      <Account />
+    </Screen>
+  );
+}
+
+function Account() {
+  const me = useMe();
+  const signOut = useSignOut();
+  if (!me.data) return null;
+  return (
+    <View style={styles.account}>
       <View style={styles.row}>
         <Avatar name={me.data.displayName} variant={me.data.avatarVariant} />
-        <Text variant="body" tone="muted">
-          {me.data.email}
-        </Text>
+        <View>
+          <Text variant="label">{me.data.displayName}</Text>
+          <Text variant="caption" tone="muted">
+            {me.data.email}
+          </Text>
+        </View>
       </View>
       <Button
         label="Sair"
@@ -29,10 +79,13 @@ export default function Home() {
         variant="ghost"
         onPress={() => signOut.mutate(undefined, { onSettled: () => router.replace('/entrar') })}
       />
-    </Screen>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', alignItems: 'center', gap: space[3], marginBottom: space[6] },
+  role: { marginTop: -space[4], marginBottom: space[6] },
+  actions: { gap: space[3] },
+  account: { marginTop: space[10], gap: space[3] },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
 });

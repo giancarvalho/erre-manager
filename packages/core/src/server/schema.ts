@@ -1,4 +1,7 @@
-import { boolean, pgTable, text, timestamp, uuid } from '@erre/db/pg-core';
+import { createTenantTable } from '@erre/db';
+import { boolean, pgTable, primaryKey, text, timestamp, uuid } from '@erre/db/pg-core';
+
+import { ROLES } from '../shared/community';
 
 const ts = (name: string) => timestamp(name, { withTimezone: true });
 
@@ -63,3 +66,29 @@ export const coreProfiles = pgTable('core_profiles', {
   createdAt: ts('created_at').notNull().defaultNow(),
   updatedAt: ts('updated_at').notNull().defaultNow(),
 });
+
+export const MEMBERSHIP_STATUSES = ['pending', 'approved', 'rejected', 'removed'] as const;
+
+export const memberships = createTenantTable(
+  'core_community_memberships',
+  {
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => authUser.id, { onDelete: 'cascade' }),
+    role: text('role', { enum: ROLES }).notNull(),
+    status: text('status', { enum: MEMBERSHIP_STATUSES }).notNull(),
+    requestedAt: ts('requested_at').notNull().defaultNow(),
+    reviewedAt: ts('reviewed_at'),
+    reviewedBy: uuid('reviewed_by').references(() => authUser.id, { onDelete: 'set null' }),
+  },
+  (t) => [primaryKey({ columns: [t.communityId, t.userId] })],
+);
+
+export const rolePermissions = createTenantTable(
+  'core_role_permissions',
+  {
+    role: text('role', { enum: ROLES }).notNull(),
+    permission: text('permission').notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.communityId, t.role, t.permission] })],
+);

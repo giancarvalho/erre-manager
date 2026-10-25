@@ -86,7 +86,7 @@ CREATE INDEX ON <tabela> (community_id);
 - `current_setting('app.community_id')` **sem** `missing_ok`: se a variável não foi definida, a consulta falha (fail closed), em vez de vazar. Depois de uma transação, a conexão fica com a variável vazia; o cast `''::uuid` também falha.
 - Testes em `packages/db` garantem: isolamento (ler, inserir, atualizar, apagar e mover linhas de outra comunidade), fail closed, nada vaza para o próximo uso da conexão, cobertura (toda tabela com `community_id` tem RLS forçado, policy, FK e índice; toda tabela sem ela está em `GLOBAL_TABLES`) e drift entre o Drizzle e o banco. Core e módulos reaproveitam `@erre/db/testing`.
 - Tabelas filhas (ex.: votos de um evento) têm `community_id` próprio e **FK composta** `(community_id, parent_id) → parent(community_id, id)`, para que uma linha nunca aponte para um pai de outra comunidade (D-015). O pai precisa de `UNIQUE (community_id, id)`.
-- `core_community_memberships` tem uma policy adicional que permite ao usuário ler as próprias linhas em qualquer comunidade (`user_id = current_setting('app.user_id')::uuid`), para listar "minhas comunidades".
+- `core_community_memberships` tem uma policy adicional que permite ao usuário ler as próprias linhas em qualquer comunidade (`user_id = current_setting('app.user_id')::uuid`), para listar "minhas comunidades". Essas consultas rodam em `withUserTx()`, que define `app.community_id` como o uuid nulo (nenhuma comunidade tem esse id): a policy de isolamento não casa com nada e continua falhando fechada quando nada foi definido (D-037).
 - Módulos podem ter FK para tabelas do core (`communities`, usuários), nunca para tabelas de outro módulo.
 
 ### 4.3 Papéis de banco
@@ -105,8 +105,8 @@ Middleware do core, nesta ordem:
 
 1. Autentica a sessão (Better Auth) → `user`. Sem sessão: 401.
 2. Lê `X-Community-Id`; valida que o usuário tem membership aprovada nessa comunidade → `community`, `role`. Sem header ou sem membership: 403.
-3. Abre transação com `erre_app`; executa `SELECT set_config('app.community_id', $1, true), set_config('app.user_id', $2, true)` (local à transação).
-4. Monta o contexto e executa a rota; commit ou rollback ao fim.
+3. Abre transação com `erre_app`; executa `SELECT set_config('app.community_id', $1, true), set_config('app.user_id', $2, true)` (local à transação). A primeira consulta dentro dela é a membership da própria pessoa; sem membership `approved`, 403 e rollback antes de qualquer código da rota (D-037).
+4. Monta o contexto e executa a rota; commit ao fim, ou rollback se a rota lançar erro **ou** responder com status ≥ 400.
 
 Para quem tem uma comunidade só, o app seleciona a comunidade automaticamente; o seletor só aparece com duas ou mais (D-014).
 

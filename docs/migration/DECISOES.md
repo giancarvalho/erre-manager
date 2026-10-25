@@ -214,3 +214,16 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - **Componentes antecipados do Sprint 10:** `Text`, `Screen`, `ScreenHeader`, `Button` (5 variantes, carregando, motivo do desabilitado), `TextField`, `Avatar`, `LoadingState`, `ErrorState`, e `tokens.ts` idêntico à §13 do DESIGN.md (mais `label`, corpo 14/500, previsto na §4). Movimento e háptico ficam para o Sprint 10.
 - **Onboarding fora do grupo `(app)`**: a rota `/onboarding/nome` faz a própria checagem de sessão; `(app)/_layout` manda para ela enquanto o nome não foi confirmado.
 **Motivo:** cada item fecha uma lacuna encontrada ao testar (ids, vazamento em log, confiança nas claims, IP) ou simplifica o caminho.
+
+### D-037 — Contexto da comunidade, permissões e criação
+**Data:** 2026-10-25 · **Status:** aceita (Sprint 6); pede revisão humana (gate do Sprint 6, assíncrono pela D-029)
+**Decisão:**
+- **Validação dentro da transação de tenant:** o middleware abre a transação da comunidade do header e a primeira consulta é a membership da própria pessoa. Sem `approved`, 403 e rollback antes de qualquer código da rota. Equivale a validar antes de abrir, com uma ida ao banco a menos.
+- **Rollback também em status ≥ 400:** o Hono captura o erro da rota e devolve a resposta sem propagar a exceção; o middleware confere `c.error` e o status e desfaz a transação. Rotas devem lançar `AppError`, mas uma resposta de erro devolvida à mão também não grava nada.
+- **"Minhas comunidades" com `withUserTx`:** `app.community_id` = uuid nulo e `app.user_id` = a pessoa. Policies permissivas se combinam por OU, mas a de isolamento ainda avaliaria `current_setting` e falharia sem a variável; o uuid nulo resolve sem afrouxar o fail closed.
+- **Criar comunidade sem policy especial:** a API gera o id da nova comunidade e abre a transação de tenant **para esse id**; comunidade, membership `owner` e permissões padrão nascem nela, e qualquer escrita em outra comunidade bate no RLS. Limite: **5 comunidades por pessoa a cada 24 h** (429 `TOO_MANY_COMMUNITIES`).
+- **Nome = código, como no legado** (R-MEM-07): letras minúsculas, números e hífens, 1–32, `demo` reservado. `slug` e `name` recebem o mesmo valor. Um nome de exibição livre fica para quando houver pedido.
+- **Papéis:** `owner` não é atribuível pela rota de papéis (sem transferência de posse na v1); `admin` não muda o papel do `owner`; o `owner` não se rebaixa (422 `OWNER_REQUIRED`), porque a comunidade ficaria sem dono.
+- **Permissões do core:** `core.membros.gerenciar` e `core.convites.gerenciar` (owner, admin), semeadas em `core_role_permissions` na criação. Quando os manifestos dos módulos chegarem (Sprint 8), o boot precisa semear permissões novas nas comunidades existentes (só inserir, nunca remover).
+- **Comunidade escolhida no app:** `localStorage` na web e memória no nativo, até a biblioteca de armazenamento do Sprint 10.
+**Motivo:** isolamento garantido pelo banco em todos os caminhos, inclusive o único sem contexto (criação), com regras do legado onde ele já decidia.

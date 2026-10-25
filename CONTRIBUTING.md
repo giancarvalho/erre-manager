@@ -24,6 +24,8 @@ pnpm --filter @erre/db db:bootstrap   # papéis erre_migrator, erre_app, erre_jo
 pnpm --filter @erre/db db:migrate     # aplica as migrations de db, core e módulos
 ```
 
+Dados de exemplo (só local): `DATABASE_URL=postgres://erre_app:erre_app@localhost:5432/erre pnpm --filter @erre/core seed:dev` cria duas comunidades com uma pessoa por papel.
+
 Os testes de banco criam e apagam bancos descartáveis usando `DATABASE_ADMIN_URL` (padrão: o Postgres do `docker compose`). Nunca aponte essa variável para produção.
 
 Migration nova: arquivo `<dono>_<NNNN>_<descricao>.sql` na pasta do dono (`packages/db/migrations`, `packages/core/migrations`, `modules/<nome>/db/migrations`), com uma seção `-- migrate:down` quando der para reverter. Tabela de comunidade: `community_id uuid NOT NULL REFERENCES communities(id)` e, logo depois do `CREATE TABLE`, `SELECT erre_tenant_table('<tabela>');`. Migration aplicada não se edita: escreva outra.

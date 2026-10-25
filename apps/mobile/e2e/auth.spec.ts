@@ -1,19 +1,6 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
-const API = 'http://localhost:3000';
-
-/** Stands in for Google: sends the browser straight back to the API callback with a code carrying the profile. */
-async function fakeGoogle(page: Page, profile: { sub: string; email: string; name: string }) {
-  await page.route('https://accounts.google.com/**', async (route) => {
-    const state = new URL(route.request().url()).searchParams.get('state') ?? '';
-    const b64url = btoa(JSON.stringify(profile)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    const code = `e2e.${b64url}`;
-    await route.fulfill({
-      status: 302,
-      headers: { location: `${API}/v1/auth/callback/google?code=${code}&state=${encodeURIComponent(state)}` },
-    });
-  });
-}
+import { fakeGoogle } from './helpers';
 
 test('sign in with Google, confirm the name, stay signed in and sign out', async ({ page }) => {
   const id = Date.now();
@@ -32,11 +19,13 @@ test('sign in with Google, confirm the name, stay signed in and sign out', async
   await expect(page.getByText('Mínimo 2 caracteres.')).toBeVisible();
   await field.fill('Pessoa');
   await page.getByRole('button', { name: 'Continuar' }).click();
-  await expect(page.getByRole('heading', { name: 'Oi, Pessoa' })).toBeVisible();
+  const empty = page.getByRole('heading', { name: 'Você ainda não está em nenhuma comunidade' });
+  await expect(empty).toBeVisible();
+  await expect(page.getByText('Pessoa', { exact: true })).toBeVisible();
 
   // The session survives a reload.
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Oi, Pessoa' })).toBeVisible();
+  await expect(empty).toBeVisible();
 
   await page.getByRole('button', { name: 'Sair' }).click();
   await expect(page).toHaveURL(/\/entrar/);
@@ -51,9 +40,10 @@ test('a returning person skips onboarding', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Continuar com Google' }).click();
   await page.getByRole('button', { name: 'Continuar' }).click();
-  await expect(page.getByRole('heading', { name: 'Oi, Volta' })).toBeVisible();
+  await expect(page.getByText('Volta', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Sair' }).click();
 
   await page.getByRole('button', { name: 'Continuar com Google' }).click();
-  await expect(page.getByRole('heading', { name: 'Oi, Volta' })).toBeVisible();
+  await expect(page.getByText('Volta', { exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Como você quer aparecer pra comunidade?' })).toHaveCount(0);
 });

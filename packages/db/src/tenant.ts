@@ -66,3 +66,16 @@ export async function withTenantTx<T>(db: Db, ctx: TenantContext, fn: (tx: Tx) =
     return fn(tx);
   });
 }
+
+/** No community has this id (gen_random_uuid never returns it). Used by withUserTx. */
+export const NO_COMMUNITY = '00000000-0000-0000-0000-000000000000';
+
+/**
+ * Transaction scoped to a person, not to a community: `app.user_id` is set and `app.community_id` is the
+ * nil uuid, so community policies match nothing while policies on the person's own rows (e.g. "my
+ * memberships") work. Unset settings still fail closed.
+ */
+export async function withUserTx<T>(db: Db, userId: string, fn: (tx: Tx) => Promise<T>): Promise<T> {
+  if (!isUuid(userId)) throw new TypeError('withUserTx: userId must be a uuid');
+  return withTenantTx(db, { communityId: NO_COMMUNITY, userId }, fn);
+}

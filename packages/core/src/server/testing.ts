@@ -2,6 +2,11 @@
 // Used by core, apps/api and module tests to get a session without real Google credentials.
 import { randomUUID } from 'node:crypto';
 
+import { withTenantTx, type Db } from '@erre/db';
+
+import type { Role } from '../shared/community';
+import { memberships } from './schema';
+
 export type FakeGoogleProfile = { sub: string; email: string; name: string; picture?: string };
 
 const b64 = (v: object) => Buffer.from(JSON.stringify(v)).toString('base64url');
@@ -113,4 +118,103 @@ export async function signInWithGoogle(
   );
   const sessionCookies = cookiesFrom(callback).filter((c) => !c.endsWith('='));
   return { cookie: sessionCookies.join('; '), location: callback.headers.get('location'), status: callback.status };
+}
+
+// ---------------------------------------------------------------------------------------------------------
+// Communities and roles (Sprint 6). Module tests reuse these to build a community with a member per role.
+
+export type TestUser = { id: string; cookie: string; email: string };
+
+let userSeq = 0;
+
+/** Signs in a new person through the fake Google and returns their id and cookie. */
+export async function createTestUser(
+  app: RequestApp,
+  google: FakeGoogle,
+  { origin, name = 'Pessoa' }: { origin: string; name?: string },
+): Promise<TestUser> {
+  userSeq += 1;
+  const tag = `${Date.now()}-${userSeq}-${Math.random().toString(36).slice(2, 8)}`;
+  const email = `user-${tag}@example.com`;
+  const { cookie } = await signInWithGoogle(app, google, { sub: `sub-${tag}`, email, name }, { origin });
+  const res = await app.request('/v1/me', { headers: { cookie } });
+  const me = (await res.json()) as { id: string };
+  return { id: me.id, cookie, email };
+}
+
+/** Test-only: puts a membership straight in the database (invites arrive in Sprint 7). */
+export async function addMember(
+  db: Db,
+  communityId: string,
+  userId: string,
+  role: Role,
+  status: 'pending' | 'approved' | 'rejected' | 'removed' = 'approved',
+): Promise<void> {
+  await withTenantTx(db, { communityId, userId }, (tx) =>
+    tx
+      .insert(memberships)
+      .values({ communityId, userId, role, status })
+      .onConflictDoUpdate({ target: [memberships.communityId, memberships.userId], set: { role, status } }),
+  );
+}
+
+export type RoleFixture = {
+  communityId: string;
+  users: Record<Role | 'pending' | 'outsider', TestUser>;
+};
+
+/** A community created through the API, with one approved member per role, one pending and one outsider. */
+export async function createRoleFixture(
+  app: RequestApp,
+  google: FakeGoogle,
+  db: Db,
+  { origin, name }: { origin: string; name?: string },
+): Promise<RoleFixture> {
+  const owner = await createTestUser(app, google, { origin, name: 'Dona' });
+  const res = await app.request('/v1/communities', {
+    method: 'POST',
+    headers: { cookie: owner.cookie, origin, 'content-type': 'application/json' },
+    body: JSON.stringify({
+      name: name ?? `fixture-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+    }),
+  });
+  if (res.status !== 201) throw new Error(`community not created: ${res.status} ${await res.text()}`);
+  const { id: communityId } = (await res.json()) as { id: string };
+  const make = async (label: string, role: Role, status: 'pending' | 'approved' = 'approved') => {
+    const u = await createTestUser(app, google, { origin, name: label });
+    await addMember(db, communityId, u.id, role, status);
+    return u;
+  };
+  return {
+    communityId,
+    users: {
+      owner,
+      admin: await make('Admin', 'admin'),
+      moderador: await make('Moderadora', 'moderador'),
+      membro: await make('Membro', 'membro'),
+      pending: await make('Pendente', 'membro', 'pending'),
+      outsider: await createTestUser(app, google, { origin, name: 'De Fora' }),
+    },
+  };
+}
+
+/**
+ * Permission matrix for one route: every role in `allowed` must get past authorization (status ≠ 403);
+ * every other role, the pending member and the outsider must get 403. Returns the statuses by role.
+ */
+export async function permissionMatrix(
+  fixture: RoleFixture,
+  allowed: readonly Role[],
+  request: (user: TestUser, headers: Record<string, string>) => Response | Promise<Response>,
+): Promise<{ statuses: Record<string, number>; problems: string[] }> {
+  const statuses: Record<string, number> = {};
+  const problems: string[] = [];
+  for (const [who, user] of Object.entries(fixture.users)) {
+    const res = await request(user, { cookie: user.cookie, 'x-community-id': fixture.communityId });
+    statuses[who] = res.status;
+    const shouldPass = (allowed as readonly string[]).includes(who);
+    if (shouldPass && res.status === 403) problems.push(`${who}: expected access, got 403`);
+    if (!shouldPass && res.status !== 403) problems.push(`${who}: expected 403, got ${res.status}`);
+  }
+  return { statuses, problems };
 }

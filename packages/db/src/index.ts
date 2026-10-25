@@ -1,6 +1,6 @@
 export { closeDb, createDb, type Db, type DbOptions, type Tx } from './client';
 export { communities, GLOBAL_TABLES } from './schema';
-export { createTenantTable, isUuid, withTenantTx, type TenantContext } from './tenant';
+export { createTenantTable, isUuid, NO_COMMUNITY, withTenantTx, withUserTx, type TenantContext } from './tenant';
 export {
   discoverSources,
   loadMigrations,

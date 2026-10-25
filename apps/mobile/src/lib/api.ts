@@ -14,9 +14,17 @@ export class ApiError extends Error {
   }
 }
 
+export type ApiInit = {
+  method?: string;
+  body?: unknown;
+  /** Community of the request; sent as X-Community-Id and validated by the API (D-014). */
+  communityId?: string;
+};
+
 /** JSON call to the API. Errors come back as ApiError with the API's { code, message } (pt-BR). */
-export async function api<T>(path: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
+export async function api<T>(path: string, init: ApiInit = {}): Promise<T> {
   const headers: Record<string, string> = {};
+  if (init.communityId) headers['x-community-id'] = init.communityId;
   if (init.body !== undefined) headers['content-type'] = 'application/json';
   const cookie = await sessionCookie();
   if (cookie) headers.cookie = cookie;

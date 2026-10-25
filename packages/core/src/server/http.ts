@@ -1,7 +1,7 @@
-import type { Context, ErrorHandler } from 'hono';
-import { z, ZodError, type ZodType } from 'zod';
+import type { ErrorHandler } from 'hono';
+import { z, ZodError } from 'zod';
 
-import { AppError, errors, type ErrorBody } from './errors';
+import { AppError, type ErrorBody } from './errors';
 
 // Default Zod messages in Portuguese; schemas with their own message keep it.
 z.config(z.locales.pt());
@@ -39,12 +39,4 @@ export function errorHandler(logger: Logger): ErrorHandler {
     logger.error({ err: safeError(err), method: c.req.method, path: c.req.path }, 'unhandled error');
     return c.json<ErrorBody>({ code: 'INTERNAL_ERROR', message: 'Erro inesperado. Tente de novo.' }, 500);
   };
-}
-
-/** Parses the JSON body with a Zod schema; invalid JSON or data → 400 VALIDATION_ERROR. */
-export async function jsonBody<T extends ZodType>(c: Context, schema: T): Promise<z.output<T>> {
-  const raw: unknown = await c.req.json().catch(() => {
-    throw errors.validation('Corpo da requisição inválido.');
-  });
-  return schema.parse(raw);
 }

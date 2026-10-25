@@ -22,7 +22,7 @@ Leia antes: [`AGENTS.md`](../../AGENTS.md), [`ARQUITETURA.md`](ARQUITETURA.md), 
 | 3 | Monorepo, ferramentas e CI | M | 2 | não | concluído (aparelho pendente) |
 | 4 | `packages/db`: papéis, RLS e migrations | M | 3 | **sim** | concluído (revisão humana assíncrona, D-029) |
 | 5 | Auth e perfil | M | 4 | não | concluído na web (aparelho e Google real pendentes) |
-| 6 | Comunidades, papéis, `can()` e contexto da requisição | M | 5 | **sim** | pendente |
+| 6 | Comunidades, papéis, `can()` e contexto da requisição | M | 5 | **sim** | concluído (revisão humana assíncrona, D-029) |
 | 7 | Convites, entrada e membros da comunidade | M | 6 | não | pendente |
 | 8 | Runtime de módulos (contrato v0) e shell do app | G | 7 | **sim** | pendente |
 | 9 | `notify()` e push (Web Push + Expo Push) | M | 8 | não | pendente |
