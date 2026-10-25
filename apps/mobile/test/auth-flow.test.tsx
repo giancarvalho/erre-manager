@@ -13,6 +13,7 @@ import ChooseCommunity from '../src/app/(app)/comunidades/index';
 import NewCommunity from '../src/app/(app)/comunidades/nova';
 import Home from '../src/app/(app)/index';
 import SignIn from '../src/app/(auth)/entrar';
+import InviteScreen from '../src/app/convite/[codigo]';
 import OnboardingName from '../src/app/onboarding/nome';
 import { ApiError } from '@/lib/api';
 
@@ -47,6 +48,21 @@ function mockMe(me: Me | null, communities: Community[] = []) {
       init?: { method?: string; body?: { displayName?: string; name?: string }; communityId?: string },
     ) => {
       if (path === '/v1/me/communities') return communities;
+      if (path === '/v1/me/requests') return [];
+      const invite = /^\/v1\/invites\/([^/]+)(\/join)?$/.exec(path);
+      if (invite) {
+        if (invite[1] === 'revogado')
+          throw new ApiError(
+            404,
+            'NOT_FOUND',
+            'Esse convite não vale mais. Peça um novo link a quem administra a comunidade.',
+          );
+        if (invite[2]) {
+          if (!me) throw new ApiError(401, 'UNAUTHENTICATED', 'Você precisa entrar para continuar.');
+          return { communityId: 'c-convite', status: 'pending' };
+        }
+        return { community: { id: 'c-convite', name: 'turma-do-convite' }, intent: null, myStatus: null };
+      }
       if (path === '/v1/communities' && init?.method === 'POST') {
         if (init.body!.name === 'ja-existe')
           throw new ApiError(409, 'COMMUNITY_NAME_TAKEN', 'Esse nome já existe. Tente outro.');
@@ -101,6 +117,7 @@ async function open(url: string) {
       'onboarding/nome': OnboardingName,
       '(app)/comunidades/index': ChooseCommunity,
       '(app)/comunidades/nova': NewCommunity,
+      'convite/[codigo]': InviteScreen,
     },
     { initialUrl: url },
   );
@@ -197,4 +214,30 @@ test('with one community: no switcher', async () => {
   await open('/');
   expect(await screen.findByText('Seu papel: dono')).toBeTruthy();
   expect(screen.queryByText('Trocar de comunidade')).toBeNull();
+});
+
+test('invite without a session: preview, then sign in to ask', async () => {
+  mockMe(null);
+  await open('/convite/abc');
+  expect(await screen.findByText('turma-do-convite')).toBeTruthy();
+  await fireEvent.press(screen.getByText('Entrar para pedir'));
+  expect(await screen.findByText('Continuar com Google')).toBeTruthy();
+  expect(screen).toHavePathname('/entrar');
+  await fireEvent.press(screen.getByText('Continuar com Google'));
+  await waitFor(() => expect(auth.signInWithGoogle).toHaveBeenCalledWith('/convite/abc'));
+});
+
+test('invite with a session: ask to join and wait for approval', async () => {
+  mockMe(baseMe);
+  await open('/convite/abc');
+  await fireEvent.press(await screen.findByText('Pedir para entrar'));
+  expect(await screen.findByText('Pedido enviado')).toBeTruthy();
+  expect(api).toHaveBeenCalledWith('/v1/invites/abc/join', { method: 'POST' });
+});
+
+test('revoked invite says so, without a retry', async () => {
+  mockMe(baseMe);
+  await open('/convite/revogado');
+  expect(await screen.findByText(/Esse convite não vale mais/)).toBeTruthy();
+  expect(screen.queryByText('Tentar de novo')).toBeNull();
 });

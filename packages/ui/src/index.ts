@@ -3,6 +3,7 @@ export { ThemeProvider, useTheme } from './theme';
 export { Avatar, type AvatarVariant } from './components/Avatar';
 export { Button, type ButtonProps, type ButtonVariant } from './components/Button';
 export { Card, type CardProps } from './components/Card';
+export { ConfirmCard } from './components/ConfirmCard';
 export { Screen } from './components/Screen';
 export { ScreenHeader } from './components/ScreenHeader';
 export { ErrorState, LoadingState } from './components/States';

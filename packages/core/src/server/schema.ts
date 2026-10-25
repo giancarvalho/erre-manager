@@ -1,5 +1,5 @@
 import { createTenantTable } from '@erre/db';
-import { boolean, pgTable, primaryKey, text, timestamp, uuid } from '@erre/db/pg-core';
+import { boolean, pgTable, primaryKey, text, timestamp, unique, uuid } from '@erre/db/pg-core';
 
 import { ROLES } from '../shared/community';
 
@@ -80,6 +80,7 @@ export const memberships = createTenantTable(
     requestedAt: ts('requested_at').notNull().defaultNow(),
     reviewedAt: ts('reviewed_at'),
     reviewedBy: uuid('reviewed_by').references(() => authUser.id, { onDelete: 'set null' }),
+    joinIntent: text('join_intent'),
   },
   (t) => [primaryKey({ columns: [t.communityId, t.userId] })],
 );
@@ -91,4 +92,17 @@ export const rolePermissions = createTenantTable(
     permission: text('permission').notNull(),
   },
   (t) => [primaryKey({ columns: [t.communityId, t.role, t.permission] })],
+);
+
+export const invites = createTenantTable(
+  'core_community_invites',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    secret: text('secret').notNull(),
+    intent: text('intent'),
+    createdBy: uuid('created_by').references(() => authUser.id, { onDelete: 'set null' }),
+    createdAt: ts('created_at').notNull().defaultNow(),
+    revokedAt: ts('revoked_at'),
+  },
+  (t) => [unique('core_community_invites_community_id_secret_key').on(t.communityId, t.secret)],
 );

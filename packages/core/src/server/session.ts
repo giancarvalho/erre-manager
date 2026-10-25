@@ -15,3 +15,14 @@ export function requireSession(auth: Auth) {
     await next();
   });
 }
+
+export type OptionalSessionEnv = { Variables: { user: SessionUser | null } };
+
+/** Like requireSession, but lets the request through without a session (`c.var.user` is null). */
+export function optionalSession(auth: Auth) {
+  return createMiddleware<OptionalSessionEnv>(async (c, next) => {
+    const result = await auth.api.getSession({ headers: c.req.raw.headers });
+    c.set('user', result ? { id: result.user.id, email: result.user.email, name: result.user.name } : null);
+    await next();
+  });
+}

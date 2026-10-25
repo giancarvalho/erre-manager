@@ -12,6 +12,7 @@ it('Drizzle definitions of the core match the migrations', async () => {
     schema.coreProfiles,
     schema.memberships,
     schema.rolePermissions,
+    schema.invites,
   ];
   expect(await schemaDifferences(inject('db').admin, tables)).toEqual([]);
 });

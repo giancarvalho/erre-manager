@@ -3,6 +3,7 @@ import { Hono } from 'hono';
 
 import { createAuth, type AuthConfig } from '../src/server/auth/auth';
 import { createCoreApi } from '../src/server/app';
+import type { MembershipHooks } from '../src/server/hooks';
 import { errorHandler } from '../src/server/http';
 import { installFakeGoogle } from '../src/server/testing';
 
@@ -10,7 +11,7 @@ export const ORIGIN = 'http://localhost:8081';
 export const TRUSTED = [ORIGIN, 'erre://'];
 export const CLIENT_ID = 'test-client.apps.googleusercontent.com';
 
-export function setupCore(dbUrl: string, overrides: Partial<AuthConfig> = {}) {
+export function setupCore(dbUrl: string, overrides: Partial<AuthConfig> = {}, hooks?: MembershipHooks) {
   const db: Db = createDb(dbUrl);
   const logs: string[] = [];
   const auth = createAuth({
@@ -24,7 +25,16 @@ export function setupCore(dbUrl: string, overrides: Partial<AuthConfig> = {}) {
     ...overrides,
   });
   const app = new Hono()
-    .route('/v1', createCoreApi({ db, auth, trustedOrigins: TRUSTED }))
+    .route(
+      '/v1',
+      createCoreApi({
+        db,
+        auth,
+        trustedOrigins: TRUSTED,
+        ...(hooks ? { hooks } : {}),
+        log: (msg) => logs.push(`hook: ${msg}`),
+      }),
+    )
     .onError(errorHandler({ error: (obj, msg) => logs.push(`${msg} ${JSON.stringify(obj)}`) }));
   const google = installFakeGoogle(CLIENT_ID);
   return {

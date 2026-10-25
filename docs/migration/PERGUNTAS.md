@@ -115,3 +115,4 @@ Também: manter ou não um limite de membros por comunidade (no legado, 300 por 
 - **A. Só link/código de convite revogável.** Prós: dá para revogar um link vazado. Contras: some o "digitar o nome".
 - **B. Os dois:** código revogável e também pedir entrada digitando o slug da comunidade. Contras: o slug não é revogável; como todo pedido fica `pending`, o risco é só de spam de pedidos.
 **Recomendação:** B, mantendo a paridade e a aprovação obrigatória.
+**Situação (Sprint 7):** implementado só o link com código revogável, que vale para A e B. Se a resposta for B, entra uma rota de pedido pelo nome; o resto do fluxo (pedido `pending`, aprovação) já existe.

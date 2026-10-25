@@ -189,6 +189,8 @@ Nada além disso. Se um módulo precisar de mais, registre `[contrato]` em `DECI
 - Quem entra numa comunidade usa um link de convite e fica `pending` até `owner`/`admin` aprovar (D-023).
 - Um convite pode carregar uma **intenção** declarada por um módulo (`joinIntents`), como "Entrar e participar do Errômetro". A pessoa faz **um pedido só**; quando a entrada é aprovada, o core chama o `onJoinApproved` do módulo na mesma transação.
 - Se o módulo não conseguir concluir (ex.: limite de votantes cheio), a entrada na comunidade vale e o módulo deixa a participação na fila dele, avisando a pessoa.
+- Rejeitar, remover ou sair chama `onMemberLeft` dos módulos na mesma transação; se falhar, nada muda. Detalhes e garantias em [`docs/CONTRATO.md`](../CONTRATO.md).
+- O código do convite é `base64url(community_id)` + segredo de 72 bits: a API abre a transação da comunidade a partir do código e confere o segredo dentro dela, sem exceção de RLS (D-038).
 
 ### 5.3 Permissões
 

@@ -3,4 +3,14 @@ export { AVATAR_VARIANTS, deriveAvatarVariantFromSeed, isAvatarVariant, type Ava
 export { ASSIGNABLE_ROLES, CommunityNameSchema, ROLES, type Role } from '../shared/community';
 export { DisplayNameSchema } from '../shared/display-name';
 export { safeAppPath } from '../shared/redirect';
-export type { CommunityDetails, Me, MyCommunity } from '../shared/types';
+export type {
+  CommunityDetails,
+  InvitePreview,
+  InviteView,
+  JoinRequest,
+  Me,
+  Member,
+  MembershipStatus,
+  MyCommunity,
+  MyRequest,
+} from '../shared/types';

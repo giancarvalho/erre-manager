@@ -227,3 +227,15 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - **Permissões do core:** `core.membros.gerenciar` e `core.convites.gerenciar` (owner, admin), semeadas em `core_role_permissions` na criação. Quando os manifestos dos módulos chegarem (Sprint 8), o boot precisa semear permissões novas nas comunidades existentes (só inserir, nunca remover).
 - **Comunidade escolhida no app:** `localStorage` na web e memória no nativo, até a biblioteca de armazenamento do Sprint 10.
 **Motivo:** isolamento garantido pelo banco em todos os caminhos, inclusive o único sem contexto (criação), com regras do legado onde ele já decidia.
+
+### D-038 — Convites, pedidos e ganchos de membership
+**Data:** 2026-10-25 · **Status:** aceita (Sprint 7)
+**Decisão:**
+- **Código do convite = `base64url(community_id)` (22) + segredo (12, 72 bits):** a prévia (`GET /v1/invites/:code`, sem sessão) e o pedido abrem a transação da comunidade do código e conferem o segredo dentro dela. Nenhuma tabela global nem função que contorne o RLS; trocar o id da comunidade invalida o código. Vários links ativos por comunidade; desativar não afeta pedidos já feitos.
+- **Transições do legado** (R-MEM-01/02): pedido sempre `pending`; `pending → approved | rejected`; `approved → removed`; quem foi rejeitado ou removido pede de novo explicitamente e volta a `pending` (papel `membro`); pedido repetido ou de quem já é membro não muda nada. Transição inválida: 409 `INVALID_TRANSITION`.
+- **Limite de 300 aprovados** (R-MEM-03): aprovar acima disso dá 422 `COMMUNITY_FULL` e o pedido continua na fila.
+- **`owner` não sai nem é removido** (R-MEM-06); a remoção por `admin` de outro `admin` é permitida (o legado não distinguia).
+- **Ganchos para módulos** (`docs/CONTRATO.md`): `onJoinApproved` roda em savepoint (falha isolada, a pessoa entra); `onMemberLeft` roda na mesma transação e, se falhar, desfaz a mudança. Assim a participação no módulo acompanha a comunidade, como a votação no legado (R-MEM-05).
+- **Lista de membros visível a todo membro aprovado** (nome, avatar, papel); pedidos pendentes só para `core.membros.gerenciar`; links só para `core.convites.gerenciar`.
+- **P-015 continua aberta:** só o link foi implementado (vale para A e B).
+**Motivo:** paridade com o legado nas regras de entrada, com o isolamento garantido pelo banco também nas rotas sem sessão.
