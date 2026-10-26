@@ -5,6 +5,7 @@ import { Hono } from 'hono';
 import { afterAll, beforeAll, describe, expect, it, inject } from 'vitest';
 
 import { CREATE_LIMIT_PER_DAY } from '../src/server/communities';
+import { createMembersApi } from '../src/server/members';
 import { requireCommunity } from '../src/server/context';
 import { errors } from '../src/server/errors';
 import { errorHandler } from '../src/server/http';
@@ -108,6 +109,28 @@ describe('my communities', () => {
 
   it('a person without communities gets an empty list', async () => {
     expect(await (await req(fx.users.outsider, 'GET', '/v1/me/communities')).json()).toEqual([]);
+  });
+});
+
+describe('members API without a person (jobs, anonymous routes)', () => {
+  it('lists the approved members of the community; the own-membership policy does not break it', async () => {
+    const list = await withTenantTx(core.db, { communityId: fx.communityId, userId: null }, (tx) =>
+      createMembersApi(tx, fx.communityId).list(),
+    );
+    const ids = list.map((m) => m.userId);
+    expect(ids).toEqual(
+      expect.arrayContaining([fx.users.owner.id, fx.users.admin.id, fx.users.moderador.id, fx.users.membro.id]),
+    );
+    expect(ids).not.toContain(fx.users.pending.id);
+    expect(ids).not.toContain(fx.users.outsider.id);
+  });
+
+  it('still sees nothing of another community', async () => {
+    const rows = await withTenantTx(core.db, { communityId: fx.communityId, userId: null }, (tx) =>
+      tx.select().from(memberships),
+    );
+    expect(rows.every((r) => r.communityId === fx.communityId)).toBe(true);
+    expect(rows.some((r) => r.userId === other.users.owner.id)).toBe(false);
   });
 });
 

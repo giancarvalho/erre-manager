@@ -8,6 +8,7 @@ import { createAuth } from './auth/auth';
 import { errorHandler } from './http';
 import { createModuleRuntime, type ModuleRuntime } from './modules/runtime';
 import type { ModuleApi } from './modules/define';
+import type { WebPushTransport } from './notifications';
 import { createRoleFixture, installFakeGoogle, type FakeGoogle, type RoleFixture, type TestUser } from './testing';
 
 export const HARNESS_ORIGIN = 'http://localhost:8081';
@@ -28,8 +29,14 @@ export type ModuleHarness = {
   req: (user: TestUser | null, method: string, path: string, opts?: HarnessRequest) => Promise<Response>;
   /** A community with one approved member per role, one pending and one outsider (createRoleFixture). */
   fixture: (name?: string) => Promise<RoleFixture>;
+  /** Pushes recorded by the fake Web Push transport (with `recordPush`), after `runtime.notifier.idle()`. */
+  pushes: RecordedPush[];
+  /** Registers a fake Web Push device for the person, so notify() reaches them (with `recordPush`). */
+  subscribe: (user: TestUser) => Promise<void>;
   close: () => Promise<void>;
 };
+
+export type RecordedPush = { endpoint: string; userId: string | undefined; title: string; body: string; url: string };
 
 export type HarnessLog = { info: (obj: object, msg: string) => void; error: (obj: object, msg: string) => void };
 
@@ -41,6 +48,7 @@ export function createModuleHarness({
   enabled = modules.map((m) => m.manifest.id),
   cronSecret,
   log = silent,
+  recordPush = false,
 }: {
   urls: { app: string; jobs: string };
   modules: readonly ModuleApi[];
@@ -48,7 +56,17 @@ export function createModuleHarness({
   cronSecret?: string;
   /** Receives the runtime and error logs (e.g. to assert that nothing identifying is logged). */
   log?: HarnessLog;
+  /** Turns push on with a fake Web Push transport that records what would be sent. */
+  recordPush?: boolean;
 }): ModuleHarness {
+  const pushes: RecordedPush[] = [];
+  const endpointOwner = new Map<string, string>();
+  const webPush: WebPushTransport = {
+    async send(sub, payload) {
+      pushes.push({ endpoint: sub.endpoint, userId: endpointOwner.get(sub.endpoint), ...payload });
+      return 'sent';
+    },
+  };
   const db = createDb(urls.app);
   const jobsDb = createDb(urls.jobs, { max: 1 });
   const google = installFakeGoogle('harness-client');
@@ -68,7 +86,7 @@ export function createModuleHarness({
     enabled: new Set(enabled),
     cronSecret,
     log,
-    push: { enabled: false },
+    push: recordPush ? { enabled: true, webPush } : { enabled: false },
   });
   const core = createCoreApi({
     db,
@@ -76,7 +94,11 @@ export function createModuleHarness({
     trustedOrigins: [HARNESS_ORIGIN],
     hooks: runtime.hooks,
     permissions: runtime.permissions,
-    notifications: { types: runtime.notificationTypes, pushEnabled: false, webPushPublicKey: null },
+    notifications: {
+      types: runtime.notificationTypes,
+      pushEnabled: recordPush,
+      webPushPublicKey: recordPush ? 'harness-public-key' : null,
+    },
   });
   const app = new Hono();
   app.onError(errorHandler(log));
@@ -105,6 +127,15 @@ export function createModuleHarness({
     google,
     runtime,
     req,
+    pushes,
+    async subscribe(user) {
+      const endpoint = `https://push.example.com/${user.id}`;
+      endpointOwner.set(endpoint, user.id);
+      const res = await req(user, 'POST', '/v1/push/subscriptions', {
+        body: { kind: 'webpush', endpoint, keys: { p256dh: 'p256dh', auth: 'auth' } },
+      });
+      if (res.status >= 300) throw new Error(`subscribe failed: ${res.status} ${await res.text()}`);
+    },
     fixture: (name) => createRoleFixture(app, google, db, { origin: HARNESS_ORIGIN, ...(name ? { name } : {}) }),
     async close() {
       google.restore();

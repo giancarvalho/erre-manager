@@ -20,6 +20,8 @@ Formato: ID, sprint que bloqueia, contexto, opções, recomendação. Quando res
 | P-014 | Sprint 16 | aberta |
 | P-015 | Sprint 7 | aberta |
 | P-016 | Sprint 14 | aberta |
+| P-017 | Sprint 15 | aberta (paridade com o legado até a resposta) |
+| P-018 | Sprint 15 | decidida provisoriamente (A), confirmar |
 
 ---
 
@@ -126,3 +128,18 @@ Também: manter ou não um limite de membros por comunidade (no legado, 300 por 
 - **C. `expo-symbols`.** Contras: SF Symbols só existe no iOS.
 **Recomendação:** A até o Errômetro (Sprints 14–15); se faltar ícone, B.
 
+### P-017 — "Liberar agora" no mesmo dia do fechamento gera rodada com o mesmo rótulo
+**Contexto:** o rótulo da rodada é o dia (`YYYY-MM-DD`) do próximo fechamento (R-CAL-05). Dois casos do legado em que a rodada nova fica com o mesmo rótulo da que acabou de fechar: (1) cadência semanal de segunda ao meio-dia e "liberar agora" numa segunda de manhã: o próximo fechamento é a mesma segunda ao meio-dia; (2) cadência manual liberada duas vezes no mesmo dia (o rótulo é o dia da liberação + 100 anos). Aí a rodada "nova" usa a mesma chave, a mesma emissão e os mesmos votos: quem já votou continua votando na rodada "liberada", e o fechamento seguinte reescreve o resultado publicado (sem novo push).
+- **A. Manter como no legado.** Prós: paridade, nada muda no rótulo dos dados migrados. Contras: o resultado liberado pode mudar depois; confuso.
+- **B. Na liberação manual, se o próximo rótulo for igual ao fechado, pular para o fechamento seguinte da cadência** (no caso 1, a segunda da semana que vem; no 2, o dia seguinte). Prós: cada rodada tem rótulo e chave próprios. Contras: muda R-CAL-03 nesse caso de borda.
+- **C. Trocar o rótulo por data e hora.** Contras: mexe no formato de `period` e no mapeamento dos dados.
+**Recomendação:** B.
+**Situação (Sprint 13):** implementado A (paridade); um teste em `modules/errometro/tests/integration/closing.test.ts` documenta o caso 2.
+
+### P-018 — Push do Errômetro em comunidade que não usa o Errômetro
+**Contexto:** o Errômetro é ligado para o app inteiro (D-007), então toda comunidade tem rodada. No legado todo grupo era do Errômetro e todos os membros recebiam "resultado saiu" e "faltam 3h", mesmo sem voto. Numa comunidade sem nenhum votante aprovado, esses pushes seriam ruído semanal.
+- **A. Sem votantes aprovados, a rodada fecha mas não manda push.** Prós: nada de ruído em comunidade que não usa o Errômetro. Contras: diferença pequena em relação ao legado (onde sempre havia votantes).
+- **B. Mandar sempre, como no legado.**
+- **C. Ligar o Errômetro por comunidade.** Contras: muda D-007.
+**Recomendação:** A.
+**Situação (Sprint 13):** implementado A, provisório (D-044).

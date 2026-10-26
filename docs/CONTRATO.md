@@ -95,7 +95,7 @@ Nada além disso. Precisou de mais? Registre `[contrato]` em `DECISOES.md` e pro
 jobs: [{ id: 'errometro.fechar_rodadas', schedule: '*/15 * * * *', run: async (ctx) => { /* JobContext */ } }]
 ```
 
-- `JobContext`: `{ community: { id, createdAt }, tx, notify, members, now }`. Roda **uma vez por comunidade**, cada uma na sua transação; erro numa comunidade não para as outras.
+- `JobContext`: `{ community: { id, slug, name, createdAt }, tx, notify, members, now }`. Roda **uma vez por comunidade**, cada uma na sua transação; erro numa comunidade não para as outras.
 - Agendado com `node-cron` no fuso `VOTING_TIMEZONE` (D-020). Lock consultivo por job: se outra instância está rodando, pula.
 - Execução manual: `POST /v1/internal/jobs/<id>/run` com `Authorization: Bearer $CRON_SECRET` (sem `CRON_SECRET`, a rota não existe). Módulo desligado: o job não é agendado nem executável.
 
@@ -134,7 +134,7 @@ export default defineModuleUi(manifest, { hubSection: HubSection, profileSection
 
 ## 7. Testes do módulo
 
-- `@erre/core/testing`: `createModuleHarness({ urls, modules })` monta o core e o runtime sobre o banco de teste, sem `apps/api` (rotas autenticadas, anônimas e jobs; `log` opcional para conferir o que é logado). Também `installFakeGoogle`, `createTestUser`, `addMember`, `createRoleFixture` (uma pessoa por papel + pendente + de fora), `permissionMatrix`, `tablePrefixProblems`.
+- `@erre/core/testing`: `createModuleHarness({ urls, modules })` monta o core e o runtime sobre o banco de teste, sem `apps/api` (rotas autenticadas, anônimas e jobs com `runtime.runJob(id, now)`; `log` opcional para conferir o que é logado; `recordPush: true` grava os pushes em `pushes`, e `subscribe(user)` registra um aparelho falso). Também `installFakeGoogle`, `createTestUser`, `addMember`, `createRoleFixture` (uma pessoa por papel + pendente + de fora), `permissionMatrix`, `tablePrefixProblems`.
 - Banco de teste: um `globalSetup` com `createTestDatabase({ root })` (as migrations do módulo entram sozinhas). Exemplo em `modules/errometro/tests/integration/`.
 - `@erre/db/testing`: `createTestDatabase({ root, extraSources })`, `schemaDifferences`.
 - `moduleProblems([moduleApi])` deve ser `[]`.

@@ -240,13 +240,21 @@ export function createModuleRuntime(deps: ModuleRuntimeDeps) {
       ]);
       if (!rows[0]?.ok) return { job: jobId, skipped: true, communities: 0, failed: 0 };
       try {
-        const list = await jobsDb.select({ id: communities.id, createdAt: communities.createdAt }).from(communities);
+        const list = await jobsDb
+          .select({
+            id: communities.id,
+            slug: communities.slug,
+            name: communities.name,
+            createdAt: communities.createdAt,
+          })
+          .from(communities);
         let failed = 0;
-        for (const { id, createdAt } of list) {
+        for (const community of list) {
+          const { id } = community;
           try {
             const { notify, pending } = collector();
             await withTenantTx(db, { communityId: id, userId: null }, (tx) =>
-              job.run({ community: { id, createdAt }, tx, notify, members: createMembersApi(tx, id), now }),
+              job.run({ community, tx, notify, members: createMembersApi(tx, id), now }),
             );
             notifier.dispatch(pending);
           } catch (err) {

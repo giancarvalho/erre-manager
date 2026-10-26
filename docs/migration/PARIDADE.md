@@ -50,15 +50,15 @@ Classificação: **igual** = migrar como está · **mudança** = migrar com muda
 | ERR-10 | Caminho de voto HMAC do demo | `submitVotesAction`, `submitVotesFormAction`, `SubmitVotesBar.tsx` | R-ANON-08, R-ANON-09 | descartar se P-003 descartar o demo | — | — | pendente |
 | ERR-11 | Cadência e horário de liberação | settings · `saveGroupReleaseConfigAction` | R-CAL-02, R-CAL-04 | igual (inclui fechamento forçado ao mudar cadência) | errometro | 12, 15 | API concluída (Sprint 12, com fechamento forçado); tela no 15 |
 | ERR-12 | Emojis do grupo (catálogo + personalizados) | settings · `saveGroupEmojiConfigAction` | R-EMO-01 a 05 | igual | errometro | 12, 15 | API concluída (Sprint 12); tela no 15 |
-| ERR-13 | Fechamento automático das rodadas | `instrumentation.ts`, `api/cron/close-daily-snapshots` | R-RES-01 a 05 | mudança: job do manifesto, por comunidade (D-013) | errometro | 13 | pendente |
-| ERR-14 | Lembrete 3 h antes de fechar | `api/cron/send-closing-reminders` | R-NOT-01 | mudança: job do manifesto | errometro | 13 | pendente |
-| ERR-15 | Liberar agora | settings · `releaseGroupResultsNowAction` | R-RES-08 | igual | errometro | 13, 15 | pendente |
-| ERR-16 | Recalcular rodada | `api/groups/[id]/recompute-snapshot` | R-RES-03, R-RES-08 | igual | errometro | 13, 15 | pendente |
-| ERR-17 | Ocultar/mostrar rodada | `api/groups/[id]/hide-snapshot` | R-RES-07, R-RES-08 | igual | errometro | 13, 15 | pendente |
-| ERR-18 | Anular voto por código | `annulVoteByTagAction` | R-RES-09 | igual | errometro | 13, 15 | pendente |
-| ERR-19 | Resultados: ranking, dias, troféus, compartilhar | `/results` · `src/components/results/*`, `share-message.ts` | R-RES-06, R-RES-10, R-TRO-01 a 03 | mudança: React Native | errometro | 13, 15 | pendente |
-| ERR-20 | Comentários nos resultados | `postCommentAction`, `editCommentAction`, `deleteCommentAction`, `getCommentsAction` | R-COM-01, R-COM-02 | igual | errometro | 13, 15 | pendente |
-| ERR-21 | Troféus no perfil | `group-trophy-tally.ts`, `src/components/trophies/*` | R-TRO-01 | mudança: `profileSections` (D-018) | errometro | 13, 18 | pendente |
+| ERR-13 | Fechamento automático das rodadas | `instrumentation.ts`, `api/cron/close-daily-snapshots` | R-RES-01 a 05 | mudança: job do manifesto, por comunidade (D-013) | errometro | 13 | concluído (Sprint 13) |
+| ERR-14 | Lembrete 3 h antes de fechar | `api/cron/send-closing-reminders` | R-NOT-01 | mudança: job do manifesto | errometro | 13 | concluído (Sprint 13) |
+| ERR-15 | Liberar agora | settings · `releaseGroupResultsNowAction` | R-RES-08 | igual | errometro | 13, 15 | API concluída (Sprint 13); tela no 15 |
+| ERR-16 | Recalcular rodada | `api/groups/[id]/recompute-snapshot` | R-RES-03, R-RES-08 | igual | errometro | 13, 15 | API concluída (Sprint 13); tela no 15 |
+| ERR-17 | Ocultar/mostrar rodada | `api/groups/[id]/hide-snapshot` | R-RES-07, R-RES-08 | igual | errometro | 13, 15 | API concluída (Sprint 13); tela no 15 |
+| ERR-18 | Anular voto por código | `annulVoteByTagAction` | R-RES-09 | igual | errometro | 13, 15 | API concluída (Sprint 13); tela no 15 |
+| ERR-19 | Resultados: ranking, dias, troféus, compartilhar | `/results` · `src/components/results/*`, `share-message.ts` | R-RES-06, R-RES-10, R-TRO-01 a 03 | mudança: React Native | errometro | 13, 15 | API e mensagem de compartilhamento concluídas (Sprint 13); tela no 15 |
+| ERR-20 | Comentários nos resultados | `postCommentAction`, `editCommentAction`, `deleteCommentAction`, `getCommentsAction` | R-COM-01, R-COM-02 | igual | errometro | 13, 15 | API concluída (Sprint 13); tela no 15 |
+| ERR-21 | Troféus no perfil | `group-trophy-tally.ts`, `src/components/trophies/*` | R-TRO-01 | mudança: `profileSections` (D-018) | errometro | 13, 18 | API concluída (Sprint 13, seção de perfil `errometro.trofeus`); tela no 18 |
 | ERR-22 | Tela "Resultados reservados" | `ResultsPaywall.tsx` | R-RES-06 | descartar com o demo (P-003) | — | — | pendente |
 
 ## Eventos

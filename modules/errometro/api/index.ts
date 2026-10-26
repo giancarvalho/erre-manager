@@ -8,7 +8,17 @@ import { assertValidConfig, type ReleaseConfig } from '../domain/release-window'
 import { releaseConfigOrDefault } from '../domain/schedule';
 import { EmojiEntriesSchema, ReleaseConfigSchema, TokenRequestSchema } from '../domain/schemas';
 import manifest from '../manifest';
-import { closeRound } from './server/close';
+import {
+  annulVotes,
+  closeDueRounds,
+  closeRound,
+  listRoundsForModerators,
+  recomputeRound,
+  releaseNow,
+  setRoundHidden,
+  type RoundNotifier,
+} from './server/close';
+import { addComment, COMMENT_MAX_LENGTH, deleteComment, editComment, listComments } from './server/comments';
 import { loadEmojiRows, saveEmojiRows } from './server/emojis';
 import {
   approvedParticipants,
@@ -21,7 +31,9 @@ import {
   requestParticipation,
   type ModerationAction,
 } from './server/participants';
+import { sendClosingReminder } from './server/reminders';
 import { signingKeyRepository, tokenIssuanceRepository } from './server/repositories';
+import { loadResults, memberTrophies } from './server/results';
 import { lockRound, resolveRound, saveReleaseConfig } from './server/round';
 import { anon } from './anon';
 
@@ -51,6 +63,23 @@ const cadenceView = (config: ReleaseConfig | null) => {
   const effective = releaseConfigOrDefault(config);
   return { config: effective, isDefault: config === null, description: describeReleaseCadence(effective) };
 };
+
+const notifierOf = (ctx: ModuleContext): RoundNotifier => ({
+  community: ctx.community,
+  members: ctx.members,
+  notify: ctx.notify,
+});
+
+const Period = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const CommentText = z
+  .string()
+  .transform((t) => t.trim())
+  .pipe(
+    z
+      .string()
+      .min(1, 'Comentário não pode ser vazio.')
+      .max(COMMENT_MAX_LENGTH, `Máximo de ${COMMENT_MAX_LENGTH} caracteres.`),
+  );
 
 const ACTIONS: Record<string, ModerationAction> = { aprovar: 'approve', rejeitar: 'reject', remover: 'remove' };
 
@@ -186,6 +215,115 @@ const api = createModuleApp()
     if (roundClosedEarly) await closeRound(ctx.tx, ctx.community.id, round.label, new Date());
     await saveReleaseConfig(ctx.tx, ctx.community.id, config);
     return c.json({ roundClosedEarly, ...cadenceView(config) });
+  })
+
+  // ---- closing and moderation of rounds (R-RES-03, R-RES-07, R-RES-08, R-RES-09) ----
+  .post('/rodada/liberar', async (c) => {
+    const { ctx } = c.var;
+    await requirePermission(ctx, 'errometro.moderar');
+    return c.json(await releaseNow(ctx.tx, notifierOf(ctx), new Date()));
+  })
+  .get('/rodadas', async (c) => {
+    const { ctx } = c.var;
+    await requirePermission(ctx, 'errometro.moderar');
+    return c.json(await listRoundsForModerators(ctx.tx, ctx.community.id));
+  })
+  .post('/rodadas/:period/recalcular', validate('param', z.object({ period: Period })), async (c) => {
+    const { ctx } = c.var;
+    await requirePermission(ctx, 'errometro.moderar');
+    return c.json(await recomputeRound(ctx.tx, notifierOf(ctx), c.req.valid('param').period, new Date()));
+  })
+  .post(
+    '/rodadas/:period/ocultar',
+    validate('param', z.object({ period: Period })),
+    validate('json', z.object({ hidden: z.boolean() }).strict()),
+    async (c) => {
+      const { ctx } = c.var;
+      await requirePermission(ctx, 'errometro.moderar');
+      const { period } = c.req.valid('param');
+      const { hidden } = c.req.valid('json');
+      if (!(await setRoundHidden(ctx.tx, ctx.community.id, period, hidden)))
+        throw errors.notFound('Rodada não encontrada.');
+      return c.json({ period, hidden });
+    },
+  )
+  .post(
+    '/votos/anular',
+    validate(
+      'json',
+      z
+        .object({
+          voterTag: z
+            .string()
+            .transform((t) => t.trim().toLowerCase())
+            .pipe(z.string().regex(/^[0-9a-f]{64}$/, 'Código inválido.')),
+        })
+        .strict(),
+    ),
+    async (c) => {
+      const { ctx } = c.var;
+      await requirePermission(ctx, 'errometro.moderar');
+      return c.json({ deletedCount: await annulVotes(ctx.tx, ctx.community.id, c.req.valid('json').voterTag) });
+    },
+  )
+
+  // ---- results (R-RES-06): any member who can see the Errômetro, voting or not ----
+  .get('/resultados', validate('query', z.object({ rodada: Period.optional() })), async (c) => {
+    const { ctx } = c.var;
+    await requirePermission(ctx, 'errometro.ver');
+    const isModerator = await ctx.can('errometro.moderar');
+    return c.json(
+      await loadResults(
+        ctx.tx,
+        { community: ctx.community, members: ctx.members, isModerator },
+        c.req.valid('query').rodada,
+      ),
+    );
+  })
+
+  // ---- comments ----
+  .get('/comentarios', validate('query', z.object({ alvo: z.uuid(), rodada: Period })), async (c) => {
+    const { ctx } = c.var;
+    await requirePermission(ctx, 'errometro.ver');
+    const { alvo, rodada } = c.req.valid('query');
+    return c.json(await listComments(ctx.tx, ctx.community.id, ctx.members, { targetId: alvo, period: rodada }));
+  })
+  .post(
+    '/comentarios',
+    validate('json', z.object({ targetId: z.uuid(), period: Period, text: CommentText }).strict()),
+    async (c) => {
+      const { ctx } = c.var;
+      await requirePermission(ctx, 'errometro.ver');
+      const body = c.req.valid('json');
+      return c.json(await addComment(ctx.tx, ctx.community.id, ctx.members, { authorId: ctx.user.id, ...body }), 201);
+    },
+  )
+  .patch(
+    '/comentarios/:id',
+    validate('param', z.object({ id: z.uuid() })),
+    validate('json', z.object({ text: CommentText }).strict()),
+    async (c) => {
+      const { ctx } = c.var;
+      await requirePermission(ctx, 'errometro.ver');
+      const updated = await editComment(ctx.tx, ctx.community.id, ctx.members, {
+        id: c.req.valid('param').id,
+        authorId: ctx.user.id,
+        text: c.req.valid('json').text,
+      });
+      if (!updated) throw errors.notFound('Comentário não encontrado ou sem permissão.');
+      return c.json(updated);
+    },
+  )
+  .delete('/comentarios/:id', validate('param', z.object({ id: z.uuid() })), async (c) => {
+    const { ctx } = c.var;
+    await requirePermission(ctx, 'errometro.ver');
+    const deleted = await deleteComment(ctx.tx, ctx.community.id, {
+      id: c.req.valid('param').id,
+      actorId: ctx.user.id,
+      isModerator: await ctx.can('errometro.moderar'),
+    });
+    if (!deleted) throw errors.notFound('Comentário não encontrado ou sem permissão.');
+    return c.json({ ok: true });
   });
 
 export type ErrometroApi = typeof api;
@@ -193,6 +331,28 @@ export type ErrometroApi = typeof api;
 export default defineModuleApi(manifest, {
   api,
   anon,
+  jobs: [
+    {
+      id: 'errometro.fechar_rodadas',
+      schedule: '*/15 * * * *',
+      run: async (ctx) => {
+        await closeDueRounds(ctx.tx, ctx, ctx.now);
+      },
+    },
+    {
+      id: 'errometro.lembrete_fechamento',
+      schedule: '*/15 * * * *',
+      run: async (ctx) => {
+        await sendClosingReminder(ctx.tx, ctx, ctx.now);
+      },
+    },
+  ],
+  profileSections: [
+    {
+      id: 'errometro.trofeus',
+      load: (ctx, userId) => memberTrophies(ctx.tx, ctx.community.id, userId),
+    },
+  ],
   onJoinApproved: {
     'errometro.participar': (ctx) => participateOnJoin(ctx.tx, ctx.communityId, ctx.userId, ctx.actorId),
   },

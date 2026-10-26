@@ -30,7 +30,7 @@ export type ModuleContext = {
 export type AnonContext = { community: { id: string; createdAt: Date }; tx: Tx };
 
 export type JobContext = {
-  community: { id: string; createdAt: Date };
+  community: { id: string; slug: string; name: string; createdAt: Date };
   tx: Tx;
   notify: Notify;
   members: MembersApi;

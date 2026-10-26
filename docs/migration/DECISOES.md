@@ -308,3 +308,19 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - **Notificações declaradas** com os nomes do mapeamento de dados: `errometro.resultado_pronto` e `errometro.lembrete_fechamento` (enviadas no Sprint 13).
 - **Estrutura do módulo:** lógica pura em `domain/` (o app pode importar), código de servidor em `api/server/`. Testes de integração com `createModuleHarness` de `@erre/core/testing`, sem depender de `apps/api`.
 **Motivo:** paridade com o legado no comportamento, com as duas correções que o próprio legado apontava (corrida da cadência e emissão queimada), e o contrato só mudando no mínimo necessário.
+
+### D-044 — Errômetro API II `[contrato]`
+**Data:** 2026-10-26 · **Status:** aceita (Sprint 13)
+**Decisão:**
+- **Fechamento agendado** (`errometro.fechar_rodadas`, a cada 15 min, por comunidade): fecha toda rodada cujo `to` passou, até 14 por execução (R-RES-02), cada uma ancorada no próprio `to`; cadência manual nunca fecha sozinha. Trava exclusiva da rodada (D-043) durante o fechamento.
+- **"Resultado saiu" uma vez por rodada:** o fechamento marca `notified_at` com `UPDATE ... WHERE notified_at IS NULL` na mesma transação; o push sai depois do commit. Recalcular não reenvia. Troca de cadência fecha sem push (R-RES-05).
+- **Lembrete** (`errometro.lembrete_fechamento`, a cada 15 min): faltando 3h ou menos, uma vez por rodada (`errometro_release_reminders`); pula cadência manual. Destinatários dos dois pushes: todos os membros aprovados, como no legado.
+- **Comunidade sem votantes aprovados não recebe push do Errômetro** (P-018, provisório): a rodada fecha, mas ninguém é avisado.
+- **Rotas de moderação** (`errometro.moderar`): liberar agora, listar rodadas (fechadas, inclusive ocultas, e rótulos com voto, só contagens), recalcular uma rodada (a atual fecha agora; passada mantém o `created_at`; nunca fechada usa o fim do próprio dia), ocultar/mostrar, anular por código (apaga as linhas do `voter_tag`, sem reemitir token).
+- **Resultados** (`errometro.ver`, vote ou não): só rodadas fechadas e visíveis; ranking com todos os membros atuais (quem não recebeu voto aparece com zero, quem saiu some), troféus da rodada e status por membro, contagem de comentários; `hiddenCount` só para moderadores; `nextReleaseAt` nulo na cadência manual.
+- **Comentários:** 1 a 280 caracteres depois do `trim`; só o autor edita; o autor ou um moderador apaga. O nome do autor é lido de `ctx.members` a cada leitura; autor que saiu aparece como "Ex-membro" (o legado guardava o nome).
+- **Troféus no perfil:** seção `errometro.trofeus` (rodadas visíveis), nula para quem não ganhou nada.
+- **Rota das notificações:** `/errometro/resultados?comunidade=<id>` e `/errometro?comunidade=<id>`; o app troca para essa comunidade ao abrir (Sprint 14/15).
+- **Correção no core:** a política `propria_membership` quebrava `ctx.members` em jobs e rotas anônimas (convertia `app.user_id` vazio em uuid). Migration `core_0006` usa `nullif(...)`, continuando fechada sem pessoa.
+- **Mudanças de contrato:** `JobContext.community` ganha `slug` e `name` (o título do push usa o nome); `createModuleHarness({ recordPush })` grava os pushes para os testes de módulo.
+**Motivo:** paridade com o legado no fechamento e nas notificações, com o mínimo de diferença onde o contexto novo (Errômetro em toda comunidade) pede.

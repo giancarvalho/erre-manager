@@ -234,4 +234,5 @@ export {
   type HarnessLog,
   type HarnessRequest,
   type ModuleHarness,
+  type RecordedPush,
 } from './testing-harness';
