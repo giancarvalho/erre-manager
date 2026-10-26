@@ -22,7 +22,7 @@ import {
   type AvatarVariant,
 } from '@erre/ui';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { STATUS_LABEL } from '../domain/presentation';
 import { useEvent, useEventActions, type EventDetail, type LifecycleAction } from './data';
@@ -200,10 +200,17 @@ function EventBody({ detail, back }: { detail: EventDetail; back: React.ReactNod
             </Text>
             <View style={styles.people}>
               {participants.map((p) => (
-                <View key={p.userId} style={styles.person}>
+                <Pressable
+                  key={p.userId}
+                  accessibilityRole="button"
+                  accessibilityLabel={p.displayName}
+                  accessibilityHint="Abre o perfil"
+                  onPress={() => host.openMember(p.userId)}
+                  style={styles.person}
+                >
                   <Avatar name={p.displayName} variant={p.avatarVariant as AvatarVariant} size={32} />
                   <Text numberOfLines={1}>{p.displayName}</Text>
-                </View>
+                </Pressable>
               ))}
             </View>
             {live ? <Button variant="secondary" label="Compartilhar link" onPress={() => void shareLink()} /> : null}
@@ -318,5 +325,5 @@ const styles = StyleSheet.create({
   sections: { gap: space[6], marginTop: space[6] },
   section: { gap: space[3] },
   people: { gap: space[2] },
-  person: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
+  person: { flexDirection: 'row', alignItems: 'center', gap: space[2], minHeight: 48 },
 });

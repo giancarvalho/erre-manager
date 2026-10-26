@@ -13,7 +13,7 @@ import {
 } from '@erre/ui';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ApiError } from '@/lib/api';
 import { ROLE_LABEL, useCommunity, useCommunityDetails } from '@/lib/community';
@@ -82,15 +82,23 @@ function Members({ communityId, name, manager }: { communityId: string; name: st
             <View key={m.userId} style={styles.gap}>
               <Card>
                 <View style={styles.row}>
-                  <Avatar name={m.displayName} variant={m.avatarVariant} />
-                  <View style={styles.flex}>
-                    <Text variant="label" numberOfLines={1}>
-                      {m.displayName}
-                    </Text>
-                    <Text variant="caption" tone="muted">
-                      {ROLE_LABEL[m.role]}
-                    </Text>
-                  </View>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`${m.displayName}, ${ROLE_LABEL[m.role]}`}
+                    accessibilityHint="Abre o perfil"
+                    onPress={() => router.push(`/comunidade/membro/${m.userId}` as never)}
+                    style={[styles.row, styles.flex]}
+                  >
+                    <Avatar name={m.displayName} variant={m.avatarVariant} />
+                    <View style={styles.flex}>
+                      <Text variant="label" numberOfLines={1}>
+                        {m.displayName}
+                      </Text>
+                      <Text variant="caption" tone="muted">
+                        {ROLE_LABEL[m.role]}
+                      </Text>
+                    </View>
+                  </Pressable>
                   {manager && m.role !== 'owner' && m.userId !== me.data?.id ? (
                     <Button label="Remover" variant="ghost" onPress={() => setConfirm({ kind: 'remove', member: m })} />
                   ) : null}

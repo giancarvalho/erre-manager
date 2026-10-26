@@ -12,13 +12,13 @@ const background = (page: Page) => page.evaluate(() => getComputedStyle(document
 
 test('opens in the dark theme by default', async ({ page }) => {
   await page.goto('/entrar');
-  await expect(page.getByRole('heading', { name: 'Entrar' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Errômetro' })).toBeVisible();
   expect(hexOf(await background(page))).toBe(themes.dark.bg.canvas);
 });
 
 test('follows a stored light preference', async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem('erre:theme', 'light'));
   await page.goto('/entrar');
-  await expect(page.getByRole('heading', { name: 'Entrar' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Errômetro' })).toBeVisible();
   expect(hexOf(await background(page))).toBe(themes.light.bg.canvas);
 });

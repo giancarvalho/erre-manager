@@ -378,3 +378,15 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - **Resultados:** medalhas dos troféus (empate mostra quem empatou, sem troféu), ranking único no categórico e um por eixo na escala (percentual do teto, "×N" no teto 1), compartilhar no formato do legado.
 - **`@erre/ui`:** `IntensityPicker`; `RankingRow` com `valueLabel`; `haptic` usa `navigator.vibrate` na web quando existe (DESIGN §8).
 **Motivo:** paridade de Eventos no app, com os componentes e tokens do design system, sem dependência nova.
+
+### D-049 — Perfil, página de membro e PWA `[contrato]`
+**Data:** 2026-10-26 · **Status:** aceita (Sprint 18)
+**Decisão:**
+- **Perfil** (`/perfil`, pelo avatar no canto do hub, DESIGN §9.16): nome, cor do avatar (as 8 variantes; o legado só derivava a cor do id), "Seus troféus em <comunidade>", Notificações, Aparência, instalar o app e sair. `PATCH /v1/me/profile` aceita `displayName` e/ou `avatarVariant`; só o nome confirma o onboarding.
+- **Página de membro** (`/comunidade/membro/:id`): nome, avatar, papel e as seções de perfil dos módulos ligados, cada uma com o renderizador do próprio módulo. Links nela a partir da lista de membros, dos rankings de resultado (Errômetro e Eventos) e dos inscritos de um evento.
+- **Contrato:** `ModuleHost.openMember(userId)`; `RankingRow` com `onPress`.
+- **Landing** em `/entrar`: marca, limites reais (50 votantes, 300 membros, DESIGN §12) e "Como funciona" estático no lugar do grupo demo (P-003 A, provisório).
+- **PWA:** `manifest.webmanifest` gerado dos tokens; ícones estáticos (192, 512, maskable, apple-touch-icon) e imagem OG estática gerados por `pnpm gen:pwa` e versionados (P-008); meta tags de app instalável e de compartilhamento. "Instalar o app" no perfil (prompt no Android/Chrome; instruções no iOS Safari).
+- **Pós-build web** (`scripts/finish-web.ts`): com `EXPO_PUBLIC_WEB_URL`, a imagem de compartilhamento vira URL absoluta; com `APPLE_TEAM_ID` e `ANDROID_CERT_SHA256`, gera `.well-known/apple-app-site-association` e `assetlinks.json`. Sem os valores, nada é gerado: nenhum valor inventado chega à produção.
+- **Nome na web:** "Errômetro" (DESIGN §2); o `app.json` continua "Erre" até a P-019.
+**Motivo:** fechar as telas transversais com o que os módulos já expõem (D-018) e deixar a web instalável sem serviço novo.

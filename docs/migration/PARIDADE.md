@@ -10,7 +10,7 @@ Classificação: **igual** = migrar como está · **mudança** = migrar com muda
 
 | ID | Funcionalidade | Legado (telas · rotas · actions) | Regras | Classif. | Destino | Sprint | Status |
 |---|---|---|---|---|---|---|---|
-| CORE-01 | Landing com chamada para criar/entrar | `/` · `src/components/landing/*` | — | mudança: criar comunidade e entrar por convite | core | 18 | pendente |
+| CORE-01 | Landing com chamada para criar/entrar | `/` · `src/components/landing/*` | — | mudança: criar comunidade e entrar por convite | core | 18 | concluído na web (Sprint 18, landing com "Como funciona"; P-003 A provisório); aparelho pendente |
 | CORE-02 | Login com Google | `/login`, `/register` · `api/auth/google`, `api/auth/google/callback` | R-MEM-09 | mudança: Better Auth, sessão no banco (D-017) | core | 5 | concluído na web (aparelho e Google real pendentes) |
 | CORE-03 | Login por usuário + chave secreta | `/login`, `/register` · `issueRegisterSecretAction`, `registerAction`, `loginAction`, `checkUsernameAvailabilityAction` | — | descartar (D-017); vínculo de contas no plano de dados | — | — | descartado |
 | CORE-04 | Onboarding do nome de exibição | `/onboarding/name` · `updateProfileAction` | R-MEM-08 | igual | core | 5 | concluído |
@@ -23,15 +23,15 @@ Classificação: **igual** = migrar como está · **mudança** = migrar com muda
 | CORE-11 | Sair da comunidade (criador não sai) | hub · `leaveGroupAction` | R-MEM-06 | mudança: `owner` não sai sem transferir (confirmar no Sprint 7) | core | 7 | concluído (`owner` não sai nem é removido; transferência de posse fica fora da v1) |
 | CORE-12 | Hub da comunidade com seções dos módulos | `/group/[id]` | R-RES-06 | mudança: seções vêm dos módulos habilitados | core | 7–8 | concluído (casca no Sprint 7; seções dos módulos no Sprint 8) |
 | CORE-13 | Home com minhas comunidades | `/` logado · `src/lib/groups/home-groups.ts` | — | igual | core | 7 | concluído no Sprint 6 (lista, seleção automática e troca) |
-| CORE-14 | Página de membro | `/group/[id]/member/[userId]` · `MemberProfileLink` | — | igual | core + módulos | 18 | pendente |
-| CORE-15 | Perfil (nome, avatar, troféus, notificações) | `/profile` · `updateProfileAction` | R-MEM-08 | mudança: seções de perfil vêm dos módulos (D-018) | core | 18 | pendente |
+| CORE-14 | Página de membro | `/group/[id]/member/[userId]` · `MemberProfileLink` | — | igual | core + módulos | 18 | concluído na web (Sprint 18); aparelho pendente |
+| CORE-15 | Perfil (nome, avatar, troféus, notificações) | `/profile` · `updateProfileAction` | R-MEM-08 | mudança: seções de perfil vêm dos módulos (D-018) | core | 18 | concluído na web (Sprint 18: nome, cor do avatar, troféus, notificações, aparência, instalar); aparelho pendente |
 | CORE-16 | Push: inscrever, desinscrever | `api/push/subscribe`, `api/push/unsubscribe` · `sw.js`, `RegisterSW.tsx` | R-NOT-04 | mudança: Web Push + Expo Push (D-012) | core | 9 | concluído (web testada sem serviço de push real; nativo depende de aparelho e projeto EAS) |
 | CORE-17 | Preferências de notificação | `api/notification-preferences` · `PushNotificationsToggle.tsx` | R-NOT-02 | mudança: genéricas por tipo declarado no manifesto | core | 9 | concluído |
 | CORE-18 | Kill switch global de push | `api/admin/push-notifications/toggle` | R-NOT-03 | mudança: variável `PUSH_ENABLED` (P-007) | core | 9 | concluído (`PUSH_ENABLED`, P-007 decidida provisoriamente) |
 | CORE-19 | Prompt de notificação na primeira visita | `FirstVisitNotificationPrompt.tsx` | — | mudança: pedir no momento de valor (DESIGN §10.1) | core | 9 | alternância em Notificações concluída; pedido no momento de valor entra no Errômetro (Sprint 14) |
-| CORE-20 | Ícones PWA, manifest, apple-icon | `api/pwa-icons/[size]`, `manifest.ts`, `icon.tsx`, `apple-icon.tsx` | — | mudança: ícones estáticos (P-008) | app | 18 | pendente |
-| CORE-21 | Imagem OG | `api/og` | — | decidir em P-008 | app/api | 18 | pendente |
-| CORE-22 | Links universais iOS | `.well-known/apple-app-site-association` | — | igual (mais `assetlinks.json` Android) | app | 18 | pendente |
+| CORE-20 | Ícones PWA, manifest, apple-icon | `api/pwa-icons/[size]`, `manifest.ts`, `icon.tsx`, `apple-icon.tsx` | — | mudança: ícones estáticos (P-008) | app | 18 | concluído (Sprint 18: manifest, ícones estáticos e maskable, apple-touch-icon; P-008 A provisório) |
+| CORE-21 | Imagem OG | `api/og` | — | decidir em P-008 | app/api | 18 | concluído (Sprint 18: imagem estática, URL absoluta no build com `EXPO_PUBLIC_WEB_URL`; P-008) |
+| CORE-22 | Links universais iOS | `.well-known/apple-app-site-association` | — | igual (mais `assetlinks.json` Android) | app | 18 | gerador pronto (Sprint 18, iOS e Android); pendente: domínio, Team ID e certificado, `associatedDomains`/`intentFilters` no app |
 | CORE-23 | Páginas de erro | `error.tsx`, `global-error.tsx`, `GlobalErrorCatcher` | — | mudança: `ErrorState` (DESIGN §9.15) | app | 10, 18 | pendente |
 
 ## Errômetro
@@ -58,7 +58,7 @@ Classificação: **igual** = migrar como está · **mudança** = migrar com muda
 | ERR-18 | Anular voto por código | `annulVoteByTagAction` | R-RES-09 | igual | errometro | 13, 15 | concluído na web (Sprint 15); aparelho pendente |
 | ERR-19 | Resultados: ranking, dias, troféus, compartilhar | `/results` · `src/components/results/*`, `share-message.ts` | R-RES-06, R-RES-10, R-TRO-01 a 03 | mudança: React Native | errometro | 13, 15 | concluído na web (Sprint 15); aparelho pendente |
 | ERR-20 | Comentários nos resultados | `postCommentAction`, `editCommentAction`, `deleteCommentAction`, `getCommentsAction` | R-COM-01, R-COM-02 | igual | errometro | 13, 15 | concluído na web (Sprint 15); aparelho pendente |
-| ERR-21 | Troféus no perfil | `group-trophy-tally.ts`, `src/components/trophies/*` | R-TRO-01 | mudança: `profileSections` (D-018) | errometro | 13, 18 | API e renderizador da seção concluídos (Sprint 15); página de membro no 18 |
+| ERR-21 | Troféus no perfil | `group-trophy-tally.ts`, `src/components/trophies/*` | R-TRO-01 | mudança: `profileSections` (D-018) | errometro | 13, 18 | concluído na web (Sprint 18, perfil e página de membro); aparelho pendente |
 | ERR-22 | Tela "Resultados reservados" | `ResultsPaywall.tsx` | R-RES-06 | descartar com o demo (P-003) | — | — | aguardando P-003 (demo); não portado |
 
 ## Eventos
@@ -76,7 +76,7 @@ Classificação: **igual** = migrar como está · **mudança** = migrar com muda
 | EVT-09 | Fechar (manual ou agendado) e calcular | `closeVotingEventAction`, `api/cron/close-scheduled-events` | R-EVT-01, R-EVT-08, R-EVT-09 | igual | eventos | 16 | concluído (Sprint 16) |
 | EVT-10 | Resultados do evento e compartilhar | `/group/[id]/events/[eventId]/results` · `event-share-message.ts` | R-EVT-10 | mudança: React Native | eventos | 17 | concluído na web (Sprint 17); aparelho pendente |
 | EVT-11 | Excluir evento (suave) | `deleteVotingEventAction` | R-EVT-01 | igual | eventos | 16 | concluído (Sprint 16) |
-| EVT-12 | Troféus de evento no perfil | `event-trophy-wins.ts`, `EventScaleTrophyList.tsx` | R-EVT-10 | mudança: `profileSections` | eventos | 16, 18 | API concluída (Sprint 16); renderizador da seção no Sprint 17; página de membro no 18 |
+| EVT-12 | Troféus de evento no perfil | `event-trophy-wins.ts`, `EventScaleTrophyList.tsx` | R-EVT-10 | mudança: `profileSections` | eventos | 16, 18 | concluído na web (Sprint 18, perfil e página de membro); aparelho pendente |
 | EVT-13 | Banners de evento no hub | `EventOpenBanner`, `EventApplicationsBanner`, `EventResultsBanner` | — | mudança: seção do módulo no hub | eventos | 17 | concluído na web (Sprint 17); aparelho pendente |
 
 ## Fora do escopo ou descartado

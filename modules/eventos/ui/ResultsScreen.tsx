@@ -170,6 +170,7 @@ function Ranking({
   emojis: Map<string, EmojiInfo>;
   trophies: TrophyView[];
 }) {
+  const host = useModuleHost();
   const won = (targetId: string, emojiId?: string) =>
     trophies
       .filter((t) => t.winner?.targetId === targetId && (emojiId === undefined || t.emoji.id === emojiId))
@@ -192,6 +193,7 @@ function Ranking({
                 total={row.voteCount}
                 valueLabel={row.label}
                 chips={[]}
+                {...(results.people[row.targetId] ? { onPress: () => host.openMember(row.targetId) } : {})}
                 trophy={won(row.targetId, axis.emoji.id).length > 0}
                 trophies={won(row.targetId, axis.emoji.id)}
               />
@@ -220,6 +222,7 @@ function Ranking({
           }))}
           trophy={won(row.targetId).length > 0}
           trophies={won(row.targetId)}
+          {...(results.people[row.targetId] ? { onPress: () => host.openMember(row.targetId) } : {})}
         />
       ))}
     </View>

@@ -8,12 +8,13 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build": "expo export --platform web --output-dir dist",
+    "build": "expo export --platform web --output-dir dist && tsx scripts/finish-web.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:e2e": "playwright test",
-    "gen:html": "tsx scripts/gen-index-html.ts"
+    "gen:html": "tsx scripts/gen-index-html.ts",
+    "gen:pwa": "tsx scripts/gen-pwa-assets.ts"
   },
   "dependencies": {
     "@babel/runtime": "7.29.10",

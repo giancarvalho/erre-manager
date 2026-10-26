@@ -33,6 +33,8 @@ export type ModuleHost = {
   navigate: (path: string) => void;
   /** Go back ("← Início", DESIGN §9.16); to the hub when there is nothing to go back to. */
   back: () => void;
+  /** Open a member's page in this community (name, avatar and every module's profile section). */
+  openMember: (userId: string) => void;
   /** Preferences and caches (AsyncStorage on native, localStorage on web). Never sent anywhere. */
   storage: HostStorage;
   /** Secrets (secure store on native, localStorage on web), e.g. the anonymous vote token. Values ≤ 2 KB. */

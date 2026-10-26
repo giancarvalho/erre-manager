@@ -135,6 +135,7 @@ function setup({ round: r = round(), tokenStatus = 200, remembered }: Setup = {}
     fetch: hostFetch,
     navigate: jest.fn(),
     back: jest.fn(),
+    openMember: jest.fn(),
     storage,
     secureStorage,
   };

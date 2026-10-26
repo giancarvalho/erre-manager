@@ -1,4 +1,4 @@
-import type { Me } from '@erre/core/client';
+import type { AvatarVariant, Me } from '@erre/core/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api, ApiError } from './api';
@@ -22,11 +22,16 @@ export function useMe() {
   });
 }
 
-export function useUpdateDisplayName() {
+/** Name and/or avatar color (CORE-15). Members lists of every community are refetched with the new look. */
+export function useUpdateProfile() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (displayName: string) => api<Me>('/v1/me/profile', { method: 'PATCH', body: { displayName } }),
-    onSuccess: (me) => qc.setQueryData(meKey, me),
+    mutationFn: (patch: { displayName?: string; avatarVariant?: AvatarVariant }) =>
+      api<Me>('/v1/me/profile', { method: 'PATCH', body: patch }),
+    onSuccess: (me) => {
+      qc.setQueryData(meKey, me);
+      void qc.invalidateQueries({ queryKey: ['community'] });
+    },
   });
 }
 

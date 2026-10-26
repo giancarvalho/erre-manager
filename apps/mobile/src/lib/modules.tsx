@@ -43,6 +43,7 @@ export function ModuleHost({ children }: { children: ReactNode }) {
             fetch: moduleFetch(current.id),
             navigate: (path: string) => router.push(path as never),
             back: () => (router.canGoBack() ? router.back() : router.replace('/')),
+            openMember: (userId: string) => router.push(`/comunidade/membro/${encodeURIComponent(userId)}` as never),
             storage: moduleStorage,
             secureStorage: moduleSecureStorage,
           }

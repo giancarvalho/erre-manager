@@ -1,7 +1,7 @@
 import { eq, type Db } from '@erre/db';
 import { z } from 'zod';
 
-import { deriveAvatarVariantFromSeed, isAvatarVariant } from '../shared/avatar';
+import { AVATAR_VARIANTS, deriveAvatarVariantFromSeed, isAvatarVariant } from '../shared/avatar';
 import { DisplayNameSchema, initialDisplayName } from '../shared/display-name';
 import type { Me } from '../shared/types';
 import { coreProfiles } from './schema';
@@ -36,13 +36,22 @@ export async function getOrCreateProfile(db: Db, user: SessionUser): Promise<Me>
   return toMe(user, created);
 }
 
-export const ProfilePatchSchema = z.object({ displayName: DisplayNameSchema }).strict();
+/** Name and/or avatar color (Sprint 18). Saving a name confirms it (onboarding); a color alone doesn't. */
+export const ProfilePatchSchema = z
+  .object({ displayName: DisplayNameSchema.optional(), avatarVariant: z.enum(AVATAR_VARIANTS).optional() })
+  .strict()
+  .refine((p) => p.displayName !== undefined || p.avatarVariant !== undefined, { message: 'Nada para atualizar.' });
 
 export async function updateProfile(db: Db, user: SessionUser, patch: z.output<typeof ProfilePatchSchema>) {
   await getOrCreateProfile(db, user);
+  const now = new Date();
   const [row] = await db
     .update(coreProfiles)
-    .set({ displayName: patch.displayName, nameConfirmedAt: new Date(), updatedAt: new Date() })
+    .set({
+      ...(patch.displayName !== undefined ? { displayName: patch.displayName, nameConfirmedAt: now } : {}),
+      ...(patch.avatarVariant !== undefined ? { avatarVariant: patch.avatarVariant } : {}),
+      updatedAt: now,
+    })
     .where(eq(coreProfiles.userId, user.id))
     .returning();
   if (!row) throw new Error('profile not updated');

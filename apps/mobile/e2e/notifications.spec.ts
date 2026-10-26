@@ -16,6 +16,7 @@ test('the service worker is registered and the notifications screen explains whe
   expect(sw.ok()).toBe(true);
   expect(await sw.text()).toContain('notificationclick');
 
+  await page.getByRole('button', { name: 'Perfil e preferências' }).click();
   await page.getByRole('button', { name: 'Notificações' }).click();
   await expect(page.getByRole('heading', { name: 'Notificações' })).toBeVisible();
   await expect(page.getByText('As notificações estão desligadas no momento.')).toBeVisible();

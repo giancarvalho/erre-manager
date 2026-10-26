@@ -93,6 +93,7 @@ function setup(routes: (call: Call) => Response | undefined, canModerate = true)
     fetch: fetchImpl,
     navigate: jest.fn(),
     back: jest.fn(),
+    openMember: jest.fn(),
     storage,
     secureStorage: storage,
   };

@@ -47,6 +47,7 @@ Formato: ID, sprint que bloqueia, contexto, opções, recomendação. Quando res
 **Contexto:** o legado tem um grupo virtual `demo`, sem banco e sem login, usado na landing.
 - **A. Descartar.** **B. Recriar como tela estática de demonstração.** **C. Portar como está.**
 **Recomendação:** A, a menos que a landing dependa dele para converter visitantes.
+**Situação (Sprint 18):** implementado A, provisório (D-049): a landing tem "Como funciona" estático no lugar de "Ver grupo demo". Nada do demo foi portado.
 **Evidência do Sprint 1:** o demo é o único que usa o caminho de voto HMAC com `VOTER_TAG_SECRET` (R-ANON-08) e a tela "Resultados reservados" (R-RES-06). Descartá-lo elimina esse segredo e esses dois caminhos de código. A landing pode trocar o "Ver grupo demo" por um "Ver como funciona" estático.
 
 ### P-004 — Congelamento do legado
@@ -81,6 +82,7 @@ Formato: ID, sprint que bloqueia, contexto, opções, recomendação. Quando res
 **Contexto:** o legado gera imagens OG (`/api/og`) e ícones PWA (`/api/pwa-icons/[size]`) dinamicamente. O export web do Expo é estático.
 - **A. Ícones estáticos gerados no build; OG gerado pela API (satori ou similar).** **B. Ícones e OG estáticos.**
 **Recomendação:** A para ícones estáticos; decidir OG conforme a importância dos links compartilhados.
+**Situação (Sprint 18):** ícones estáticos e uma imagem OG estática da marca, gerados uma vez (`pnpm gen:pwa`) e versionados (D-049). Sem OG dinâmico por comunidade ou resultado; se os links de resultado no WhatsApp precisarem de prévia própria, a API gera depois (opção A completa).
 
 ### P-009 — Comunidade inicial
 **Contexto:** necessário para seeds e, depois, para o ETL. Nome, slug e quem é `owner`.
@@ -144,3 +146,10 @@ Também: manter ou não um limite de membros por comunidade (no legado, 300 por 
 - **C. Ligar o Errômetro por comunidade.** Contras: muda D-007.
 **Recomendação:** A.
 **Situação (Sprint 13):** implementado A, provisório (D-044).
+
+### P-019 — Nome do app: "Erre" ou "Errômetro"?
+**Contexto:** o `app.json` (Sprint 2) chama o app de "Erre"; o DESIGN.md §2 diz "Nome: Errômetro", a marca é o 🦄 e a landing do legado diz "Errômetro". No Sprint 18 a web (título, PWA, imagem de compartilhamento, landing) usa "Errômetro"; o app nativo continua "Erre".
+- **A. "Errômetro" em tudo** (trocar o `app.json`). Prós: uma marca só, a que a comunidade conhece. Contras: o app é de gestão de comunidade e o Errômetro vira um dos módulos.
+- **B. "Erre" em tudo**, com o Errômetro como módulo. Contras: muda a marca conhecida; landing e PWA mudam.
+- **C. Como está:** "Errômetro" na web, "Erre" na loja. Contras: duas marcas.
+**Recomendação:** A para a migração (é o nome que os 200 usuários conhecem), revendo quando houver mais módulos.

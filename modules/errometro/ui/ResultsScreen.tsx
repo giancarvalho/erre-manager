@@ -112,6 +112,7 @@ export function ResultsScreen({ initialPeriod }: { initialPeriod?: string | unde
               variant={entry.member.avatarVariant as AvatarVariant}
               total={entry.total}
               trophy={entry.trophies.wins.length > 0}
+              onPress={() => host.openMember(entry.member.userId)}
               chips={entry.byEmoji.map((e) => ({ emoji: e.char, count: e.count, label: e.emojiId }))}
               trophies={[
                 ...entry.trophies.wins.map((w) => trophyChip(r, w.emojiId, 'gold')),

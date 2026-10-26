@@ -146,6 +146,7 @@ function setup(routes: Routes = {}) {
     fetch: hostFetch,
     navigate: jest.fn(),
     back: jest.fn(),
+    openMember: jest.fn(),
     storage: memoryStorage(),
     secureStorage: memoryStorage(),
   };

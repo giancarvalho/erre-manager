@@ -1,6 +1,6 @@
 import { Avatar, Button, Card, ErrorState, LoadingState, Screen, ScreenHeader, space, Text } from '@erre/ui';
 import { router } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ROLE_LABEL, useCommunity, useCommunityDetails } from '@/lib/community';
 import { useMyRequests } from '@/lib/members';
@@ -36,11 +36,16 @@ function CommunityHome({ id, many }: { id: string; many: boolean }) {
     return <ErrorState message="Não deu pra abrir a comunidade." onRetry={() => details.refetch()} />;
   return (
     <Screen>
-      <ScreenHeader
-        overline="Comunidade"
-        title={details.data.name}
-        description="O que rola por aqui vai aparecer nesta tela."
-      />
+      <View style={styles.top}>
+        <View style={styles.flex}>
+          <ScreenHeader
+            overline="Comunidade"
+            title={details.data.name}
+            description="O que rola por aqui vai aparecer nesta tela."
+          />
+        </View>
+        <ProfileButton />
+      </View>
       <Text variant="caption" tone="muted" style={styles.role}>
         {`Seu papel: ${ROLE_LABEL[details.data.role]}`}
       </Text>
@@ -66,8 +71,23 @@ function CommunityHome({ id, many }: { id: string; many: boolean }) {
         <Button label="Criar outra comunidade" variant="ghost" onPress={() => router.push('/comunidades/nova')} />
       </View>
       <PendingRequests />
-      <Account />
     </Screen>
+  );
+}
+
+/** Profile from the avatar in the hub's top corner (DESIGN §9.16). */
+function ProfileButton() {
+  const me = useMe();
+  if (!me.data) return null;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Seu perfil, ${me.data.displayName}`}
+      onPress={() => router.push('/perfil')}
+      hitSlop={4}
+    >
+      <Avatar name={me.data.displayName} variant={me.data.avatarVariant} />
+    </Pressable>
   );
 }
 
@@ -120,6 +140,7 @@ function PendingRequests() {
   );
 }
 
+/** Without a community there is no hub header yet: account and preferences live at the bottom. */
 function Account() {
   const me = useMe();
   const signOut = useSignOut();
@@ -135,8 +156,7 @@ function Account() {
           </Text>
         </View>
       </View>
-      <Button label="Notificações" variant="secondary" onPress={() => router.push('/notificacoes')} />
-      <Button label="Aparência" variant="secondary" onPress={() => router.push('/perfil/aparencia')} />
+      <Button label="Perfil e preferências" variant="secondary" onPress={() => router.push('/perfil')} />
       <Button
         label="Sair"
         loadingLabel="Saindo…"
@@ -155,4 +175,6 @@ const styles = StyleSheet.create({
   pending: { marginTop: space[8], gap: space[2] },
   modules: { gap: space[3], marginBottom: space[6] },
   row: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
+  top: { flexDirection: 'row', alignItems: 'flex-start', gap: space[3] },
+  flex: { flex: 1 },
 });

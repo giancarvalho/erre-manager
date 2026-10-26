@@ -119,6 +119,17 @@ describe('profile', () => {
     expect(await (await me(cookie)).json()).toMatchObject({ displayName: 'Aninha', nameConfirmed: true });
   });
 
+  it('changes the avatar color alone, without confirming the name; refuses an unknown color or nothing', async () => {
+    const { cookie } = await signInWithGoogle(core.app, core.google, person(), { origin: ORIGIN });
+    const ok = await patchProfile(cookie, { avatarVariant: 'teal' });
+    expect(ok.status).toBe(200);
+    expect(await ok.json()).toMatchObject({ avatarVariant: 'teal', nameConfirmed: false });
+    expect((await patchProfile(cookie, { avatarVariant: 'gold' })).status).toBe(400);
+    expect((await patchProfile(cookie, {})).status).toBe(400);
+    const both = await patchProfile(cookie, { displayName: 'Bia', avatarVariant: 'rose' });
+    expect(await both.json()).toMatchObject({ displayName: 'Bia', avatarVariant: 'rose', nameConfirmed: true });
+  });
+
   it('uses the e-mail when Google has no name', async () => {
     const p = { ...person(''), email: `Jo.Silva+x${Date.now()}@example.com` };
     const { cookie } = await signInWithGoogle(core.app, core.google, p, { origin: ORIGIN });

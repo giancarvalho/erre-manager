@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 
 import { useFadeUp, usePulse } from '../motion';
@@ -21,6 +21,7 @@ export function RankingRow({
   trophy = false,
   trophies = [],
   valueLabel,
+  onPress,
 }: {
   position: number;
   name: string;
@@ -33,6 +34,8 @@ export function RankingRow({
   trophies?: readonly { emoji: string; name: string; tone: 'gold' | 'silver' }[];
   /** Shown instead of the vote total (e.g. "70%" on a scale event's axis, proposed in Sprint 17). */
   valueLabel?: string;
+  /** Opens the person's page (legacy MemberProfileLink); the whole row becomes a button. */
+  onPress?: () => void;
 }) {
   const { colors } = useTheme();
   const enter = useFadeUp(index);
@@ -44,10 +47,10 @@ export function RankingRow({
   const amount = valueLabel ?? `${total} votos`;
   const breakdown = chips.length ? `: ${chips.map((c) => `${c.count} ${c.label}`).join(', ')}` : '';
   const description = `${position}º lugar, ${name}, ${amount}${breakdown}${won.length ? `. ${won.join(', ')}` : ''}`;
-  return (
+  const row = (
     <Animated.View
-      accessible
-      accessibilityLabel={description}
+      accessible={!onPress}
+      {...(onPress ? {} : { accessibilityLabel: description })}
       style={[
         styles.row,
         { backgroundColor: trophy ? colors.trophy.goldSubtle : colors.bg.surface, borderColor: colors.border.subtle },
@@ -107,6 +110,18 @@ export function RankingRow({
       <Text variant="titleMd">{valueLabel ?? total}</Text>
     </Animated.View>
   );
+  if (!onPress) return row;
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={description}
+      accessibilityHint="Abre o perfil"
+      style={({ pressed }) => pressed && styles.pressed}
+    >
+      {row}
+    </Pressable>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -124,4 +139,5 @@ const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space[1] },
   chip: { borderRadius: radius.full, paddingHorizontal: space[2], paddingVertical: space[0.5] },
   trophyChip: { borderWidth: 1 },
+  pressed: { opacity: 0.85 },
 });

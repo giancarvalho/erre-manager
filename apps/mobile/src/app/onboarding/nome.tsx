@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 
 import { ApiError } from '@/lib/api';
-import { useMe, useUpdateDisplayName } from '@/lib/session';
+import { useMe, useUpdateProfile } from '@/lib/session';
 
 // CORE-04: first Google sign-in confirms the name taken from the Google account.
 export default function OnboardingNameScreen() {
@@ -18,7 +18,7 @@ export default function OnboardingNameScreen() {
 }
 
 function NameForm({ initial, next }: { initial: string; next: string }) {
-  const save = useUpdateDisplayName();
+  const save = useUpdateProfile();
   const [name, setName] = useState(initial);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +32,7 @@ function NameForm({ initial, next }: { initial: string; next: string }) {
     setError(problem);
     if (problem) return;
     try {
-      await save.mutateAsync(name.trim());
+      await save.mutateAsync({ displayName: name.trim() });
       router.replace((next.startsWith('/onboarding') ? '/' : next) as never);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Não deu pra salvar. Tente de novo.');
