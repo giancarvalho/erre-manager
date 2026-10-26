@@ -12,4 +12,22 @@ export {
 } from './migrations';
 export { bootstrapRoles, withCredentials, type RolePasswords } from './bootstrap';
 // Query helpers re-exported so modules use the same Drizzle instance as the core.
-export { and, asc, count, desc, eq, gt, gte, inArray, isNotNull, isNull, lt, lte, ne, not, or, sql } from 'drizzle-orm';
+export {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  gt,
+  gte,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  lte,
+  ne,
+  not,
+  notInArray,
+  or,
+  sql,
+} from 'drizzle-orm';

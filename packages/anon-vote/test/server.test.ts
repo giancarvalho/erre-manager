@@ -154,6 +154,12 @@ describe('issuance and ballot flows', () => {
       ok: false,
       reason: 'INVALID_BLINDED_MESSAGE',
     });
+    // Right size, but not below the modulus: signing would fail after the claim.
+    const tooBig = bytesToBase64Url(new Uint8Array(BLINDED_MESSAGE_BYTES).fill(0xff));
+    expect(await issueToken(repos, { userId: 'bia', period: 'r1', blindedMsgB64: tooBig })).toEqual({
+      ok: false,
+      reason: 'INVALID_BLINDED_MESSAGE',
+    });
     const pub = publicJwk((await repos.keys.getOrCreateKeyPair('r1')).publicKeyJwk);
     expect(
       (await issueToken(repos, { userId: 'bia', period: 'r1', blindedMsgB64: startToken(pub).blindedMsgB64 })).ok,

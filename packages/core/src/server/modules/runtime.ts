@@ -116,7 +116,7 @@ export function createModuleRuntime(deps: ModuleRuntimeDeps) {
     const { notify, pending } = collector();
     afterCommit(() => notifier.dispatch(pending));
     const [row] = await tx
-      .select({ slug: communities.slug, name: communities.name })
+      .select({ slug: communities.slug, name: communities.name, createdAt: communities.createdAt })
       .from(communities)
       .where(eq(communities.id, cc.id));
     const [profile] = await tx
@@ -125,7 +125,7 @@ export function createModuleRuntime(deps: ModuleRuntimeDeps) {
       .where(eq(coreProfiles.userId, user.id));
     return {
       user: { id: user.id, displayName: profile?.name ?? user.name },
-      community: { id: cc.id, slug: row?.slug ?? '', name: row?.name ?? '' },
+      community: { id: cc.id, slug: row?.slug ?? '', name: row?.name ?? '', createdAt: row?.createdAt ?? new Date(0) },
       can,
       tx,
       notify,
@@ -144,9 +144,12 @@ export function createModuleRuntime(deps: ModuleRuntimeDeps) {
     if (!isUuid(communityId)) throw errors.notFound();
     try {
       await withTenantTx(db, { communityId, userId: null }, async (tx: Tx) => {
-        const [row] = await tx.select({ id: communities.id }).from(communities).where(eq(communities.id, communityId));
+        const [row] = await tx
+          .select({ createdAt: communities.createdAt })
+          .from(communities)
+          .where(eq(communities.id, communityId));
         if (!row) throw errors.notFound();
-        c.set('ctx', { community: { id: communityId }, tx });
+        c.set('ctx', { community: { id: communityId, createdAt: row.createdAt }, tx });
         await next();
         if (c.error || c.res.status >= 400) throw new Rollback();
       });
@@ -237,13 +240,13 @@ export function createModuleRuntime(deps: ModuleRuntimeDeps) {
       ]);
       if (!rows[0]?.ok) return { job: jobId, skipped: true, communities: 0, failed: 0 };
       try {
-        const list = await jobsDb.select({ id: communities.id }).from(communities);
+        const list = await jobsDb.select({ id: communities.id, createdAt: communities.createdAt }).from(communities);
         let failed = 0;
-        for (const { id } of list) {
+        for (const { id, createdAt } of list) {
           try {
             const { notify, pending } = collector();
             await withTenantTx(db, { communityId: id, userId: null }, (tx) =>
-              job.run({ community: { id }, tx, notify, members: createMembersApi(tx, id), now }),
+              job.run({ community: { id, createdAt }, tx, notify, members: createMembersApi(tx, id), now }),
             );
             notifier.dispatch(pending);
           } catch (err) {

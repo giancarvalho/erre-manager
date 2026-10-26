@@ -291,3 +291,20 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - **Brilho do troféu de emoji personalizado:** `inferEmojiGlowColor` mede no `canvas` e só roda na web. O valor é **calculado uma vez, quando o emoji é criado na web, e gravado** com o emoji; criado no nativo, fica `DEFAULT_TROPHY_GLOW_RGB`. Emojis do catálogo usam `TROPHY_GLOW_RGB`.
 - **Verificação no Hermes:** `pnpm --filter @erre/anon-vote hermes` (manual, precisa do binário; fora do CI).
 **Motivo:** Errômetro e Eventos usam o mesmo voto anônimo; o que garante o anonimato (gate de emissão sem horário, verificação antes de gravar) fica num lugar só e testado, e cada módulo só guarda dados.
+
+### D-043 — Errômetro API I `[contrato]`
+**Data:** 2026-10-26 · **Status:** aceita (Sprint 12)
+**Decisão:**
+- **Rodada = janela ancorada no histórico** (R-CAL-03): `from` é o `created_at` do último snapshot (ocultos inclusive) ou, antes do primeiro, a criação da comunidade; `to` é o próximo horário da cadência. O rótulo (`period`, YYYY-MM-DD de `to`) é a chave da assinatura, da emissão e dos votos. A rodada só muda quando um snapshot é gravado (fechamento: troca de cadência agora, job no Sprint 13).
+- **Mudança de contrato:** `community.createdAt` em `ModuleContext`, `AnonContext` e `JobContext` (a âncora do primeiro período; o legado usava `groups.created_at`). Aditivo.
+- **Rota anônima sem `ctx.members`:** os alvos do voto anônimo são os participantes aprovados do módulo, que `onMemberLeft` mantém em dia (roda para todo módulo registrado, ligado ou não). As rotas autenticadas cruzam com `ctx.members` também. Se aparecer um caminho que muda membership sem o hook, a rota anônima precisa de `members` (registrar `[contrato]`).
+- **Trava da rodada:** lock consultivo por comunidade, compartilhado na chave, na emissão e no voto, exclusivo no fechamento e na troca de cadência. Fecha a corrida que o legado deixou registrada em `group-release-config.ts` (voto lendo a cadência antiga enquanto a nova é gravada).
+- **Emissão:** o valor cegado fora de `[0, n)` é recusado antes de reservar a emissão (no legado, assinar falhava depois da reserva e queimava o período). Emissão repetida: 409 `TOKEN_ALREADY_ISSUED`.
+- **"Meus votos" só pela rota anônima**, por `voter_tag` (como no legado): uma rota com sessão veria pessoa e tag juntas.
+- **Erros:** token inválido 401 `INVALID_TOKEN` (não `UNAUTHENTICATED`, para o app não tratar como sessão expirada); nenhum voto válido 422 `NO_VALID_VOTES`; limite de votantes 422 `PARTICIPANTS_FULL`; transição inválida 409.
+- **Participação:** `errometro.participar` aprova junto com a entrada se houver vaga; com 50 votantes, fica `pending` e `GET /participacao` responde `full: true` para a tela explicar (sem push: hooks não têm `notify`, e o legado também não avisava). Saída da comunidade: pedido pendente vira `rejected`, participação aprovada vira `removed`.
+- **Permissões:** `errometro.ver` e `errometro.votar` para todos os papéis; `errometro.moderar` para `owner` e `admin` (D-023).
+- **Emoji personalizado:** id no formato `custom-...` (validação de entrada; o legado aceitava qualquer texto).
+- **Notificações declaradas** com os nomes do mapeamento de dados: `errometro.resultado_pronto` e `errometro.lembrete_fechamento` (enviadas no Sprint 13).
+- **Estrutura do módulo:** lógica pura em `domain/` (o app pode importar), código de servidor em `api/server/`. Testes de integração com `createModuleHarness` de `@erre/core/testing`, sem depender de `apps/api`.
+**Motivo:** paridade com o legado no comportamento, com as duas correções que o próprio legado apontava (corrida da cadência e emissão queimada), e o contrato só mudando no mínimo necessário.

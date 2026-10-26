@@ -1,5 +1,6 @@
 // Static module registry (D-008). Every module the API can mount is listed here; MODULES_ENABLED decides
 // which ones are on (D-007). Test-only modules (modules/_*) are never listed.
 import type { ModuleApi } from '@erre/core/server';
+import errometro from '@erre/errometro/api';
 
-export const MODULES: readonly ModuleApi[] = [];
+export const MODULES: readonly ModuleApi[] = [errometro];

@@ -12,7 +12,9 @@ modules/<pasta>/
   manifest.ts         defineManifest (de @erre/core/manifest): metadados puros
   db/schema.ts        tabelas com createTenantTable (de @erre/db)
   db/migrations/      <id>_<NNNN>_<descricao>.sql
+  domain/             lógica pura (sem banco nem servidor); o app pode importar
   api/index.ts        defineModuleApi (de @erre/core/server)
+  api/server/         código só de servidor usado pelas rotas (repositórios, consultas)
   api/anon/           rotas anônimas (lint proíbe sessão, cookies, Authorization, IP, user)
   ui/index.tsx        defineModuleUi (de @erre/core/client)
   ui/screens/         telas; o app as liga por arquivos finos
@@ -20,6 +22,8 @@ modules/<pasta>/
 ```
 
 Pastas que começam com `_` são só de teste: as migrations delas não rodam fora dos testes.
+
+Código que usa `@erre/db` ou `@erre/core/server` fica dentro de `api/` (o lint trata a raiz do módulo como lado do manifesto, sem servidor). `modules/errometro` é o primeiro módulo real e serve de exemplo.
 
 ## 2. Manifesto (`manifest.ts`)
 
@@ -68,7 +72,7 @@ export default defineModuleApi(manifest, { api, anon, jobs, profileSections, onJ
 | Campo | O que é |
 |---|---|
 | `user` | `{ id, displayName }` de quem chamou |
-| `community` | `{ id, slug, name }` validada pelo core (header `X-Community-Id` + membership aprovada) |
+| `community` | `{ id, slug, name, createdAt }` validada pelo core (header `X-Community-Id` + membership aprovada). `createdAt` ancora o primeiro período de um módulo (D-043) |
 | `can(permission)` | papel da pessoa na comunidade tem a permissão? |
 | `tx` | transação Drizzle com RLS da comunidade; commit no sucesso, rollback se a rota lançar erro ou responder status ≥ 400 |
 | `notify(input)` | `{ userIds, type, title, body, route? }`; `type` declarado no manifesto. Enviado **depois do commit**, só a quem não desligou o tipo; no-op com o módulo ou o push desligado |
@@ -81,7 +85,7 @@ Nada além disso. Precisou de mais? Registre `[contrato]` em `DECISOES.md` e pro
 
 ### 4.2 Rotas anônimas (`anon`) `[contrato]`
 
-- `createAnonApp()`, montada em `/v1/<id>/anon/c/:communityId/*`. Contexto: só `{ community: { id }, tx }`.
+- `createAnonApp()`, montada em `/v1/<id>/anon/c/:communityId/*`. Contexto: só `{ community: { id, createdAt }, tx }`. Não há `members`: o que a rota precisa saber de membros vem das tabelas do próprio módulo, mantidas em dia por `onMemberLeft` (D-043).
 - O runtime repassa ao módulo **uma cópia da requisição só com `content-type`, `accept` e `accept-language`**: cookies, `Authorization`, IP e user agent não chegam, mesmo que o cliente mande. Comunidade inexistente: 404.
 - A rota valida a comunidade pela credencial anônima (assinatura cega da chave do período dessa comunidade, ARQUITETURA §4.5). O lint `erre/no-identity-in-anon` vale para `api/anon/**`.
 
@@ -91,7 +95,7 @@ Nada além disso. Precisou de mais? Registre `[contrato]` em `DECISOES.md` e pro
 jobs: [{ id: 'errometro.fechar_rodadas', schedule: '*/15 * * * *', run: async (ctx) => { /* JobContext */ } }]
 ```
 
-- `JobContext`: `{ community: { id }, tx, notify, members, now }`. Roda **uma vez por comunidade**, cada uma na sua transação; erro numa comunidade não para as outras.
+- `JobContext`: `{ community: { id, createdAt }, tx, notify, members, now }`. Roda **uma vez por comunidade**, cada uma na sua transação; erro numa comunidade não para as outras.
 - Agendado com `node-cron` no fuso `VOTING_TIMEZONE` (D-020). Lock consultivo por job: se outra instância está rodando, pula.
 - Execução manual: `POST /v1/internal/jobs/<id>/run` com `Authorization: Bearer $CRON_SECRET` (sem `CRON_SECRET`, a rota não existe). Módulo desligado: o job não é agendado nem executável.
 
@@ -130,6 +134,7 @@ export default defineModuleUi(manifest, { hubSection: HubSection, profileSection
 
 ## 7. Testes do módulo
 
-- `@erre/core/testing`: `installFakeGoogle`, `createTestUser`, `createRoleFixture` (uma pessoa por papel + pendente + de fora), `permissionMatrix`, `tablePrefixProblems`.
+- `@erre/core/testing`: `createModuleHarness({ urls, modules })` monta o core e o runtime sobre o banco de teste, sem `apps/api` (rotas autenticadas, anônimas e jobs; `log` opcional para conferir o que é logado). Também `installFakeGoogle`, `createTestUser`, `addMember`, `createRoleFixture` (uma pessoa por papel + pendente + de fora), `permissionMatrix`, `tablePrefixProblems`.
+- Banco de teste: um `globalSetup` com `createTestDatabase({ root })` (as migrations do módulo entram sozinhas). Exemplo em `modules/errometro/tests/integration/`.
 - `@erre/db/testing`: `createTestDatabase({ root, extraSources })`, `schemaDifferences`.
 - `moduleProblems([moduleApi])` deve ser `[]`.

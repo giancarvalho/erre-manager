@@ -38,18 +38,18 @@ Classificação: **igual** = migrar como está · **mudança** = migrar com muda
 
 | ID | Funcionalidade | Legado | Regras | Classif. | Destino | Sprint | Status |
 |---|---|---|---|---|---|---|---|
-| ERR-01 | Pedir participação na votação | hub · `requestVotingAccessAction` | R-MEM-04 | igual | errometro | 12, 14 | pendente |
-| ERR-02 | Aprovar, rejeitar, remover votante (limite 50) | settings · `approveVotingAction`, `rejectVotingAction`, `removeVotingAction` | R-MEM-04, D-027 | igual | errometro | 12, 15 | pendente |
-| ERR-03 | Chave pública do período | `getVotingPublicKeyAction` | R-CAL-05 | igual | errometro | 12 | pendente |
-| ERR-04 | Emitir token cego (um por período) | `issueVotingTokenAction` | R-ANON-01, R-ANON-02 | igual | errometro | 12 | pendente |
-| ERR-05 | Enviar votos anônimos | `api/groups/[id]/vote` | R-ANON-03 a 06 | mudança: rota anônima com comunidade no caminho (ARQUITETURA §4.5) | errometro | 12 | pendente |
-| ERR-06 | Meus votos pelo `voter_tag` | `api/groups/[id]/my-votes` | R-ANON-07 | igual (rota anônima) | errometro | 12 | pendente |
+| ERR-01 | Pedir participação na votação | hub · `requestVotingAccessAction` | R-MEM-04 | igual | errometro | 12, 14 | API concluída (Sprint 12); tela no 14 |
+| ERR-02 | Aprovar, rejeitar, remover votante (limite 50) | settings · `approveVotingAction`, `rejectVotingAction`, `removeVotingAction` | R-MEM-04, D-027 | igual | errometro | 12, 15 | API concluída (Sprint 12); tela no 15 |
+| ERR-03 | Chave pública do período | `getVotingPublicKeyAction` | R-CAL-05 | igual | errometro | 12 | concluído (Sprint 12) |
+| ERR-04 | Emitir token cego (um por período) | `issueVotingTokenAction` | R-ANON-01, R-ANON-02 | igual | errometro | 12 | concluído (Sprint 12) |
+| ERR-05 | Enviar votos anônimos | `api/groups/[id]/vote` | R-ANON-03 a 06 | mudança: rota anônima com comunidade no caminho (ARQUITETURA §4.5) | errometro | 12 | concluído (Sprint 12) |
+| ERR-06 | Meus votos pelo `voter_tag` | `api/groups/[id]/my-votes` | R-ANON-07 | igual (rota anônima) | errometro | 12 | concluído (Sprint 12) |
 | ERR-07 | Tela de votação (grade, legenda, ordenação, barra de envio) | `/group/[id]/vote` · `src/components/voting/*` | R-ANON-05, R-ANON-06 | mudança: React Native + design system | errometro | 14 | pendente |
 | ERR-08 | Votos lembrados no dispositivo | `src/lib/voting/remembered-votes.ts` | — | mudança: AsyncStorage | errometro | 14 | pendente |
 | ERR-09 | Token guardado no dispositivo | `src/lib/voting/client-token.ts` | R-ANON-07 | mudança: SecureStore no nativo | errometro | 14 | pendente |
 | ERR-10 | Caminho de voto HMAC do demo | `submitVotesAction`, `submitVotesFormAction`, `SubmitVotesBar.tsx` | R-ANON-08, R-ANON-09 | descartar se P-003 descartar o demo | — | — | pendente |
-| ERR-11 | Cadência e horário de liberação | settings · `saveGroupReleaseConfigAction` | R-CAL-02, R-CAL-04 | igual (inclui fechamento forçado ao mudar cadência) | errometro | 12, 15 | pendente |
-| ERR-12 | Emojis do grupo (catálogo + personalizados) | settings · `saveGroupEmojiConfigAction` | R-EMO-01 a 05 | igual | errometro | 12, 15 | pendente |
+| ERR-11 | Cadência e horário de liberação | settings · `saveGroupReleaseConfigAction` | R-CAL-02, R-CAL-04 | igual (inclui fechamento forçado ao mudar cadência) | errometro | 12, 15 | API concluída (Sprint 12, com fechamento forçado); tela no 15 |
+| ERR-12 | Emojis do grupo (catálogo + personalizados) | settings · `saveGroupEmojiConfigAction` | R-EMO-01 a 05 | igual | errometro | 12, 15 | API concluída (Sprint 12); tela no 15 |
 | ERR-13 | Fechamento automático das rodadas | `instrumentation.ts`, `api/cron/close-daily-snapshots` | R-RES-01 a 05 | mudança: job do manifesto, por comunidade (D-013) | errometro | 13 | pendente |
 | ERR-14 | Lembrete 3 h antes de fechar | `api/cron/send-closing-reminders` | R-NOT-01 | mudança: job do manifesto | errometro | 13 | pendente |
 | ERR-15 | Liberar agora | settings · `releaseGroupResultsNowAction` | R-RES-08 | igual | errometro | 13, 15 | pendente |

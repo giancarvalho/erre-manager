@@ -45,6 +45,7 @@ Legenda: ✅ verificado · ⏳ verificado só por build/export (falta aparelho) 
 | `zod` | 4.6 | Validação de entrada em toda rota | Sprint 3 |
 | `better-auth` | 1.7.7 | Auth (D-017, D-031) | Sprint 2: início do login Google, checagem de origem, guarda do callback |
 | `@cloudflare/blindrsa-ts` | 0.4.6 | Assinatura cega no servidor (D-011) | Sprint 2: interoperabilidade com o cliente JS puro |
+| `date-fns` + `date-fns-tz` | 4.1.0 / 3.2.0 | Calendário e janela de liberação do Errômetro, portados do legado com as mesmas versões (R-CAL-01 a 05). Hoje só na API; se o app passar a importar `@erre/errometro/domain`, testar nas três plataformas (usa `Intl` com fuso) | Sprint 12: testes portados do legado |
 
 ## Desenvolvimento
 

@@ -227,3 +227,11 @@ export function tablePrefixProblems(manifest: { id: string }, tables: readonly P
     .filter((name) => !name.startsWith(`${manifest.id}_`))
     .map((name) => `table "${name}" must start with "${manifest.id}_"`);
 }
+
+export {
+  createModuleHarness,
+  HARNESS_ORIGIN,
+  type HarnessLog,
+  type HarnessRequest,
+  type ModuleHarness,
+} from './testing-harness';

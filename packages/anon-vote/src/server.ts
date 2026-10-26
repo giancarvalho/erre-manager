@@ -6,7 +6,7 @@ import { createHash, webcrypto } from 'node:crypto';
 
 import { RSABSSA } from '@cloudflare/blindrsa-ts';
 
-import { base64UrlToBytes, bytesToBase64Url } from './client';
+import { base64UrlToBytes, bytesToBase64Url, bytesToBigInt } from './client';
 import type { SigningKeyRepository, TokenIssuanceRepository } from './repositories';
 
 const MODULUS_LENGTH = 2048;
@@ -95,14 +95,17 @@ export async function issueToken(
   deps: { keys: SigningKeyRepository; issuances: TokenIssuanceRepository },
   input: { userId: string; period: string; blindedMsgB64: string },
 ): Promise<IssueResult> {
-  let size = 0;
+  let blinded: Uint8Array;
   try {
-    size = base64UrlToBytes(input.blindedMsgB64).length;
+    blinded = base64UrlToBytes(input.blindedMsgB64);
   } catch {
     return { ok: false, reason: 'INVALID_BLINDED_MESSAGE' };
   }
-  if (size !== BLINDED_MESSAGE_BYTES) return { ok: false, reason: 'INVALID_BLINDED_MESSAGE' };
+  if (blinded.length !== BLINDED_MESSAGE_BYTES) return { ok: false, reason: 'INVALID_BLINDED_MESSAGE' };
   const { privateKeyJwk } = await deps.keys.getOrCreateKeyPair(input.period);
+  // A value outside [0, n) can't be signed: reject it before claiming, so it can't burn the issuance.
+  if (!privateKeyJwk.n || bytesToBigInt(blinded) >= bytesToBigInt(base64UrlToBytes(privateKeyJwk.n)))
+    return { ok: false, reason: 'INVALID_BLINDED_MESSAGE' };
   if (!(await deps.issuances.tryClaimIssuance(input.userId, input.period)))
     return { ok: false, reason: 'ALREADY_ISSUED' };
   return { ok: true, blindSignatureB64: await blindSign(privateKeyJwk, input.blindedMsgB64) };

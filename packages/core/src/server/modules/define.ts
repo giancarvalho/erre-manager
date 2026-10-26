@@ -17,7 +17,8 @@ export type { NotifyInput };
 /** Everything a module route receives (ARQUITETURA §5.1). Nothing else. */
 export type ModuleContext = {
   user: { id: string; displayName: string };
-  community: { id: string; slug: string; name: string };
+  /** `createdAt`: anchors a module's first period before anything happened (e.g. the Errômetro's first round). */
+  community: { id: string; slug: string; name: string; createdAt: Date };
   can: (permission: string) => Promise<boolean>;
   /** Drizzle transaction with RLS scoped to the community; commits when the route succeeds. */
   tx: Tx;
@@ -26,9 +27,15 @@ export type ModuleContext = {
 };
 
 /** Anonymous routes (D-010): no user, no session, no identifying headers. */
-export type AnonContext = { community: { id: string }; tx: Tx };
+export type AnonContext = { community: { id: string; createdAt: Date }; tx: Tx };
 
-export type JobContext = { community: { id: string }; tx: Tx; notify: Notify; members: MembersApi; now: Date };
+export type JobContext = {
+  community: { id: string; createdAt: Date };
+  tx: Tx;
+  notify: Notify;
+  members: MembersApi;
+  now: Date;
+};
 
 export type ModuleEnv = { Variables: { ctx: ModuleContext } };
 export type AnonEnv = { Variables: { ctx: AnonContext } };
