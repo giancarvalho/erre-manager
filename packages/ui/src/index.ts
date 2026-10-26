@@ -34,3 +34,4 @@ export { EMOJI_GRID_GAP, EmojiGrid, VoteTargetCard } from './components/VoteTarg
 export { CopyableCode } from './components/CopyableCode';
 export { ChipToggle } from './components/ChipToggle';
 export { Stepper } from './components/Stepper';
+export { IntensityPicker } from './components/IntensityPicker';

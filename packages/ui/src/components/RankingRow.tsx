@@ -20,6 +20,7 @@ export function RankingRow({
   index = 0,
   trophy = false,
   trophies = [],
+  valueLabel,
 }: {
   position: number;
   name: string;
@@ -30,6 +31,8 @@ export function RankingRow({
   trophy?: boolean;
   /** Round trophies of this person: won (gold) or tied for the lead, "quase" (silver) (DESIGN §7, §9.14). */
   trophies?: readonly { emoji: string; name: string; tone: 'gold' | 'silver' }[];
+  /** Shown instead of the vote total (e.g. "70%" on a scale event's axis, proposed in Sprint 17). */
+  valueLabel?: string;
 }) {
   const { colors } = useTheme();
   const enter = useFadeUp(index);
@@ -38,9 +41,9 @@ export function RankingRow({
   const pulse = usePulse('gold', podium === 'gold', 1);
   const ring = useAnimatedStyle(() => ({ opacity: podium === 'gold' ? pulse.value : 1 }));
   const won = trophies.map((t) => (t.tone === 'gold' ? t.name : `quase ${t.name}`));
-  const description = `${position}º lugar, ${name}, ${total} votos: ${chips.map((c) => `${c.count} ${c.label}`).join(', ')}${
-    won.length ? `. ${won.join(', ')}` : ''
-  }`;
+  const amount = valueLabel ?? `${total} votos`;
+  const breakdown = chips.length ? `: ${chips.map((c) => `${c.count} ${c.label}`).join(', ')}` : '';
+  const description = `${position}º lugar, ${name}, ${amount}${breakdown}${won.length ? `. ${won.join(', ')}` : ''}`;
   return (
     <Animated.View
       accessible
@@ -70,13 +73,15 @@ export function RankingRow({
         <Text variant="label" numberOfLines={1}>
           {name}
         </Text>
-        <View style={styles.chips}>
-          {chips.map((c) => (
-            <View key={c.emoji} style={[styles.chip, { backgroundColor: colors.bg.control }]}>
-              <Text variant="caption" maxFontSizeMultiplier={1.4} tone="secondary">{`${c.emoji} ${c.count}`}</Text>
-            </View>
-          ))}
-        </View>
+        {chips.length ? (
+          <View style={styles.chips}>
+            {chips.map((c) => (
+              <View key={c.emoji} style={[styles.chip, { backgroundColor: colors.bg.control }]}>
+                <Text variant="caption" maxFontSizeMultiplier={1.4} tone="secondary">{`${c.emoji} ${c.count}`}</Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
         {trophies.length ? (
           <View style={styles.chips}>
             {trophies.map((t) => (
@@ -99,7 +104,7 @@ export function RankingRow({
           </View>
         ) : null}
       </View>
-      <Text variant="titleMd">{total}</Text>
+      <Text variant="titleMd">{valueLabel ?? total}</Text>
     </Animated.View>
   );
 }

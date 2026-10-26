@@ -366,3 +366,15 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - **Resultados:** `GET /eventos/:id/resultados` devolve o payload congelado, os emojis e o nome dos alvos que ainda são membros; ordenação e formato (percentual da escala, "×N" no teto 1) ficam na tela (Sprint 17), como no legado.
 - **Rotas anônimas:** `/v1/eventos/anon/c/:communityId/:eventId/{votos,meus-votos}`. O `period` de `@erre/anon-vote` é o id do evento: uma chave e uma emissão por evento.
 **Motivo:** paridade de Eventos com as decisões já tomadas para a comunidade (D-026) e o anonimato no mesmo pacote do Errômetro.
+
+### D-048 — Eventos UI `[contrato]`
+**Data:** 2026-10-26 · **Status:** aceita (Sprint 17)
+**Decisão:**
+- **Telas:** lista (`/eventos`), evento (`/eventos/:id`: sala de espera, inscritos, emojis, administração e "zona de perigo"), votação (`/eventos/:id/votar`) e resultados (`/eventos/:id/resultados`). Seção no hub com o banner do evento ao vivo, ou do encerrado nos últimos 2 dias (como o legado); a lista vem pela entrada de menu do manifesto.
+- **Assistente em sheet, 4 passos** (o evento e o tipo; emojis ou eixos; abertura e fechamento; cor), cada passo validado com as mesmas funções de domínio da API. Criar e editar rascunho usam o mesmo assistente; o tipo não muda depois de criado.
+- **Datas agendadas** digitadas como "dd/mm/aaaa" e "hh:mm" no fuso do aparelho (o formulário do legado também usava a hora local), sem biblioteca nova de seletor de data. Exibição também no fuso do aparelho.
+- **Cor do banner:** 7 cores prontas mais a padrão, em vez do seletor livre do legado; a cor só tinge fundo, borda e ícone (DESIGN §3.4) via `Banner tone="event"`.
+- **Votação por escala:** um card por pessoa, com uma linha de pips por eixo (`IntensityPicker`, proposta no DESIGN §9.4); categórica igual à do Errômetro. Ordenação "Alfabética / Não votados", código do voto, voto anônimo pelo mesmo caminho do Errômetro (token por evento no `secureStorage`).
+- **Resultados:** medalhas dos troféus (empate mostra quem empatou, sem troféu), ranking único no categórico e um por eixo na escala (percentual do teto, "×N" no teto 1), compartilhar no formato do legado.
+- **`@erre/ui`:** `IntensityPicker`; `RankingRow` com `valueLabel`; `haptic` usa `navigator.vibrate` na web quando existe (DESIGN §8).
+**Motivo:** paridade de Eventos no app, com os componentes e tokens do design system, sem dependência nova.

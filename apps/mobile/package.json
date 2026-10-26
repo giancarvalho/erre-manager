@@ -20,6 +20,7 @@
     "@better-auth/expo": "1.7.7",
     "@erre/core": "workspace:*",
     "@erre/errometro": "workspace:*",
+    "@erre/eventos": "workspace:*",
     "@erre/ui": "workspace:*",
     "@expo-google-fonts/geist": "0.4.2",
     "@expo-google-fonts/geist-mono": "0.4.3",

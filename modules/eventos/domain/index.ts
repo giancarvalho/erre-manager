@@ -11,3 +11,4 @@ export * from './share-message';
 export * from './snapshot';
 export * from './trophies';
 export * from './trophy-winner';
+export * from './presentation';

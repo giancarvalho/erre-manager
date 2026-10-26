@@ -311,6 +311,7 @@ Todos vivem em `packages/ui`. Cada componente tem: estados padrão, pressionado,
 - Selecionado: fundo `bg.controlSelected`, anel 1 px `accent.ring`, `motion.pop`, háptico de seleção. Tocar de novo no mesmo emoji desmarca.
 - `accessibilityLabel` com nome e significado ("Cobra: falso, age pelas costas") e estado selecionado (`aria-selected`, ver §10.7).
 - **Grade densa (proposta do Sprint 14):** com duas colunas de cards em telas de 360 a ~400 de largura, três botões de 48 não cabem no card. O botão encolhe até 40 para caber, e o `hitSlop` completa o alvo de toque para 48 (mesma regra do botão compacto, §9.1). A partir de ~430 de largura o botão fica com 48.
+- **Seletor de intensidade (proposta do Sprint 17, eventos de escala):** o próprio emoji do eixo repetido até o teto (1 a 10), preenchido até a nota ("🍋🍋🍋" = 3), como no legado. Cada pip é um botão com 48 de altura que divide a largura da linha (até 48 de largura; com teto 10 numa tela de 360, cerca de 28), fundo `bg.control`, preenchido em `bg.controlSelected`, não preenchido com o emoji a 35% de opacidade, o valor atual com anel 1 px `accent.ring`. Rótulo de cada pip: "Limão: 3 de 10, para Ana", com `aria-pressed`. Tocar no valor atual limpa. Em `packages/ui`: `IntensityPicker`.
 
 ### 9.5 Avatar
 
@@ -359,7 +360,7 @@ Topo da tela, `bg.raised`, borda `border.subtle`, sombra, raio 12. Título `body
 ### 9.14 Medalha de troféu e ranking
 
 - **Medalha:** emoji num círculo com gradiente vertical (dourado 20% → `bg.surface` → `bg.canvas`), anel 2 px dourado e brilho; selo pequeno com 🏆 no canto inferior direito (fundo `trophy.goldStrong`, contorno 2 px `bg.canvas`). Variante prata para "quase". Entra com `motion.pop`.
-- **Linha do ranking:** posição (`body` 500, `text.muted`, 24 de largura) · avatar 40 · nome e emojis recebidos (chips) · total à direita. 1º lugar: anel dourado com pulso; 2º e 3º: anel prata fixo; quem ganhou troféu: fundo `trophy.goldSubtle`. Entrada com `motion.fadeUp` escalonado. Troféus da rodada aparecem como selos abaixo dos emojis (dourado: ganhou; prata: "Quase"). **Proposta do Sprint 15:** quem tem zero votos não ganha anel de pódio.
+- **Linha do ranking:** posição (`body` 500, `text.muted`, 24 de largura) · avatar 40 · nome e emojis recebidos (chips) · total à direita. 1º lugar: anel dourado com pulso; 2º e 3º: anel prata fixo; quem ganhou troféu: fundo `trophy.goldSubtle`. Entrada com `motion.fadeUp` escalonado. Troféus da rodada aparecem como selos abaixo dos emojis (dourado: ganhou; prata: "Quase"). **Proposta do Sprint 15:** quem tem zero votos não ganha anel de pódio. **Proposta do Sprint 17:** num evento de escala, a linha mostra o percentual do teto do eixo ("70%") ou "×N" num eixo de teto 1 no lugar do total, sem chips de emoji (`RankingRow` com `valueLabel`).
 - **Interruptor em pílula e seletor numérico (proposta do Sprint 15):** `ChipToggle` (altura 48, `bg.control`, selecionado com `bg.controlSelected` e anel 2 px `accent.ring`, `aria-pressed`) para dias da semana e escolha de emojis; `Stepper` (− valor +, papel `adjustable`) para a hora.
 
 ### 9.15 Estados de tela

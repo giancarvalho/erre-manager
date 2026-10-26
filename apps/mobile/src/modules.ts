@@ -2,5 +2,6 @@
 // API (GET /v1/modules). Thin route files in src/app/(app)/<id>/ re-export module screens (ARQUITETURA §5.5).
 import type { ModuleUi } from '@erre/core/client';
 import errometro from '@erre/errometro/ui';
+import eventos from '@erre/eventos/ui';
 
-export const MODULE_UIS: readonly ModuleUi[] = [errometro];
+export const MODULE_UIS: readonly ModuleUi[] = [errometro, eventos];
