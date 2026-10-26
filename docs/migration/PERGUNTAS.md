@@ -113,6 +113,7 @@ Também: manter ou não um limite de membros por comunidade (no legado, 300 por 
 - **A. Manter:** link de evento = participação imediata, mais um pedido pendente de entrada na comunidade. Prós: paridade; eventos abertos a convidados (ex.: festa). Contras: alguém de fora vota e recebe votos sem aprovação.
 - **B. Só membros aprovados participam;** quem não é membro faz o pedido de entrada com a intenção "participar do evento" (D-023) e entra quando aprovado. Contras: muda o comportamento atual.
 **Recomendação:** B, coerente com "tudo é da comunidade" (D-026), a menos que eventos com convidados de fora sejam um uso real.
+**Situação (Sprint 16):** implementado B, provisório (D-047): membro aprovado se inscreve (`POST /eventos/:id/inscricao`) enquanto o evento está ao vivo; quem não é membro entra pelo convite com a intenção `eventos.participar`, que inscreve no evento ao vivo quando o pedido é aprovado. Se a resposta for A, muda só a inscrição (aceitar quem tem pedido pendente) e o alvo da cédula.
 
 ### P-015 — Entrar digitando o nome da comunidade
 **Contexto:** no legado, o nome do grupo (slug) é o código de convite, e "Entrar com o nome do grupo" deixa qualquer pessoa que saiba o nome pedir entrada (R-MEM-07). O plano novo usa link de convite com código revogável.

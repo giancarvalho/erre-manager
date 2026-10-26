@@ -23,7 +23,7 @@ modules/<pasta>/
 
 Pastas que começam com `_` são só de teste: as migrations delas não rodam fora dos testes.
 
-Código que usa `@erre/db` ou `@erre/core/server` fica dentro de `api/` (o lint trata a raiz do módulo como lado do manifesto, sem servidor). `modules/errometro` é o primeiro módulo real e serve de exemplo.
+Código que usa `@erre/db` ou `@erre/core/server` fica dentro de `api/` (o lint trata a raiz do módulo como lado do manifesto, sem servidor). `modules/errometro` é o primeiro módulo real e serve de exemplo; `modules/eventos` mostra tabelas filhas com FK composta e itens com ciclo de vida (rascunho → ao vivo → fechado).
 
 ## 2. Manifesto (`manifest.ts`)
 
@@ -80,7 +80,7 @@ export default defineModuleApi(manifest, { api, anon, jobs, profileSections, onJ
 
 Nada além disso. Precisou de mais? Registre `[contrato]` em `DECISOES.md` e proponha.
 
-- Montagem: `/v1/<id>/*`. Sem sessão: 401. Sem comunidade válida: 403. Módulo desligado: 404 `MODULE_DISABLED`.
+- Montagem: `/v1/<id>/*`; a rota `'/'` do módulo responde em `/v1/<id>`, **sem barra no fim** (o roteamento é estrito). Sem sessão: 401. Sem comunidade válida: 403. Módulo desligado: 404 `MODULE_DISABLED`.
 - Erros: lance `AppError` (`errors.validation`, `forbidden`, `notFound`, `conflict`, `rule`). Entrada sempre validada com `validate('json' | 'query' | 'param', schema)`.
 
 ### 4.2 Rotas anônimas (`anon`) `[contrato]`

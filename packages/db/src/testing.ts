@@ -98,6 +98,7 @@ function normalizeType(t: string): string {
     .replace(/^timestamp( \(\d\))?$/, 'timestamp$1 without time zone')
     .replace(/^timestamp \((\d)\)/, 'timestamp($1)')
     .replace(/^time( \(\d\))?$/, 'time$1 without time zone')
+    .replace(/,\s+/g, ',') // numeric(8, 2) in Drizzle, numeric(8,2) in format_type
     .replace(/\s+/g, ' ');
 }
 

@@ -351,3 +351,18 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - **Seção de perfil `errometro.trofeus`** renderizada pelo módulo; a página de membro que a mostra é do Sprint 18.
 **Motivo:** paridade do Errômetro no app, com as confirmações que o DESIGN.md pede para ações destrutivas.
 
+
+### D-047 — Eventos API `[contrato]`
+**Data:** 2026-10-26 · **Status:** aceita (Sprint 16)
+**Decisão:**
+- **Módulo `eventos`** com 8 tabelas por comunidade; as filhas apontam para o evento por `(community_id, event_id)` (D-015). Domínio portado (estados, calculadoras categórica e de escala, vencedor de troféu, limites, mensagem de compartilhamento) e regras da cédula como função pura (`planEventBallot`).
+- **Permissões:** `eventos.ver` e `eventos.votar` para todos os papéis; `eventos.criar` (criar e editar rascunho, emojis) e `eventos.moderar` (publicar, abrir, encerrar, excluir) para owner e admin. No legado só o criador do grupo geria eventos; owner/admin administram a comunidade (D-023). Rascunho só existe para quem cria ou modera (404 para os outros, como evento excluído).
+- **Participação (P-014 B, provisório):** só membro aprovado participa, inscrevendo-se enquanto o evento está ao vivo (`accepting_applications` ou `open`); o link do evento não cria pedido pendente nem dá participação. A intenção de convite `eventos.participar` inscreve no evento ao vivo quando o pedido de entrada é aprovado. Quem sai da comunidade sai dos eventos não fechados (a cédula anônima não vê membros, D-043); eventos fechados mantêm os participantes.
+- **Um evento ao vivo por comunidade** (R-EVT-03): checado ao publicar, sob lock por comunidade, e garantido também por índice único parcial no banco.
+- **Fechamento numa transação só:** snapshot, status, livro de troféus e push na mesma transação, sob lock exclusivo do evento (voto e emissão de token usam o mesmo lock compartilhado). O legado gravava snapshot e status separados e precisava de um caminho de "retentativa que reaproveita o snapshot"; aqui um fechamento pela metade não é gravado, e fechar de novo é 409.
+- **Push "resultado do evento saiu"** (`eventos.resultado_pronto`, novo; o legado tinha a coluna `notified_at` mas não mandava): para os participantes que ainda são membros, uma vez por evento.
+- **Jobs** `eventos.abrir_agendados` e `eventos.fechar_agendados` a cada 15 min, como o tique do legado. Sem o teto de 50 eventos por execução do legado: o job roda por comunidade e há no máximo um evento ao vivo.
+- **Rascunho e emojis só em rascunho, sem a janela do legado:** salvar emojis relê o status com `FOR UPDATE` na mesma transação (o legado registrava esse "KNOWN GAP"); editar campos usa `WHERE status = 'draft'`.
+- **Resultados:** `GET /eventos/:id/resultados` devolve o payload congelado, os emojis e o nome dos alvos que ainda são membros; ordenação e formato (percentual da escala, "×N" no teto 1) ficam na tela (Sprint 17), como no legado.
+- **Rotas anônimas:** `/v1/eventos/anon/c/:communityId/:eventId/{votos,meus-votos}`. O `period` de `@erre/anon-vote` é o id do evento: uma chave e uma emissão por evento.
+**Motivo:** paridade de Eventos com as decisões já tomadas para a comunidade (D-026) e o anonimato no mesmo pacote do Errômetro.

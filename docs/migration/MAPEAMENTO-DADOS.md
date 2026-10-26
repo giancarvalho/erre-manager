@@ -20,14 +20,14 @@ Legado: `queridometro@7c5c5bf`, `src/db/schema.ts` e `drizzle/0000–0024`.
 | `push_subscriptions` | core | `core_push_subscriptions` (`kind = webpush`) | `user_id` → id novo. Inscrições do domínio antigo podem não valer no domínio novo do app web; o plano de virada decide. |
 | `push_notifications_config` | — | — | Vira variável `PUSH_ENABLED` (P-007). |
 | `user_notification_preferences` | core | `core_notification_preferences` | `result_ready` → tipo `errometro.resultado_pronto`; `closing_reminder` → `errometro.lembrete_fechamento`. |
-| `voting_events` | eventos | `eventos_events` | `group_id` → `community_id`; `created_by` → id novo; demais colunas iguais. |
-| `voting_event_emoji_config` | eventos | `eventos_emoji_config` | Ganha `community_id` (D-015). |
-| `voting_event_votes` | eventos | `eventos_votes` | Ganha `community_id`; `target_id` → id novo. |
-| `voting_event_signing_keys` | eventos | `eventos_signing_keys` | Só eventos em andamento. |
-| `voting_event_token_issuances` | eventos | `eventos_token_issuances` | Só eventos em andamento. |
-| `voting_event_snapshots` | eventos | `eventos_snapshots` | `payload` com ids do legado: reescrever. |
-| `event_trophy_wins` | eventos | `eventos_trophy_wins` | `group_id` → `community_id`; `winner_user_id` → id novo. |
-| `event_participants` | eventos | `eventos_participants` | Ganha `community_id`; `user_id` → id novo. |
+| `voting_events` | eventos | `eventos_events` | `group_id` → `community_id`; `created_by` → id novo; demais colunas iguais, `deleted_at` incluído. Índice único parcial `eventos_events_one_live_idx` (um evento ao vivo por comunidade, R-EVT-03): o ETL confere que nenhum grupo tem dois eventos em `accepting_applications`/`open` não excluídos. |
+| `voting_event_emoji_config` | eventos | `eventos_emoji_config` | Ganha `community_id` (D-015, FK composta para o evento); colunas iguais. |
+| `voting_event_votes` | eventos | `eventos_votes` | Ganha `community_id`; `target_id` (agora `uuid`) → id novo; `voter_tag`, `emoji_id`, `value`, `voted_at` iguais. Chave primária igual (com `community_id`). |
+| `voting_event_signing_keys` | eventos | `eventos_signing_keys` | Ganha `community_id`. Só eventos em andamento (`open`) precisam da chave na virada. |
+| `voting_event_token_issuances` | eventos | `eventos_token_issuances` | Ganha `community_id`; `user_id` → id novo; continua sem horário (R-ANON-02). Só eventos em andamento. |
+| `voting_event_snapshots` | eventos | `eventos_snapshots` | Ganha `community_id`. `payload` (`votingType`, `targets`, `trophies`) igual no formato, com ids de usuário do legado em `targetId`, `winnerTargetId` e `tiedTargetIds`: reescrever. `notified_at` do legado nunca foi preenchido (não havia push de evento): migrar preenchido com `created_at` para nenhum evento antigo notificar na virada. |
+| `event_trophy_wins` | eventos | `eventos_trophy_wins` | `group_id` → `community_id`; `winner_user_id` → id novo; `magnitude` (`numeric(8,2)`), `voting_type`, `won_at` iguais. |
+| `event_participants` | eventos | `eventos_participants` | Ganha `community_id`; `user_id` → id novo; `applied_at` igual. Com P-014 B, participantes de eventos ainda abertos que não são membros aprovados do grupo ficam de fora (eventos fechados migram inteiros: o resultado já está no snapshot). |
 | `presentations` | backlog | — | Fora do escopo (D-004); preservar no backup do legado. |
 | `presentation_reactions` | backlog | — | Idem. |
 | `group_presentation_config` | backlog | — | Idem. |

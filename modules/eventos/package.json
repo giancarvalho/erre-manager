@@ -1,0 +1,35 @@
+{
+  "name": "@erre/eventos",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Eventos: one-off anonymous voting events of a community, categorical or by scale (PLANO Sprints 16-17).",
+  "exports": {
+    ".": "./manifest.ts",
+    "./api": "./api/index.ts",
+    "./db": "./db/schema.ts",
+    "./domain": "./domain/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@erre/anon-vote": "workspace:*",
+    "@erre/core": "workspace:*",
+    "@erre/db": "workspace:*",
+    "@erre/emoji": "workspace:*",
+    "hono": "4.13.13",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@erre/config": "workspace:*",
+    "@types/node": "22.20.5",
+    "@types/pg": "8.23.1",
+    "eslint": "9.39.5",
+    "pg": "8.23.1",
+    "typescript": "6.0.3",
+    "vitest": "5.0.3"
+  }
+}

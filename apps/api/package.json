@@ -18,6 +18,7 @@
     "@erre/core": "workspace:*",
     "@erre/db": "workspace:*",
     "@erre/errometro": "workspace:*",
+    "@erre/eventos": "workspace:*",
     "@hono/node-server": "2.1.4",
     "hono": "4.13.13",
     "pino": "10.4.0",

@@ -65,18 +65,18 @@ Classificação: **igual** = migrar como está · **mudança** = migrar com muda
 
 | ID | Funcionalidade | Legado | Regras | Classif. | Destino | Sprint | Status |
 |---|---|---|---|---|---|---|---|
-| EVT-01 | Lista de eventos (admin e membro) | `/group/[id]/events` | — | mudança: por comunidade (D-026) | eventos | 16, 17 | pendente |
-| EVT-02 | Criar e editar rascunho | `/group/[id]/events/new` · `createVotingEventAction`, `updateVotingEventDraftAction` | R-EVT-04, R-EVT-05 | igual | eventos | 16, 17 | pendente |
-| EVT-03 | Configurar emojis/eixos do evento | `saveVotingEventEmojiConfigAction` | R-EVT-05 | igual | eventos | 16, 17 | pendente |
-| EVT-04 | Publicar (abrir inscrições) | `openApplicationsAction` | R-EVT-02, R-EVT-03 | igual | eventos | 16 | pendente |
-| EVT-05 | Sala de espera e inscrição pelo link | `/group/[id]/events/[eventId]` · `event-participation.ts` | R-EVT-07 | mudança a decidir (P-014) | eventos | 16, 17 | pendente |
-| EVT-06 | Abrir votação (manual ou agendada) | `openVotingAction`, `api/cron/open-scheduled-events` | R-EVT-06 | mudança: job do manifesto | eventos | 16 | pendente |
-| EVT-07 | Votar (categórico e escala) | `/group/[id]/events/[eventId]/vote` · `getEventVotingPublicKeyAction`, `issueEventVotingTokenAction`, `api/events/[id]/vote` | R-ANON-01 a 06, R-EVT-09 | mudança: React Native, rota anônima | eventos | 16, 17 | pendente |
-| EVT-08 | Meus votos no evento | `api/events/[id]/my-votes` | R-ANON-07 | igual | eventos | 16 | pendente |
-| EVT-09 | Fechar (manual ou agendado) e calcular | `closeVotingEventAction`, `api/cron/close-scheduled-events` | R-EVT-01, R-EVT-08, R-EVT-09 | igual | eventos | 16 | pendente |
-| EVT-10 | Resultados do evento e compartilhar | `/group/[id]/events/[eventId]/results` · `event-share-message.ts` | R-EVT-10 | mudança: React Native | eventos | 17 | pendente |
-| EVT-11 | Excluir evento (suave) | `deleteVotingEventAction` | R-EVT-01 | igual | eventos | 16 | pendente |
-| EVT-12 | Troféus de evento no perfil | `event-trophy-wins.ts`, `EventScaleTrophyList.tsx` | R-EVT-10 | mudança: `profileSections` | eventos | 16, 18 | pendente |
+| EVT-01 | Lista de eventos (admin e membro) | `/group/[id]/events` | — | mudança: por comunidade (D-026) | eventos | 16, 17 | API concluída (Sprint 16); tela no 17 |
+| EVT-02 | Criar e editar rascunho | `/group/[id]/events/new` · `createVotingEventAction`, `updateVotingEventDraftAction` | R-EVT-04, R-EVT-05 | igual | eventos | 16, 17 | API concluída (Sprint 16); tela no 17 |
+| EVT-03 | Configurar emojis/eixos do evento | `saveVotingEventEmojiConfigAction` | R-EVT-05 | igual | eventos | 16, 17 | API concluída (Sprint 16); tela no 17 |
+| EVT-04 | Publicar (abrir inscrições) | `openApplicationsAction` | R-EVT-02, R-EVT-03 | igual | eventos | 16 | concluído (Sprint 16) |
+| EVT-05 | Sala de espera e inscrição pelo link | `/group/[id]/events/[eventId]` · `event-participation.ts` | R-EVT-07 | mudança a decidir (P-014) | eventos | 16, 17 | API concluída (Sprint 16, P-014 B provisório: só membros aprovados, inscrição explícita); tela no 17 |
+| EVT-06 | Abrir votação (manual ou agendada) | `openVotingAction`, `api/cron/open-scheduled-events` | R-EVT-06 | mudança: job do manifesto | eventos | 16 | concluído (Sprint 16) |
+| EVT-07 | Votar (categórico e escala) | `/group/[id]/events/[eventId]/vote` · `getEventVotingPublicKeyAction`, `issueEventVotingTokenAction`, `api/events/[id]/vote` | R-ANON-01 a 06, R-EVT-09 | mudança: React Native, rota anônima | eventos | 16, 17 | API concluída (Sprint 16); tela no 17 |
+| EVT-08 | Meus votos no evento | `api/events/[id]/my-votes` | R-ANON-07 | igual | eventos | 16 | concluído (Sprint 16) |
+| EVT-09 | Fechar (manual ou agendado) e calcular | `closeVotingEventAction`, `api/cron/close-scheduled-events` | R-EVT-01, R-EVT-08, R-EVT-09 | igual | eventos | 16 | concluído (Sprint 16) |
+| EVT-10 | Resultados do evento e compartilhar | `/group/[id]/events/[eventId]/results` · `event-share-message.ts` | R-EVT-10 | mudança: React Native | eventos | 17 | API concluída (Sprint 16); tela e compartilhar no 17 |
+| EVT-11 | Excluir evento (suave) | `deleteVotingEventAction` | R-EVT-01 | igual | eventos | 16 | concluído (Sprint 16) |
+| EVT-12 | Troféus de evento no perfil | `event-trophy-wins.ts`, `EventScaleTrophyList.tsx` | R-EVT-10 | mudança: `profileSections` | eventos | 16, 18 | API concluída (seção `eventos.trofeus`, Sprint 16); tela no 18 |
 | EVT-13 | Banners de evento no hub | `EventOpenBanner`, `EventApplicationsBanner`, `EventResultsBanner` | — | mudança: seção do módulo no hub | eventos | 17 | pendente |
 
 ## Fora do escopo ou descartado

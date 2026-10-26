@@ -1,0 +1,8 @@
+{
+  "extends": "@erre/config/tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "lib": ["ES2022", "DOM"]
+  },
+  "include": ["manifest.ts", "api", "db", "domain", "tests", "vitest.config.ts", "eslint.config.js"]
+}
