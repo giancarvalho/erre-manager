@@ -52,7 +52,8 @@ export async function loadResults(
   const days = await visibleRounds(tx, communityId);
   const round = await resolveRound(tx, ctx.community);
   const nextReleaseAt = releaseConfigOrDefault(round.config).frequency === 'manual' ? null : round.to.toISOString();
-  const hidden = ctx.isModerator ? { hiddenCount: await hiddenCount(tx, communityId) } : {};
+  // Only moderators learn about hidden rounds; for members it's always null (R-RES-07).
+  const hidden = { hiddenCount: ctx.isModerator ? await hiddenCount(tx, communityId) : null };
   const period = requested && days.includes(requested) ? requested : days[0];
   if (!period) return { days, period: null, ranking: [], trophies: [], commentCounts: {}, nextReleaseAt, ...hidden };
 

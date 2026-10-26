@@ -63,10 +63,11 @@ const INTRO = 'Toque em um emoji para cada pessoa. Você pode mudar seus votos a
 
 export function VoteScreen() {
   const round = useRound();
-  const { community } = useModuleHost();
+  const { community, back } = useModuleHost();
   if (round.isPending)
     return (
       <Screen>
+        <Button label="← Início" variant="ghost" onPress={back} />
         <ScreenHeader overline="Errômetro" title={community.name} description={INTRO} />
         <View style={styles.loading} accessibilityLabel="Carregando a votação" accessible>
           <Skeleton height={64} />
@@ -79,6 +80,7 @@ export function VoteScreen() {
   if (round.data.participation.status !== 'approved')
     return (
       <Screen>
+        <Button label="← Início" variant="ghost" onPress={back} />
         <ScreenHeader overline="Errômetro" title={community.name} />
         <ParticipationPanel participation={round.data.participation} />
       </Screen>
@@ -214,6 +216,7 @@ function Voting({ round }: { round: Round }) {
 
   const header = (
     <View style={styles.header}>
+      <Button label="← Início" variant="ghost" onPress={host.back} />
       <ScreenHeader overline="Errômetro" title={host.community.name} description={INTRO} />
       <Banner
         tone="highlight"
@@ -226,6 +229,7 @@ function Voting({ round }: { round: Round }) {
         }
       />
       <Legend emojis={round.emojis} />
+      <Button variant="secondary" label="Ver resultados" onPress={() => host.navigate('/errometro/resultados')} />
       {locked ? null : token ? (
         <Banner
           tone="warning"

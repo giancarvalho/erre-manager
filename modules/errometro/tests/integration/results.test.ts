@@ -28,7 +28,7 @@ type Results = {
   trophies: { emojiId: string; winnerTargetId: string | null; char: string; trophyName: string; count: number }[];
   commentCounts: Record<string, number>;
   nextReleaseAt: string | null;
-  hiddenCount?: number;
+  hiddenCount: number | null;
 };
 type Comment = { id: string; authorId: string; authorName: string; text: string; updatedAt: string | null };
 
@@ -52,7 +52,7 @@ describe('results', () => {
     const r = await results(fx.users.membro);
     expect(r).toMatchObject({ days: [], period: null, ranking: [] });
     expect(r.nextReleaseAt).toMatch(/^\d{4}-/);
-    expect(r).not.toHaveProperty('hiddenCount');
+    expect(r.hiddenCount).toBeNull();
   });
 
   it('after the close: every current member ranked (voters or not), trophies at 3+ votes (R-RES-06, R-TRO-01)', async () => {
@@ -86,7 +86,7 @@ describe('results', () => {
     await t.json(t.call(fx.users.owner, 'POST', `/rodadas/${closedPeriod}/ocultar`, fx.communityId, { hidden: true }));
     const member = await results(fx.users.membro, `?rodada=${closedPeriod}`);
     expect(member).toMatchObject({ days: [], period: null });
-    expect(member).not.toHaveProperty('hiddenCount');
+    expect(member.hiddenCount).toBeNull();
     expect((await results(fx.users.admin)).hiddenCount).toBe(1);
     await t.json(t.call(fx.users.owner, 'POST', `/rodadas/${closedPeriod}/ocultar`, fx.communityId, { hidden: false }));
     expect((await results(fx.users.membro, '?rodada=2001-01-01')).period).toBe(closedPeriod);

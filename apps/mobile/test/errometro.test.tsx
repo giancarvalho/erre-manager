@@ -131,8 +131,10 @@ function setup({ round: r = round(), tokenStatus = 200, remembered }: Setup = {}
   const host: ModuleHost = {
     community: { id: COMMUNITY, name: 'turma', role: 'membro' },
     apiUrl: API,
+    webUrl: 'http://web.test',
     fetch: hostFetch,
     navigate: jest.fn(),
+    back: jest.fn(),
     storage,
     secureStorage,
   };

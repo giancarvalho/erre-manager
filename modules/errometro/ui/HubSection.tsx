@@ -1,6 +1,6 @@
 // The Errômetro's section in the community hub (D-033): round state and participation. The menu entries
 // below it (manifest) open the voting screen.
-import type { HubSectionProps } from '@erre/core/client';
+import { useModuleHost, type HubSectionProps } from '@erre/core/client';
 import { Button, Skeleton, space, Text } from '@erre/ui';
 import { StyleSheet, View } from 'react-native';
 
@@ -9,6 +9,7 @@ import { ParticipationPanel } from './Participation';
 
 export function HubSection(_props: HubSectionProps) {
   const round = useRound();
+  const host = useModuleHost();
   return (
     <View style={styles.box}>
       <Text variant="titleMd">Errômetro</Text>
@@ -30,6 +31,9 @@ export function HubSection(_props: HubSectionProps) {
               : `${round.data.cadence.description}.`}
           </Text>
           <ParticipationPanel participation={round.data.participation} />
+          {round.data.canModerate ? (
+            <Button label="Administrar Errômetro" variant="ghost" onPress={() => host.navigate('/errometro/admin')} />
+          ) : null}
         </>
       )}
     </View>

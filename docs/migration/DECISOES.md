@@ -339,3 +339,15 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - **`?comunidade=<id>`** em qualquer rota troca para essa comunidade, se a pessoa for membro (toque em notificação).
 - **`@erre/ui`:** `VoteTargetCard`, `EmojiGrid`, `ListScreen`, `CopyableCode`; `EmojiButton` com `size` (40–48 com `hitSlop`, proposta no DESIGN §9.4); estados de acessibilidade passam a usar `aria-*` (o `accessibilityState` não chegava à web).
 **Motivo:** a votação nas três plataformas com o anonimato do legado, sem cada módulo reimplementar armazenamento e aleatoriedade.
+
+### D-046 — Errômetro UI II: resultados e administração `[contrato]`
+**Data:** 2026-10-26 · **Status:** aceita (Sprint 15)
+**Decisão:**
+- **Resultados:** a rodada mais recente visível, com "‹ Anterior / Próxima ›" entre as rodadas fechadas; medalhas dos troféus da rodada; ranking (`RankingRow` com selos de troféu dourado e "quase" prateado); comentários por pessoa; "Compartilhar resultado" com a folha nativa (e a área de transferência na web sem `navigator.share`), no formato do legado; próximo resultado. Sem rodada: vazio com a data do próximo; moderador com tudo escondido vê o aviso que só ele vê (R-RES-07).
+- **Anel de pódio só para quem recebeu voto:** no legado o 2º e o 3º lugar ganhavam anel mesmo com zero; aqui um zero não ganha anel.
+- **Administração** (`errometro.moderar`, entrada pelo hub): votantes (aprovar, recusar, remover com confirmação), rodadas (liberar agora e esconder com confirmação; recalcular sem; a rodada aberta só recalcula), anular por código (validação e confirmação), cadência (dias da semana ou manual, hora com `Stepper`; "daily"/"weekly" do legado aparecem como os dias equivalentes; salvar confirma que a rodada atual fecha) e emojis (ordem, tirar, adicionar do catálogo ou guardados, criar com brilho medido na web).
+- **Contrato:** `ModuleHost.webUrl` (endereço público do app para links compartilhados) e `ModuleHost.back()` ("← Início" nas telas do módulo); `GET /rodada` traz `canModerate`; `hiddenCount` vem nulo para quem não modera.
+- **`@erre/ui`:** `ChipToggle`, `Stepper`; `RankingRow` com `trophies`.
+- **Seção de perfil `errometro.trofeus`** renderizada pelo módulo; a página de membro que a mostra é do Sprint 18.
+**Motivo:** paridade do Errômetro no app, com as confirmações que o DESIGN.md pede para ações destrutivas.
+

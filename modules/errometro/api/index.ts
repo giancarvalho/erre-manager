@@ -108,6 +108,7 @@ const api = createModuleApp()
       participation: await participationView(ctx.tx, ctx.community.id, ctx.user.id),
       // The voting grid leaves the viewer out: nobody votes on themselves (R-ANON-09).
       viewerId: ctx.user.id,
+      canModerate: await ctx.can('errometro.moderar'),
     });
   })
 

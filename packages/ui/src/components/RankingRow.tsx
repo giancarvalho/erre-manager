@@ -19,6 +19,7 @@ export function RankingRow({
   total,
   index = 0,
   trophy = false,
+  trophies = [],
 }: {
   position: number;
   name: string;
@@ -27,13 +28,19 @@ export function RankingRow({
   total: number;
   index?: number;
   trophy?: boolean;
+  /** Round trophies of this person: won (gold) or tied for the lead, "quase" (silver) (DESIGN §7, §9.14). */
+  trophies?: readonly { emoji: string; name: string; tone: 'gold' | 'silver' }[];
 }) {
   const { colors } = useTheme();
   const enter = useFadeUp(index);
-  const podium = position === 1 ? 'gold' : position <= 3 ? 'silver' : null;
+  // Nobody gets a podium ring without votes (a 0 in 2nd place is not a 2nd place).
+  const podium = total === 0 ? null : position === 1 ? 'gold' : position <= 3 ? 'silver' : null;
   const pulse = usePulse('gold', podium === 'gold', 1);
   const ring = useAnimatedStyle(() => ({ opacity: podium === 'gold' ? pulse.value : 1 }));
-  const description = `${position}º lugar, ${name}, ${total} votos: ${chips.map((c) => `${c.count} ${c.label}`).join(', ')}`;
+  const won = trophies.map((t) => (t.tone === 'gold' ? t.name : `quase ${t.name}`));
+  const description = `${position}º lugar, ${name}, ${total} votos: ${chips.map((c) => `${c.count} ${c.label}`).join(', ')}${
+    won.length ? `. ${won.join(', ')}` : ''
+  }`;
   return (
     <Animated.View
       accessible
@@ -70,6 +77,27 @@ export function RankingRow({
             </View>
           ))}
         </View>
+        {trophies.length ? (
+          <View style={styles.chips}>
+            {trophies.map((t) => (
+              <View
+                key={`${t.tone}-${t.name}`}
+                style={[
+                  styles.chip,
+                  styles.trophyChip,
+                  {
+                    borderColor: t.tone === 'gold' ? colors.trophy.gold : colors.trophy.silver,
+                    backgroundColor: t.tone === 'gold' ? colors.trophy.goldSubtle : colors.bg.control,
+                  },
+                ]}
+              >
+                <Text variant="caption" maxFontSizeMultiplier={1.4} tone="secondary" numberOfLines={1}>
+                  {`${t.emoji} ${t.tone === 'gold' ? t.name : `Quase: ${t.name}`}`}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
       </View>
       <Text variant="titleMd">{total}</Text>
     </Animated.View>
@@ -90,4 +118,5 @@ const styles = StyleSheet.create({
   middle: { flex: 1, gap: space[1] },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space[1] },
   chip: { borderRadius: radius.full, paddingHorizontal: space[2], paddingVertical: space[0.5] },
+  trophyChip: { borderWidth: 1 },
 });

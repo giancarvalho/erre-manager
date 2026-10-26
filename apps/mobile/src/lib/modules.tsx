@@ -8,7 +8,7 @@ import { MODULE_UIS } from '@/modules';
 
 import { api, moduleFetch } from './api';
 import { useCommunity } from './community';
-import { API_URL } from './config';
+import { API_URL, WEB_URL } from './config';
 import { moduleSecureStorage, moduleStorage } from './module-storage';
 
 /** Manifests of the modules enabled in the API. */
@@ -39,8 +39,10 @@ export function ModuleHost({ children }: { children: ReactNode }) {
         ? {
             community: { id: current.id, name: current.name, role: current.role },
             apiUrl: API_URL,
+            webUrl: WEB_URL,
             fetch: moduleFetch(current.id),
             navigate: (path: string) => router.push(path as never),
+            back: () => (router.canGoBack() ? router.back() : router.replace('/')),
             storage: moduleStorage,
             secureStorage: moduleSecureStorage,
           }

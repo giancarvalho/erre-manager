@@ -25,10 +25,14 @@ export type ModuleHost = {
   community: HostCommunity;
   /** API base URL (e.g. https://api.example.com). */
   apiUrl: string;
+  /** Public web address of the app (e.g. https://app.example.com), for links people share. */
+  webUrl: string;
   /** fetch with the session (cookie on web, header on native) and X-Community-Id of `community`. */
   fetch: typeof fetch;
   /** Navigate inside the app (Expo Router path). */
   navigate: (path: string) => void;
+  /** Go back ("← Início", DESIGN §9.16); to the hub when there is nothing to go back to. */
+  back: () => void;
   /** Preferences and caches (AsyncStorage on native, localStorage on web). Never sent anywhere. */
   storage: HostStorage;
   /** Secrets (secure store on native, localStorage on web), e.g. the anonymous vote token. Values ≤ 2 KB. */

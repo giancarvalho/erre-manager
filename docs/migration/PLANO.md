@@ -31,7 +31,7 @@ Leia antes: [`AGENTS.md`](../../AGENTS.md), [`ARQUITETURA.md`](ARQUITETURA.md), 
 | 12 | Errômetro API I: participação, voto anônimo, configuração | G | 8, 11 | não | concluído |
 | 13 | Errômetro API II: fechamento, resultados, comentários, troféus | G | 9, 12 | não | concluído |
 | 14 | Errômetro UI I: hub e votação | G | 10, 12 | não | concluído na web (aparelho pendente) |
-| 15 | Errômetro UI II: resultados e administração | G | 13, 14 | **sim** | pendente |
+| 15 | Errômetro UI II: resultados e administração | G | 13, 14 | **sim** | concluído na web (revisão humana assíncrona, D-029; aparelho pendente) |
 | 16 | Eventos API | G | 9, 11, 8 | não | pendente |
 | 17 | Eventos UI | G | 10, 16 | **sim** | pendente |
 | 18 | Perfil, troféus, página de membro, preferências e PWA | M | 15, 17 | não | pendente |

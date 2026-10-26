@@ -29,7 +29,7 @@ async function apiAs(page: Page, method: 'GET' | 'POST', path: string, community
 }
 
 test('one request joins community and Errômetro; voting is anonymous on the wire', async ({ browser }) => {
-  test.setTimeout(90_000);
+  test.setTimeout(150_000);
   const community = `erro-${Date.now().toString(36)}`;
 
   // Owner: community + invite link that also asks for the Errômetro (selected by default).
@@ -108,9 +108,31 @@ test('one request joins community and Errômetro; voting is anonymous on the wir
   expect(meusVotos.length).toBeGreaterThan(0);
   expect((await meusVotos[0]!.allHeaders()).cookie).toBeUndefined();
 
+  // Moderation (Sprint 15): release the round now, then everyone sees the result.
+  await owner.goto('/');
+  await owner.getByRole('button', { name: 'Administrar Errômetro' }).click();
+  await expect(owner.getByRole('heading', { name: 'Administrar Errômetro' })).toBeVisible();
+  await expect(owner.getByText('2 de 50 votantes.')).toBeVisible();
+  await owner.getByRole('button', { name: 'Liberar resultado agora' }).click();
+  await owner.getByRole('button', { name: 'Liberar resultado', exact: true }).click();
+  await expect(owner.getByText('Resultado liberado.')).toBeVisible();
+
+  await guest.goto('/');
+  await guest.getByRole('button', { name: 'Continuar' }).click(); // onboarding (first time on the hub)
+  await guest.getByRole('button', { name: 'Resultados' }).click();
+  await expect(guest.getByRole('heading', { name: 'Resultados' })).toBeVisible();
+  await expect(guest.getByLabel(/^1º lugar, Gui, 1 votos/)).toBeVisible();
+  await guest.getByRole('button', { name: 'Comentar' }).first().click();
+  await guest.getByLabel('Comentar sobre Gui').fill('Eu? Cobra?');
+  await guest.getByRole('button', { name: 'Enviar comentário' }).click();
+  await expect(guest.getByText('Eu? Cobra?')).toBeVisible();
+  await expect(guest.getByRole('button', { name: 'Administrar Errômetro' })).toHaveCount(0);
+
   if (process.env.ERROMETRO_SHOTS) {
     // Prints for the sprint report (DESIGN §14): voting screen in both themes, and the hub section.
     mkdirSync(shots, { recursive: true });
+    await owner.goto('/errometro');
+    await expect(owner.getByRole('button', { name: 'Atualizar votos' })).toBeVisible();
     await owner.getByRole('button', { name: 'O que significa cada emoji?' }).click();
     await owner.waitForTimeout(400);
     await owner.screenshot({ path: path.join(shots, 'votacao-dark.png') });
@@ -120,8 +142,16 @@ test('one request joins community and Errômetro; voting is anonymous on the wir
     await owner.waitForTimeout(400);
     await owner.screenshot({ path: path.join(shots, 'votacao-light.png') });
     await guest.goto('/');
-    await guest.getByRole('button', { name: 'Continuar' }).click(); // onboarding
     await expect(guest.getByText('Você participa da votação desta comunidade.')).toBeVisible();
     await guest.screenshot({ path: path.join(shots, 'hub-dark.png') });
+    await guest.getByRole('button', { name: 'Resultados' }).click();
+    await expect(guest.getByRole('heading', { name: 'Resultados' })).toBeVisible();
+    await guest.waitForTimeout(500);
+    await guest.screenshot({ path: path.join(shots.replace('sprint-14', 'sprint-15'), 'resultados-dark.png') });
+    await owner.goto('/errometro/admin');
+    await expect(owner.getByRole('heading', { name: 'Administrar Errômetro' })).toBeVisible();
+    await owner.waitForTimeout(400);
+    mkdirSync(shots.replace('sprint-14', 'sprint-15'), { recursive: true });
+    await owner.screenshot({ path: path.join(shots.replace('sprint-14', 'sprint-15'), 'admin-light.png') });
   }
 });
