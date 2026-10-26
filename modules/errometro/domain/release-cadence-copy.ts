@@ -1,4 +1,6 @@
 // Portado de queridometro@7c5c5bf:src/lib/voting/release-cadence-copy.ts
+import { formatInTimeZone } from 'date-fns-tz';
+
 import type { ReleaseConfig } from './release-window';
 
 const WEEKDAY_NAMES: Record<number, string> = {
@@ -45,4 +47,15 @@ export function describeReleaseCadence(config: ReleaseConfig): string {
   if (days.length === 7) return `Todo dia às ${hourLabel(config.releaseHour)}`;
   if (days.length === 0) return `Às ${hourLabel(config.releaseHour)}`;
   return `Toda ${joinWeekdayNames(days)} às ${hourLabel(config.releaseHour)}`;
+}
+
+/**
+ * A release instant as the app shows it (DESIGN §11): "segunda, 12h", "sexta, 18h30", in the voting time zone.
+ * Not in the legacy (it wrote "segunda-feira às 12:00"): the new format follows the design guide.
+ */
+export function formatReleaseInstant(at: Date, timeZone: string): string {
+  const weekday = Number(formatInTimeZone(at, timeZone, 'i'));
+  const hour = Number(formatInTimeZone(at, timeZone, 'H'));
+  const minute = formatInTimeZone(at, timeZone, 'mm');
+  return `${WEEKDAY_NAMES[weekday] ?? '?'}, ${hour}h${minute === '00' ? '' : minute}`;
 }

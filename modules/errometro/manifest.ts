@@ -10,7 +10,7 @@ export default defineManifest({
     // owner/admin administer everything in the community, the Errômetro included (D-023, answer to P-002).
     { id: 'errometro.moderar', defaultRoles: ['owner', 'admin'] },
   ],
-  menu: [{ label: 'Errômetro', route: '/errometro' }],
+  menu: [{ label: 'Votar', route: '/errometro' }],
   notifications: [
     { id: 'errometro.resultado_pronto', label: 'Resultado do Errômetro saiu', defaultEnabled: true },
     { id: 'errometro.lembrete_fechamento', label: 'Faltam 3h para fechar a rodada', defaultEnabled: true },

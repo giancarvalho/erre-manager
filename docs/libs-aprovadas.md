@@ -28,6 +28,8 @@ Legenda: ✅ verificado · ⏳ verificado só por build/export (falta aparelho) 
 | `@expo-google-fonts/geist`, `@expo-google-fonts/geist-mono` | 0.4 | ⏳ | ⏳ | ✅ | Fontes Geist (DESIGN §4); importar por peso (`/400Regular`), o pacote inteiro leva 18 arquivos | Sprint 10: web com a fonte carregada (prints), export nativo |
 | `expo-haptics` | 58.0 | ⏳ | ⏳ | — | Háptico (DESIGN §8); nada na web | Sprint 10: export nativo |
 | `@react-native-async-storage/async-storage` | 2.2 | ⏳ | ⏳ | — | Tema e preferências no aparelho (DESIGN §3.1); web usa `localStorage` | Sprint 10: export nativo, jest com o mock oficial |
+| `expo-crypto` | 58.0 | ⏳ | ⏳ | — | `crypto.getRandomValues` no Hermes para o cliente da assinatura cega (D-011, D-045); a web usa a do navegador | Sprint 14: export nativo; aparelho pendente |
+| `expo-clipboard` | 58.0 | ⏳ | ⏳ | ✅ | Copiar o código do voto e, depois, convites (`CopyableCode` em `@erre/ui`) | Sprint 14: jest e e2e web |
 | `expo-blur` | 58.0 | ⏳ | ⏳ | ✅ | Barra fixa e conteúdo reservado (DESIGN §7); Android usa fundo sólido | Sprint 10: galeria na web |
 | `expo-linear-gradient` | 58.0 | ⏳ | ⏳ | ✅ | Banner de destaque e medalha (DESIGN §7, §9.14) | Sprint 10: galeria na web |
 

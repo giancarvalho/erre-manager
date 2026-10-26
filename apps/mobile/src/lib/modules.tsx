@@ -9,6 +9,7 @@ import { MODULE_UIS } from '@/modules';
 import { api, moduleFetch } from './api';
 import { useCommunity } from './community';
 import { API_URL } from './config';
+import { moduleSecureStorage, moduleStorage } from './module-storage';
 
 /** Manifests of the modules enabled in the API. */
 export function useEnabledManifests() {
@@ -40,6 +41,8 @@ export function ModuleHost({ children }: { children: ReactNode }) {
             apiUrl: API_URL,
             fetch: moduleFetch(current.id),
             navigate: (path: string) => router.push(path as never),
+            storage: moduleStorage,
+            secureStorage: moduleSecureStorage,
           }
         : null,
     [current],

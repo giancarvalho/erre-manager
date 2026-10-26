@@ -7,7 +7,9 @@ import {
   Button,
   Card,
   ConfirmDialog,
+  CopyableCode,
   EmojiButton,
+  EmojiGrid,
   EmptyState,
   ErrorState,
   IconButton,
@@ -26,6 +28,7 @@ import {
   ThemePicker,
   TrophyMedallion,
   useToast,
+  VoteTargetCard,
   type TextVariant,
 } from '@erre/ui';
 import { Redirect } from 'expo-router';
@@ -174,6 +177,30 @@ export function Gallery() {
           <Badge label="Aviso" tone="warning" />
           <Badge label="Erro" tone="danger" />
         </View>
+      </Section>
+
+      <Section title="Votação">
+        <View style={styles.row}>
+          {(['Ana', 'Bruno'] as const).map((name, i) => (
+            <View key={name} style={styles.flex}>
+              <VoteTargetCard name={name} avatarVariant={i ? 'violet' : 'teal'} voted={i === 0}>
+                <EmojiGrid buttonSize={44}>
+                  {EMOJIS.slice(0, 6).map((e) => (
+                    <EmojiButton
+                      key={e.id}
+                      size={44}
+                      emoji={e.char}
+                      label={`${e.label}, para ${name}`}
+                      selected={i === 0 && e.id === EMOJIS[0]!.id}
+                      onPress={() => undefined}
+                    />
+                  ))}
+                </EmojiGrid>
+              </VoteTargetCard>
+            </View>
+          ))}
+        </View>
+        <CopyableCode code="3f9a1c0b7e2d4a6f8b1c3e5d7f9a0b2c4d6e8f0a1b3c5d7e9f0a2b4c6d8e0f1a" />
       </Section>
 
       <Section title="Navegação e revelação">
@@ -344,6 +371,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 const styles = StyleSheet.create({
+  flex: { flex: 1 },
   section: { gap: space[3], marginBottom: space[10] },
   stack: { gap: space[3] },
   row: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: space[3] },

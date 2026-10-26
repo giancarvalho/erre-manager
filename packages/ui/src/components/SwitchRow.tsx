@@ -28,7 +28,8 @@ export function SwitchRow({
       <Pressable
         accessibilityRole="switch"
         accessibilityLabel={label}
-        accessibilityState={{ checked: value, disabled: inactive }}
+        aria-checked={value}
+        aria-disabled={inactive}
         disabled={inactive}
         onPress={() => onValueChange(!value)}
         style={[styles.row, inactive && styles.disabled]}

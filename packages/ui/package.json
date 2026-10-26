@@ -21,7 +21,8 @@
     "expo-haptics": "*",
     "expo-blur": "*",
     "expo-linear-gradient": "*",
-    "@react-native-async-storage/async-storage": "*"
+    "@react-native-async-storage/async-storage": "*",
+    "expo-clipboard": "*"
   },
   "devDependencies": {
     "@erre/config": "workspace:*",
@@ -30,6 +31,7 @@
     "eslint": "9.39.5",
     "expo": "58.0.19",
     "expo-blur": "~58.0.5",
+    "expo-clipboard": "~58.0.4",
     "expo-haptics": "~58.0.7",
     "expo-linear-gradient": "~58.0.3",
     "react": "19.3.0",

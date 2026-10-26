@@ -33,7 +33,7 @@ export function Accordion({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={title}
-        accessibilityState={{ expanded: open }}
+        aria-expanded={open}
         onPress={() => setOpen((o) => !o)}
         style={styles.row}
       >

@@ -1,6 +1,6 @@
 // Portado de queridometro@7c5c5bf:src/lib/voting/release-cadence-copy.test.ts
 import { describe, expect, it } from 'vitest';
-import { describeReleaseCadence } from '../../domain/release-cadence-copy';
+import { describeReleaseCadence, formatReleaseInstant } from '../../domain/release-cadence-copy';
 
 describe('describeReleaseCadence', () => {
   it('manual', () => {
@@ -49,5 +49,13 @@ describe('describeReleaseCadence', () => {
         releaseWeekdays: [1, 2, 3, 4, 5, 6, 7],
       }),
     ).toBe('Todo dia às 9h');
+  });
+});
+
+describe('formatReleaseInstant', () => {
+  it('weekday and hour in the voting time zone (DESIGN §11)', () => {
+    expect(formatReleaseInstant(new Date('2026-07-27T15:00:00.000Z'), 'America/Sao_Paulo')).toBe('segunda, 12h');
+    expect(formatReleaseInstant(new Date('2026-07-31T21:30:00.000Z'), 'America/Sao_Paulo')).toBe('sexta, 18h30');
+    expect(formatReleaseInstant(new Date('2026-08-02T02:00:00.000Z'), 'America/Sao_Paulo')).toBe('sábado, 23h');
   });
 });

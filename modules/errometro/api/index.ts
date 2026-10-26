@@ -3,7 +3,8 @@ import { createModuleApp, defineModuleApi, errors, validate, type ModuleContext 
 import { z } from 'zod';
 
 import { activeEmojiOptions, buildEmojiConfigRows, emojiCatalog } from '../domain/emoji-config';
-import { describeReleaseCadence } from '../domain/release-cadence-copy';
+import { getVotingTimeZone } from '../domain/calendar';
+import { describeReleaseCadence, formatReleaseInstant } from '../domain/release-cadence-copy';
 import { assertValidConfig, type ReleaseConfig } from '../domain/release-window';
 import { releaseConfigOrDefault } from '../domain/schedule';
 import { EmojiEntriesSchema, ReleaseConfigSchema, TokenRequestSchema } from '../domain/schemas';
@@ -94,10 +95,19 @@ const api = createModuleApp()
     const targets = await approvedParticipants(ctx.tx, ctx.community.id, ctx.members);
     return c.json({
       period: { label: round.label, from: round.from.toISOString(), to: round.to.toISOString() },
-      cadence: cadenceView(round.config),
+      cadence: {
+        ...cadenceView(round.config),
+        // Manual cadence has no date: the moderators release when they want.
+        nextRelease:
+          releaseConfigOrDefault(round.config).frequency === 'manual'
+            ? null
+            : { at: round.to.toISOString(), label: formatReleaseInstant(round.to, getVotingTimeZone()) },
+      },
       emojis: activeEmojiOptions(rows),
       targets: targets.map((m) => ({ userId: m.userId, displayName: m.displayName, avatarVariant: m.avatarVariant })),
       participation: await participationView(ctx.tx, ctx.community.id, ctx.user.id),
+      // The voting grid leaves the viewer out: nobody votes on themselves (R-ANON-09).
+      viewerId: ctx.user.id,
     });
   })
 

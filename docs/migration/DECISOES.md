@@ -324,3 +324,18 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - **Correção no core:** a política `propria_membership` quebrava `ctx.members` em jobs e rotas anônimas (convertia `app.user_id` vazio em uuid). Migration `core_0006` usa `nullif(...)`, continuando fechada sem pessoa.
 - **Mudanças de contrato:** `JobContext.community` ganha `slug` e `name` (o título do push usa o nome); `createModuleHarness({ recordPush })` grava os pushes para os testes de módulo.
 **Motivo:** paridade com o legado no fechamento e nas notificações, com o mínimo de diferença onde o contexto novo (Errômetro em toda comunidade) pede.
+
+### D-045 — Errômetro UI I: hub e votação `[contrato]`
+**Data:** 2026-10-26 · **Status:** aceita (Sprint 14)
+**Decisão:**
+- **Fluxo anônimo no aparelho:** chave → emissão (cliente autenticado do módulo) → cegar/finalizar com `@erre/anon-vote/client` → voto e "meus votos" por um `fetch` comum com `credentials: 'omit'` e só `content-type` (sem cookie, `Authorization` nem `X-Community-Id`). O runtime também tira esses headers do lado do servidor (D-010), o que cobre o caso em que um cookie jar nativo anexa cookie mesmo assim.
+- **Token no aparelho:** `secureStorage` (secure store no nativo, `localStorage` na web, como no legado), chave por comunidade e rodada. Votos lembrados por comunidade em `storage`, filtrados por pessoas e emojis atuais, nunca enviados.
+- **Mudança de contrato:** `ModuleHost.storage` e `ModuleHost.secureStorage` (`getItem`/`setItem`/`removeItem`, chaves `<módulo>.<...>` só com letras, números, `.`, `-` e `_`). Módulos não dependem de AsyncStorage nem do secure store diretamente.
+- **Aleatoriedade segura no nativo:** o app instala `crypto.getRandomValues` do `expo-crypto` na inicialização (o Hermes não tem); o cliente da assinatura cega usa o padrão sem mudar.
+- **Grade:** a própria pessoa não aparece (R-ANON-09, como o legado); "Alfabética / Não votados" com a ordem congelada no momento da troca; 2 colunas a partir de 360 de largura; lista virtualizada.
+- **Depois de enviar:** toast, háptico e anúncio para leitor de tela; a tela continua (ir para os resultados entra no Sprint 15, com a tela de resultados). Rodada que virou durante o voto: mensagem e recarga.
+- **Próximo resultado formatado no servidor** ("segunda, 12h"), no fuso da votação (`VOTING_TIMEZONE`), que o app não conhece.
+- **Convite com intenção:** a tela de convites deixa escolher "Só entrar na comunidade" ou a intenção do módulo, que vem marcada (o link do legado já pedia entrada e voto juntos).
+- **`?comunidade=<id>`** em qualquer rota troca para essa comunidade, se a pessoa for membro (toque em notificação).
+- **`@erre/ui`:** `VoteTargetCard`, `EmojiGrid`, `ListScreen`, `CopyableCode`; `EmojiButton` com `size` (40–48 com `hitSlop`, proposta no DESIGN §9.4); estados de acessibilidade passam a usar `aria-*` (o `accessibilityState` não chegava à web).
+**Motivo:** a votação nas três plataformas com o anonimato do legado, sem cada módulo reimplementar armazenamento e aleatoriedade.

@@ -303,13 +303,14 @@ Todos vivem em `packages/ui`. Cada componente tem: estados padrão, pressionado,
 - **Card:** `bg.surface`, borda `border.subtle`, raio 12, padding 16.
 - **Card tocável:** igual, mais `bg.surfacePressed` ao pressionar. Precisa parecer tocável: chevron, botão ou título que indique destino.
 - **Card selecionável** (opções do assistente, ver `legado/04-assistente-passo4-selecao.png`): selecionado ganha anel 2 px `accent.ring`. Selo "RECOMENDADO" na opção sugerida.
-- **Card de pessoa na votação:** avatar 64, nome `body` 500, grade de emojis 3 colunas. Com voto: anel `accent.ring` + pulso ciano.
+- **Card de pessoa na votação:** avatar 64, nome `body` 500, grade de emojis 3 colunas. Com voto: anel `accent.ring` + pulso ciano. Em `packages/ui`: `VoteTargetCard` + `EmojiGrid`; a tela é uma lista virtualizada (`ListScreen`, §10.6). O código do voto usa `CopyableCode` (mono + "Copiar código").
 
 ### 9.4 Botão de emoji (grade de votação)
 
 - 48 × 48 no mínimo, raio 12, fundo `bg.control`, emoji em 22–24.
 - Selecionado: fundo `bg.controlSelected`, anel 1 px `accent.ring`, `motion.pop`, háptico de seleção. Tocar de novo no mesmo emoji desmarca.
-- `accessibilityLabel` com nome e significado ("Cobra: falso, age pelas costas") e `accessibilityState={{ selected }}`.
+- `accessibilityLabel` com nome e significado ("Cobra: falso, age pelas costas") e estado selecionado (`aria-selected`, ver §10.7).
+- **Grade densa (proposta do Sprint 14):** com duas colunas de cards em telas de 360 a ~400 de largura, três botões de 48 não cabem no card. O botão encolhe até 40 para caber, e o `hitSlop` completa o alvo de toque para 48 (mesma regra do botão compacto, §9.1). A partir de ~430 de largura o botão fica com 48.
 
 ### 9.5 Avatar
 
@@ -438,7 +439,7 @@ Para preferências que ligam e desligam na hora (notificações por tipo, "receb
 
 - Contraste AA nos dois temas (§3.5) e alvos de toque de 48 (§9.1).
 - Todo controle tem `accessibilityRole` e `accessibilityLabel` em pt-BR; botões só com ícone sempre têm rótulo ("Fechar", "Copiar chave").
-- Estados anunciados (`accessibilityState`: selected, disabled, expanded) e mudanças importantes anunciadas (`AccessibilityInfo.announceForAccessibility`: "Votos enviados").
+- Estados anunciados com as props `aria-selected`, `aria-checked`, `aria-expanded`, `aria-disabled` (o React Native aceita nas três plataformas; o `accessibilityState` some na web, achado no Sprint 14) e mudanças importantes anunciadas (`AccessibilityInfo.announceForAccessibility`: "Votos enviados").
 - Ordem de foco lógica; na web, tudo alcançável por teclado com foco visível (o legado corrigiu isso no commit `e0dedf0`).
 - Fonte escalável (§4), reduzir movimento (§8), cor nunca como único sinal.
 - Idioma da página/app em `pt-BR` (leitores de tela pronunciam certo).

@@ -9,6 +9,18 @@ import type { ModuleManifest } from '../shared/manifest';
 
 export type HostCommunity = { id: string; name: string; role: Role };
 
+/**
+ * Key/value storage on this device, provided by the app. Keys start with the module id and use only letters,
+ * digits, ".", "-" and "_" (e.g. "errometro.lastvotes.<community>"); anything else throws.
+ */
+export type HostStorage = {
+  getItem: (key: string) => Promise<string | null>;
+  setItem: (key: string, value: string) => Promise<void>;
+  removeItem: (key: string) => Promise<void>;
+};
+
+export const HOST_STORAGE_KEY = /^[A-Za-z0-9._-]{1,200}$/;
+
 export type ModuleHost = {
   community: HostCommunity;
   /** API base URL (e.g. https://api.example.com). */
@@ -17,6 +29,10 @@ export type ModuleHost = {
   fetch: typeof fetch;
   /** Navigate inside the app (Expo Router path). */
   navigate: (path: string) => void;
+  /** Preferences and caches (AsyncStorage on native, localStorage on web). Never sent anywhere. */
+  storage: HostStorage;
+  /** Secrets (secure store on native, localStorage on web), e.g. the anonymous vote token. Values ≤ 2 KB. */
+  secureStorage: HostStorage;
 };
 
 const HostContext = createContext<ModuleHost | null>(null);

@@ -24,10 +24,12 @@ export type {
 } from '../shared/types';
 export {
   defineModuleUi,
+  HOST_STORAGE_KEY,
   ModuleHostProvider,
   useModuleClient,
   useModuleHost,
   type HostCommunity,
+  type HostStorage,
   type HubSectionProps,
   type ModuleHost,
   type ModuleUi,

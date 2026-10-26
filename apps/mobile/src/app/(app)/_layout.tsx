@@ -1,7 +1,8 @@
 import { ErrorState, LoadingState } from '@erre/ui';
-import { Redirect, Stack, usePathname } from 'expo-router';
+import { Redirect, Stack, useGlobalSearchParams, usePathname } from 'expo-router';
+import { useEffect } from 'react';
 
-import { CommunityProvider, useMyCommunities } from '@/lib/community';
+import { CommunityProvider, useCommunity, useMyCommunities } from '@/lib/community';
 import { useMe } from '@/lib/session';
 
 /** Everything in (app) needs a session; the name must be confirmed before anything else (CORE-04). */
@@ -25,7 +26,21 @@ function WithCommunities() {
     return <ErrorState message="Não deu pra carregar suas comunidades." onRetry={() => list.refetch()} />;
   return (
     <CommunityProvider communities={list.data}>
+      <FollowCommunityParam />
       <Stack screenOptions={{ headerShown: false }} />
     </CommunityProvider>
   );
+}
+
+/**
+ * A link with ?comunidade=<id> (e.g. a module notification: "resultado saiu") opens in that community, if the
+ * person is an approved member of it; otherwise the param is ignored.
+ */
+function FollowCommunityParam() {
+  const { comunidade } = useGlobalSearchParams<{ comunidade?: string }>();
+  const { communities, current, select } = useCommunity();
+  useEffect(() => {
+    if (comunidade && comunidade !== current?.id && communities.some((c) => c.id === comunidade)) select(comunidade);
+  }, [comunidade, communities, current?.id, select]);
+  return null;
 }

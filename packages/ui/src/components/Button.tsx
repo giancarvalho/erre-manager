@@ -64,7 +64,8 @@ export function Button({
       <AnimatedPressable
         accessibilityRole="button"
         accessibilityLabel={loading && loadingLabel ? loadingLabel : label}
-        accessibilityState={{ disabled: inactive, busy: loading }}
+        aria-disabled={inactive}
+        aria-busy={loading}
         {...(accessibilityHint ? { accessibilityHint } : {})}
         disabled={inactive}
         onPress={onPress}

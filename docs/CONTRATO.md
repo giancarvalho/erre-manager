@@ -123,7 +123,8 @@ function HubSection({ community }: HubSectionProps) {
 export default defineModuleUi(manifest, { hubSection: HubSection, profileSections: { 'errometro.trofeus': Trophies } });
 ```
 
-- `useModuleHost()`: `{ community, apiUrl, fetch, navigate }`.
+- `useModuleHost()`: `{ community, apiUrl, fetch, navigate, storage, secureStorage }`. `storage` guarda preferências e cache (AsyncStorage / `localStorage`), `secureStorage` guarda segredos (secure store / `localStorage`, até 2 KB); chaves começam com o id do módulo e só têm letras, números, `.`, `-` e `_` (D-045).
+- Rota anônima no app: `fetch` comum com `credentials: 'omit'` e só `content-type`, nunca o `fetch` do host (que leva a sessão). Exemplo: `modules/errometro/ui/anon.ts`.
 - Registro estático em `apps/mobile/src/modules.ts`. O módulo aparece só se estiver no registro **e** em `GET /v1/modules`.
 - Rotas finas em `apps/mobile/src/app/(app)/<id>/...`: `export default withModule('<id>', Tela);` (mostra "Funcionalidade indisponível" se o módulo estiver desligado).
 - Telas só com componentes de `@erre/ui` e tokens (DESIGN.md).

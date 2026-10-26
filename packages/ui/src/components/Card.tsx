@@ -29,7 +29,7 @@ export function Card({ children, onPress, selected, accessibilityLabel, accessib
       onPress={onPress}
       accessibilityRole={accessibilityRole ?? (selectable ? 'radio' : 'button')}
       {...(accessibilityLabel ? { accessibilityLabel } : {})}
-      {...(selectable ? { accessibilityState: { checked: !!selected, selected: !!selected } } : {})}
+      {...(selectable ? { 'aria-checked': !!selected, 'aria-selected': !!selected } : {})}
       style={({ pressed }) => [base, pressed && { backgroundColor: colors.bg.surfacePressed }]}
     >
       {children}

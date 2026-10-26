@@ -1,17 +1,9 @@
-// Errômetro UI. Sprint 12 registers it empty: the hub section and the voting screen come in Sprint 14.
+// Errômetro UI (D-019): hub section and the voting screen. Results and administration come in Sprint 15.
 import { defineModuleUi } from '@erre/core/client';
-import { EmptyState, Screen, ScreenHeader } from '@erre/ui';
 
 import manifest from '../manifest';
+import { HubSection } from './HubSection';
 
-/** Placeholder of the Errômetro home until Sprint 14. */
-export function HomeScreen() {
-  return (
-    <Screen>
-      <ScreenHeader overline="Comunidade" title="Errômetro" />
-      <EmptyState emoji="🗳️" message="A votação do Errômetro chega aqui em breve." />
-    </Screen>
-  );
-}
+export { VoteScreen } from './VoteScreen';
 
-export default defineModuleUi(manifest, {});
+export default defineModuleUi(manifest, { hubSection: HubSection });

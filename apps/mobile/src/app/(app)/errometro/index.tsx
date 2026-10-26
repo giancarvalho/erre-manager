@@ -1,5 +1,5 @@
-import { HomeScreen } from '@erre/errometro/ui';
+import { VoteScreen } from '@erre/errometro/ui';
 
 import { withModule } from '@/lib/modules';
 
-export default withModule('errometro', HomeScreen);
+export default withModule('errometro', VoteScreen);

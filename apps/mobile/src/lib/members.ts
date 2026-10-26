@@ -69,8 +69,9 @@ export function useInvites(communityId: string) {
 export function useCreateInvite(communityId: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: () =>
-      api<InviteView>(`/v1/communities/${communityId}/invites`, { method: 'POST', body: {}, communityId }),
+    /** `intent`: a module join intent (D-023), e.g. "errometro.participar"; null = only the community. */
+    mutationFn: (intent: string | null = null) =>
+      api<InviteView>(`/v1/communities/${communityId}/invites`, { method: 'POST', body: { intent }, communityId }),
     onSuccess: () => qc.invalidateQueries({ queryKey: keys.invites(communityId) }),
   });
 }

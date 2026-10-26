@@ -16,7 +16,10 @@ import { Platform } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { registerServiceWorker, useNotificationRouting } from '@/lib/push';
+import { installSecureRandom } from '@/lib/random';
 import { hydratePrefs } from '@/lib/storage';
+
+installSecureRandom();
 
 // The splash stays until the theme, the fonts and the saved preferences are ready (DESIGN §3.1).
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);

@@ -5,6 +5,7 @@ import { Platform, Share, StyleSheet, View } from 'react-native';
 
 import { useCommunity } from '@/lib/community';
 import { inviteLink, useCreateInvite, useInvites, useRevokeInvite } from '@/lib/members';
+import { useEnabledManifests } from '@/lib/modules';
 
 async function shareLink(link: string): Promise<'shared' | 'copied' | 'failed'> {
   try {
@@ -36,6 +37,14 @@ function Invites({ communityId, name }: { communityId: string; name: string }) {
   const revoke = useRevokeInvite(communityId);
   const [confirm, setConfirm] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  // Join intents of the enabled modules (D-023): one request gets the person into the community and the module.
+  const intents = (useEnabledManifests().data ?? []).flatMap((m) => m.joinIntents);
+  const [chosen, setChosen] = useState<string | null | undefined>(undefined);
+  // Like the legacy invite link (join + vote), a module's intent comes selected when there is one.
+  const intent = chosen === undefined ? (intents[0]?.id ?? null) : chosen;
+  const intentLabel = (id: string | null) =>
+    intents.find((i) => i.id === id)?.label ??
+    (id ? 'Entrar com a participação num módulo' : 'Só entrar na comunidade');
 
   if (invites.isPending) return <LoadingState />;
   const list = invites.data ?? [];
@@ -55,6 +64,9 @@ function Invites({ communityId, name }: { communityId: string; name: string }) {
             <View key={inv.id} style={styles.list}>
               <Card>
                 <View style={styles.gap}>
+                  <Text variant="overline" tone="muted">
+                    {intentLabel(inv.intent)}
+                  </Text>
                   <Text variant="mono" selectable accessibilityLabel="Link de convite">
                     {link}
                   </Text>
@@ -99,6 +111,23 @@ function Invites({ communityId, name }: { communityId: string; name: string }) {
             {feedback}
           </Text>
         ) : null}
+        {intents.length > 0 ? (
+          <View style={styles.list} accessibilityRole="radiogroup" accessibilityLabel="O que o link faz">
+            <Text variant="overline" tone="muted">
+              O que o link faz
+            </Text>
+            {[null, ...intents.map((i) => i.id)].map((id) => (
+              <Card
+                key={id ?? 'none'}
+                selected={intent === id}
+                onPress={() => setChosen(id)}
+                accessibilityLabel={intentLabel(id)}
+              >
+                <Text>{intentLabel(id)}</Text>
+              </Card>
+            ))}
+          </View>
+        ) : null}
         <Button
           label={list.length ? 'Criar outro link' : 'Criar link de convite'}
           loadingLabel="Criando…"
@@ -106,7 +135,7 @@ function Invites({ communityId, name }: { communityId: string; name: string }) {
           variant="primary"
           fullWidth
           onPress={() =>
-            create.mutate(undefined, { onError: () => setFeedback('Não deu pra criar o link. Tente de novo.') })
+            create.mutate(intent, { onError: () => setFeedback('Não deu pra criar o link. Tente de novo.') })
           }
         />
       </View>

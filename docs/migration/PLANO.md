@@ -30,7 +30,7 @@ Leia antes: [`AGENTS.md`](../../AGENTS.md), [`ARQUITETURA.md`](ARQUITETURA.md), 
 | 11 | Pacotes compartilhados: `anon-vote` e `emoji` | M | 3 | não | concluído (aparelho pendente) |
 | 12 | Errômetro API I: participação, voto anônimo, configuração | G | 8, 11 | não | concluído |
 | 13 | Errômetro API II: fechamento, resultados, comentários, troféus | G | 9, 12 | não | concluído |
-| 14 | Errômetro UI I: hub e votação | G | 10, 12 | não | pendente |
+| 14 | Errômetro UI I: hub e votação | G | 10, 12 | não | concluído na web (aparelho pendente) |
 | 15 | Errômetro UI II: resultados e administração | G | 13, 14 | **sim** | pendente |
 | 16 | Eventos API | G | 9, 11, 8 | não | pendente |
 | 17 | Eventos UI | G | 10, 16 | **sim** | pendente |
