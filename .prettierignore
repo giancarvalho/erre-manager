@@ -8,3 +8,6 @@ prototypes
 docs
 *.md
 apps/mobile/public/index.html
+packages/anon-vote/hermes/run.bundle.js
+packages/anon-vote/hermes/run.hermes.js
+packages/anon-vote/hermes/fixture-2048.json

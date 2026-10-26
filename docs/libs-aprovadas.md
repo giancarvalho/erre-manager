@@ -21,7 +21,7 @@ Legenda: ✅ verificado · ⏳ verificado só por build/export (falta aparelho) 
 | `hono/client` (`hono` 4.13) | 4.13 | ⏳ | ⏳ | ✅ | Cliente RPC tipado por módulo (D-009) | Sprint 8: jest com o módulo de teste; export web e nativo |
 | `expo-notifications` | 58.1 | ⏳ | ⏳ | — | Permissão, token Expo e toque na notificação (D-012) | Sprint 9: export nativo e `expo-doctor` 20/20; falta aparelho e projeto EAS |
 | `zod` | 4.6 | ⏳ | ⏳ | ✅ | Validação no app com as mesmas regras da API (`@erre/core/client`) | Sprint 5: e2e web, export nativo |
-| `@noble/hashes` | 2.4.0 | ✅* | ⏳ | ✅ | SHA-256/384 do cliente da assinatura cega (D-011) | Sprint 2: vitest, navegador e Hermes 0.12 (*motor Hermes via CLI, não aparelho) |
+| `@noble/hashes` | 2.4.0 | ✅* | ⏳ | ✅ | SHA-256/384 do cliente da assinatura cega (D-011) | Sprint 2: vitest, navegador e Hermes 0.12. Sprint 11: `@erre/anon-vote/client` de novo no Hermes (*motor Hermes via CLI, não aparelho) |
 | `@tanstack/react-query` | 5.104 | ⏳ | ⏳ | ✅ | Cache e estado de servidor no app (ARQUITETURA) | Sprint 3: JS puro; export Android/iOS e e2e web verdes |
 | `expo-font`, `expo-splash-screen`, `expo-system-ui`, `expo-constants`, `expo-linking` | 58 | ⏳ | ⏳ | ✅ | Módulos do SDK usados pelo Expo Router e pelo tema | Sprint 3: `expo-doctor` 20/20, export das três plataformas |
 | `@babel/runtime` | 7.29 | ⏳ | ⏳ | ✅ | Helpers do Babel; precisa ser dependência direta do app com o layout isolado do pnpm | Sprint 3 |
@@ -54,7 +54,7 @@ Legenda: ✅ verificado · ⏳ verificado só por build/export (falta aparelho) 
 | `vitest` | 5.0 | Testes unitários e de integração |
 | `tsx` | 4.23 | `dev` da API com recarga |
 | `esbuild` | 0.28 | Empacota a API para produção (inclui `@erre/*`, deixa as libs de fora) |
-| `@babel/*` | — | Só no spike do Hermes (`prototypes/anon-vote`) |
+| `@babel/cli`, `@babel/core`, `@babel/preset-env` | 7.28 | Verificação manual do cliente da assinatura cega no Hermes (`prototypes/anon-vote` e `packages/anon-vote/hermes`) |
 | `eslint` + `typescript-eslint` + `eslint-plugin-react-hooks` | 9.39 / 8 / 7 | Lint. ESLint 9 e não 10: o plugin de hooks ainda não declara suporte ao 10 (D-034) |
 | `prettier` | 3.9 | Formatação |
 | `turbo` | 2.11 | Orquestra tarefas e cache no monorepo |

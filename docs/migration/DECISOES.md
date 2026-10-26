@@ -279,3 +279,15 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - **Testes de componentes no app** (jest-expo), com um mock mínimo do Reanimated (o oficial não carrega fora do runtime nativo no SDK 58).
 - **Sheet sem gesto de arrastar** por enquanto (fecha pelo X, pelo fundo e pelo voltar do Android); o gesto entra se uma biblioteca de gestos for aprovada.
 **Motivo:** o DESIGN.md vira código verificável: contraste testado, cores só por token, e os componentes vistos nos dois temas.
+
+### D-042 — Pacotes `anon-vote` e `emoji`
+**Data:** 2026-10-26 · **Status:** aceita (Sprint 11)
+**Decisão:**
+- **`@erre/anon-vote`** com três entradas: `.` (tipos, agregação e interfaces, seguro no app e na API), `./client` (JS puro, D-011) e `./server` (`@cloudflare/blindrsa-ts`). Esquema igual ao do legado: RSABSSA-SHA384-PSS-Randomized, rótulo `karmometro-vote-token-v1`, `voter_tag` = SHA-256 hex da mensagem preparada. **Tokens já emitidos pelo legado continuam válidos** com as chaves migradas.
+- **Fluxos no pacote, tabelas no módulo:** `issueToken({ keys, issuances }, { userId, period, blindedMsgB64 })` checa o tamanho do valor cegado **antes** de gastar a emissão e devolve `ALREADY_ISSUED` ou `INVALID_BLINDED_MESSAGE`; `verifyBallot({ keys }, ...)` devolve o `voter_tag` ou `null`. Interfaces `SigningKeyRepository`, `TokenIssuanceRepository` (sem timestamp) e `AnonVoteRepository`. `period` é a unidade do módulo (rodada, evento).
+- **Métodos por `userId` do repositório de votos do legado não foram portados:** pertencem ao caminho HMAC do demo (R-ANON-08, P-003).
+- **Aleatoriedade:** `crypto.getRandomValues` quando existe; no nativo o app passa `randomBytes` do `expo-crypto` (sem fonte segura, o cliente lança erro em vez de seguir).
+- **Grafemas:** `isSingleGrapheme` usa `Intl.Segmenter`; sem ele (Hermes), uma contagem por code point que cobre ZWJ, tons de pele, bandeiras, keycap e tags. Testada contra o `Segmenter` em 14 casos. **A API é quem decide** (Node sempre tem `Segmenter`).
+- **Brilho do troféu de emoji personalizado:** `inferEmojiGlowColor` mede no `canvas` e só roda na web. O valor é **calculado uma vez, quando o emoji é criado na web, e gravado** com o emoji; criado no nativo, fica `DEFAULT_TROPHY_GLOW_RGB`. Emojis do catálogo usam `TROPHY_GLOW_RGB`.
+- **Verificação no Hermes:** `pnpm --filter @erre/anon-vote hermes` (manual, precisa do binário; fora do CI).
+**Motivo:** Errômetro e Eventos usam o mesmo voto anônimo; o que garante o anonimato (gate de emissão sem horário, verificação antes de gravar) fica num lugar só e testado, e cada módulo só guarda dados.

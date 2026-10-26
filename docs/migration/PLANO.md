@@ -27,7 +27,7 @@ Leia antes: [`AGENTS.md`](../../AGENTS.md), [`ARQUITETURA.md`](ARQUITETURA.md), 
 | 8 | Runtime de módulos (contrato v0) e shell do app | G | 7 | **sim** | concluído (revisão do contrato pendente, D-029) |
 | 9 | `notify()` e push (Web Push + Expo Push) | M | 8 | não | concluído (aparelho e chaves reais pendentes) |
 | 10 | `packages/ui`: design system | M | 3 | não | concluído (aparelho pendente) |
-| 11 | Pacotes compartilhados: `anon-vote` e `emoji` | M | 3 | não | pendente |
+| 11 | Pacotes compartilhados: `anon-vote` e `emoji` | M | 3 | não | concluído (aparelho pendente) |
 | 12 | Errômetro API I: participação, voto anônimo, configuração | G | 8, 11 | não | pendente |
 | 13 | Errômetro API II: fechamento, resultados, comentários, troféus | G | 9, 12 | não | pendente |
 | 14 | Errômetro UI I: hub e votação | G | 10, 12 | não | pendente |

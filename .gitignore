@@ -10,3 +10,6 @@ coverage/
 test-results/
 playwright-report/
 expo-env.d.ts
+packages/anon-vote/hermes/fixture-2048.json
+packages/anon-vote/hermes/run.bundle.js
+packages/anon-vote/hermes/run.hermes.js
