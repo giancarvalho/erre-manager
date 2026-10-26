@@ -7,3 +7,4 @@ pnpm-lock.yaml
 prototypes
 docs
 *.md
+apps/mobile/public/index.html

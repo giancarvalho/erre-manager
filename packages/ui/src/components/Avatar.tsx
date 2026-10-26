@@ -13,7 +13,8 @@ export function Avatar({ name, variant, size = 40 }: { name: string; variant: Av
     <View
       accessible={false}
       importantForAccessibility="no-hide-descendants"
-      style={[styles.circle, { width: size, height: size, backgroundColor: v.bg }]}
+      // Ring in the variant's light color at 30% (DESIGN §9.5).
+      style={[styles.circle, { width: size, height: size, backgroundColor: v.bg, borderColor: `${v.text}4D` }]}
     >
       <Text
         variant={big ? 'titleLg' : 'label'}
@@ -27,5 +28,5 @@ export function Avatar({ name, variant, size = 40 }: { name: string; variant: Av
 }
 
 const styles = StyleSheet.create({
-  circle: { borderRadius: radius.full, alignItems: 'center', justifyContent: 'center' },
+  circle: { borderRadius: radius.full, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
 });

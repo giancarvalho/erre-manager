@@ -1,8 +1,12 @@
 import { Pressable, StyleSheet, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 
+import { usePressScale } from '../motion';
 import { useTheme } from '../theme';
-import { layout, motion, radius, space, type ThemeColors } from '../tokens';
+import { layout, radius, space, type ThemeColors } from '../tokens';
 import { Text } from './Text';
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export type ButtonVariant = 'primary' | 'accent' | 'secondary' | 'ghost' | 'destructive';
 
@@ -54,24 +58,24 @@ export function Button({
   const { colors } = useTheme();
   const l = look(colors, variant);
   const inactive = disabled || loading || !!disabledReason;
+  const press = usePressScale(fullWidth);
   return (
     <View style={[fullWidth && styles.stretch, styles.wrap]}>
-      <Pressable
+      <AnimatedPressable
         accessibilityRole="button"
         accessibilityLabel={loading && loadingLabel ? loadingLabel : label}
         accessibilityState={{ disabled: inactive, busy: loading }}
         {...(accessibilityHint ? { accessibilityHint } : {})}
         disabled={inactive}
         onPress={onPress}
-        style={({ pressed }) => [
+        onPressIn={press.onPressIn}
+        onPressOut={press.onPressOut}
+        style={[
           styles.button,
           { backgroundColor: l.bg, borderColor: l.border ?? 'transparent' },
           fullWidth ? styles.stretch : styles.start,
           (disabled || !!disabledReason) && styles.disabled,
-          pressed &&
-            !inactive && {
-              transform: [{ scale: fullWidth ? motion.press.scaleWide : motion.press.scaleSmall }],
-            },
+          press.style,
         ]}
       >
         {({ pressed }) => (
@@ -82,9 +86,9 @@ export function Button({
             {loading && loadingLabel ? loadingLabel : label}
           </Text>
         )}
-      </Pressable>
+      </AnimatedPressable>
       {disabledReason ? (
-        <Text variant="caption" tone="muted" style={styles.reason}>
+        <Text variant="caption" tone="muted" style={fullWidth ? styles.reason : undefined}>
           {disabledReason}
         </Text>
       ) : null}

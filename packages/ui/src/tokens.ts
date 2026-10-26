@@ -60,7 +60,7 @@ const light: ThemeColors = {
   },
   trophy: { gold: '#d97706', goldStrong: '#f59e0b', silver: '#64748b', goldSubtle: 'rgba(245,158,11,0.1)' },
   danger: { text: '#b91c1c', subtle: 'rgba(239,68,68,0.08)', border: 'rgba(185,28,28,0.3)' },
-  warning: { text: '#b45309', subtle: 'rgba(245,158,11,0.12)', border: 'rgba(180,83,9,0.25)' },
+  warning: { text: '#92400e', subtle: 'rgba(245,158,11,0.12)', border: 'rgba(180,83,9,0.25)' },
   success: { text: '#047857' },
   shadow: { color: '#000000', opacity: 0.12 },
   statusBar: 'dark',
@@ -86,6 +86,8 @@ export const avatar = {
   slate: { bg: '#475569', text: '#f1f5f9' },
   teal: { bg: '#0d9488', text: '#ccfbf1' },
 } as const;
+
+export const AVATAR_VARIANT_NAMES = Object.keys(avatar) as (keyof typeof avatar)[];
 
 export const space = { 0.5: 2, 1: 4, 1.5: 6, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 8: 32, 10: 40, 12: 48 } as const;
 export const radius = { sm: 6, md: 8, lg: 12, xl: 16, full: 999 } as const;
@@ -113,4 +115,16 @@ export const motion = {
   shake: { duration: 420, easing: [0.36, 0.07, 0.19, 0.97], distance: 6 },
   pulseNeon: { duration: 2200 },
   pulseGold: { duration: 2000 },
+} as const;
+
+/**
+ * Geist families per weight (DESIGN §4), loaded by the app with expo-font. On native a custom font
+ * needs one family per weight; Text maps fontWeight to these.
+ */
+export const fonts = {
+  '400': 'Geist_400Regular',
+  '500': 'Geist_500Medium',
+  '600': 'Geist_600SemiBold',
+  '700': 'Geist_700Bold',
+  mono: 'GeistMono_400Regular',
 } as const;

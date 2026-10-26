@@ -19,6 +19,7 @@ Formato: ID, sprint que bloqueia, contexto, opções, recomendação. Quando res
 | P-013 | — | respondida (D-028) |
 | P-014 | Sprint 16 | aberta |
 | P-015 | Sprint 7 | aberta |
+| P-016 | Sprint 14 | aberta |
 
 ---
 
@@ -117,3 +118,11 @@ Também: manter ou não um limite de membros por comunidade (no legado, 300 por 
 - **B. Os dois:** código revogável e também pedir entrada digitando o slug da comunidade. Contras: o slug não é revogável; como todo pedido fica `pending`, o risco é só de spam de pedidos.
 **Recomendação:** B, mantendo a paridade e a aprovação obrigatória.
 **Situação (Sprint 7):** implementado só o link com código revogável, que vale para A e B. Se a resposta for B, entra uma rota de pedido pelo nome; o resto do fluxo (pedido `pending`, aprovação) já existe.
+
+### P-016 — Biblioteca de ícones
+**Contexto:** o DESIGN.md fala em ícones (acordeão, banner, botão só com ícone), mas não escolhe uma biblioteca. No Sprint 10 os ícones são glifos de texto (✕, ›, ⌄, ⋯), que funcionam nas três plataformas sem dependência.
+- **A. Continuar com glifos e emojis.** Prós: zero dependência, combina com o emoji como protagonista. Contras: pouca variedade e desenho menos preciso.
+- **B. `lucide-react-native` + `react-native-svg`.** Prós: conjunto grande e consistente (o mesmo estilo do shadcn/lucide que o legado usa na web). Contras: duas dependências nativas a validar nas três plataformas.
+- **C. `expo-symbols`.** Contras: SF Symbols só existe no iOS.
+**Recomendação:** A até o Errômetro (Sprints 14–15); se faltar ícone, B.
+

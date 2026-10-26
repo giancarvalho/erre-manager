@@ -119,7 +119,7 @@ Use **sempre** o token, nunca o hex nem o nome Tailwind direto no código de tel
 | `danger.text` | `#f87171` (7,2:1) | `#b91c1c` (6,5:1) | mensagens de erro, ações destrutivas |
 | `danger.subtle` | `rgba(239,68,68,0.1)` | `rgba(239,68,68,0.08)` | fundo de alerta de erro e botão destrutivo |
 | `danger.border` | `rgba(239,68,68,0.3)` | `rgba(185,28,28,0.3)` | borda do botão destrutivo |
-| `warning.text` | `#fcd34d` (12,1:1 no fundo de aviso) | `#b45309` (4,6:1 no fundo de aviso) | avisos |
+| `warning.text` | `#fcd34d` (12,1:1 no fundo de aviso) | `#92400e` (6,2:1 no fundo de aviso; era `#b45309`, 4,4:1, corrigido no Sprint 10 pelo teste de contraste) | avisos |
 | `warning.subtle` | `rgba(245,158,11,0.1)` | `rgba(245,158,11,0.12)` | fundo de aviso |
 | `warning.border` | `rgba(245,158,11,0.2)` | `rgba(180,83,9,0.25)` | borda de aviso |
 | `success.text` | `#34d399` (10,4:1) | `#047857` (5,5:1) | confirmação |
@@ -544,7 +544,7 @@ const light: ThemeColors = {
   },
   trophy: { gold: '#d97706', goldStrong: '#f59e0b', silver: '#64748b', goldSubtle: 'rgba(245,158,11,0.1)' },
   danger: { text: '#b91c1c', subtle: 'rgba(239,68,68,0.08)', border: 'rgba(185,28,28,0.3)' },
-  warning: { text: '#b45309', subtle: 'rgba(245,158,11,0.12)', border: 'rgba(180,83,9,0.25)' },
+  warning: { text: '#92400e', subtle: 'rgba(245,158,11,0.12)', border: 'rgba(180,83,9,0.25)' },
   success: { text: '#047857' },
   shadow: { color: '#000000', opacity: 0.12 },
   statusBar: 'dark',

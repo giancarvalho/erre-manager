@@ -25,7 +25,11 @@ Legenda: ✅ verificado · ⏳ verificado só por build/export (falta aparelho) 
 | `@tanstack/react-query` | 5.104 | ⏳ | ⏳ | ✅ | Cache e estado de servidor no app (ARQUITETURA) | Sprint 3: JS puro; export Android/iOS e e2e web verdes |
 | `expo-font`, `expo-splash-screen`, `expo-system-ui`, `expo-constants`, `expo-linking` | 58 | ⏳ | ⏳ | ✅ | Módulos do SDK usados pelo Expo Router e pelo tema | Sprint 3: `expo-doctor` 20/20, export das três plataformas |
 | `@babel/runtime` | 7.29 | ⏳ | ⏳ | ✅ | Helpers do Babel; precisa ser dependência direta do app com o layout isolado do pnpm | Sprint 3 |
-| `@expo-google-fonts/geist`, `@expo-google-fonts/geist-mono` | 0.4 | | | | Fontes TTF para o nativo (DESIGN §4) | a verificar no Sprint 10 |
+| `@expo-google-fonts/geist`, `@expo-google-fonts/geist-mono` | 0.4 | ⏳ | ⏳ | ✅ | Fontes Geist (DESIGN §4); importar por peso (`/400Regular`), o pacote inteiro leva 18 arquivos | Sprint 10: web com a fonte carregada (prints), export nativo |
+| `expo-haptics` | 58.0 | ⏳ | ⏳ | — | Háptico (DESIGN §8); nada na web | Sprint 10: export nativo |
+| `@react-native-async-storage/async-storage` | 2.2 | ⏳ | ⏳ | — | Tema e preferências no aparelho (DESIGN §3.1); web usa `localStorage` | Sprint 10: export nativo, jest com o mock oficial |
+| `expo-blur` | 58.0 | ⏳ | ⏳ | ✅ | Barra fixa e conteúdo reservado (DESIGN §7); Android usa fundo sólido | Sprint 10: galeria na web |
+| `expo-linear-gradient` | 58.0 | ⏳ | ⏳ | ✅ | Banner de destaque e medalha (DESIGN §7, §9.14) | Sprint 10: galeria na web |
 
 ## Servidor
 

@@ -32,6 +32,8 @@ jobs:
     env:
       DATABASE_ADMIN_URL: postgres://postgres:postgres@localhost:5432/erre_test
       TURBO_TELEMETRY_DISABLED: '1'
+      # CI builds are never deployed: include the component gallery (/dev/ui) for its e2e.
+      EXPO_PUBLIC_DEV_GALLERY: '1'
     steps:
       - uses: actions/checkout@v5
         with:

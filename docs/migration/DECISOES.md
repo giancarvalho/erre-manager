@@ -265,3 +265,17 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - **App:** service worker do legado só na web; `expo-notifications` no nativo (precisa de `extra.eas.projectId`, criado com o projeto EAS); toque abre a rota da notificação. Pedido de permissão só quando a pessoa liga em "Notificações" (o pedido no momento de valor vem com o Errômetro, DESIGN §10.1).
 - **DESIGN §9.17 (proposta):** interruptor (`SwitchRow`), que o DESIGN.md não cobria.
 **Motivo:** notificação nunca sai de algo que foi desfeito, nem segura o banco esperando a rede.
+
+### D-041 — Design system (`packages/ui`)
+**Data:** 2026-10-25 · **Status:** aceita (Sprint 10)
+**Decisão:**
+- **Componentes da §9 do DESIGN.md** em `@erre/ui`, com movimento (Reanimated, tokens `motion`), háptico (`expo-haptics`, nada na web) e "reduzir movimento" (sem pulso nem shake; pop e fadeUp viram fade).
+- **Correção de token:** `warning.text` claro passa de `#b45309` para `#92400e`. O teste de contraste mostrou 4,41:1 sobre o fundo de aviso composto no `bg.canvas` (a tabela dizia 4,6:1, que só vale sobre branco). DESIGN.md e tokens atualizados; **pede confirmação humana** (a página visual publicada do design ainda mostra o valor antigo).
+- **Tema persistido:** AsyncStorage no nativo (splash fica até ler), `localStorage` na web com script inline no `<head>` gerado dos tokens (`public/index.html`, `pnpm gen:html`; um teste falha se ficar desatualizado). HTML em `pt-BR`.
+- **Fontes Geist** carregadas antes de mostrar o app; uma família por peso (no Android, `fontWeight` não escolhe peso de fonte própria).
+- **Lint `erre/no-raw-style`:** cor literal (hex, rgb, hsl) e `fontSize` numérico fora de `packages/ui` são erro.
+- **Galeria em `/dev/ui`**, ligada só com `EXPO_PUBLIC_DEV_GALLERY=1` (o CI liga; o deploy não).
+- **Ícones como glifos de texto** até decidir uma biblioteca (P-016).
+- **Testes de componentes no app** (jest-expo), com um mock mínimo do Reanimated (o oficial não carrega fora do runtime nativo no SDK 58).
+- **Sheet sem gesto de arrastar** por enquanto (fecha pelo X, pelo fundo e pelo voltar do Android); o gesto entra se uma biblioteca de gestos for aprovada.
+**Motivo:** o DESIGN.md vira código verificável: contraste testado, cores só por token, e os componentes vistos nos dois temas.

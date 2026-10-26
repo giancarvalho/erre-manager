@@ -1,8 +1,11 @@
-import { useId, useState } from 'react';
-import { StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
+import { useEffect, useId, useState } from 'react';
+import { StyleSheet, TextInput, type TextInputProps } from 'react-native';
+import Animated from 'react-native-reanimated';
 
+import { haptic } from '../haptics';
+import { useShake } from '../motion';
 import { useTheme } from '../theme';
-import { layout, radius, space, type } from '../tokens';
+import { fonts, layout, radius, space, type } from '../tokens';
 import { Text } from './Text';
 
 export type TextFieldProps = Omit<TextInputProps, 'style' | 'placeholderTextColor'> & {
@@ -17,8 +20,12 @@ export function TextField({ label, help, error, onFocus, onBlur, ...input }: Tex
   const [focused, setFocused] = useState(false);
   const id = useId();
   const borderColor = error ? colors.danger.text : focused ? colors.border.focus : colors.border.input;
+  const shake = useShake(error);
+  useEffect(() => {
+    if (error) haptic.error();
+  }, [error]);
   return (
-    <View style={styles.wrap}>
+    <Animated.View style={[styles.wrap, shake]}>
       <Text variant="overline" tone="muted" nativeID={`${id}-label`}>
         {label}
       </Text>
@@ -39,6 +46,7 @@ export function TextField({ label, help, error, onFocus, onBlur, ...input }: Tex
         }}
         style={[
           type.body,
+          { fontFamily: fonts['400'] },
           styles.input,
           { backgroundColor: colors.bg.input, borderColor, color: colors.text.primary },
           focused && { outlineColor: colors.border.focus, outlineWidth: 1, outlineStyle: 'solid' },
@@ -53,7 +61,7 @@ export function TextField({ label, help, error, onFocus, onBlur, ...input }: Tex
           {help}
         </Text>
       ) : null}
-    </View>
+    </Animated.View>
   );
 }
 

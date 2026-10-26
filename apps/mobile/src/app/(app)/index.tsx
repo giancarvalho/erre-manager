@@ -136,6 +136,7 @@ function Account() {
         </View>
       </View>
       <Button label="Notificações" variant="secondary" onPress={() => router.push('/notificacoes')} />
+      <Button label="Aparência" variant="secondary" onPress={() => router.push('/perfil/aparencia')} />
       <Button
         label="Sair"
         loadingLabel="Saindo…"

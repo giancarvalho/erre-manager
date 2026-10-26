@@ -6,12 +6,14 @@ import tseslint from 'typescript-eslint';
 
 import { noIdentityInAnonRule } from './anon.js';
 import { boundariesRule } from './boundaries.js';
+import { noRawStyleRule } from './style.js';
 
 export const plugin = {
   meta: { name: 'erre' },
   rules: {
     boundaries: boundariesRule,
     'no-identity-in-anon': noIdentityInAnonRule,
+    'no-raw-style': noRawStyleRule,
   },
 };
 
@@ -38,5 +40,6 @@ export const react = tseslint.config(...base, {
   rules: {
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'error',
+    'erre/no-raw-style': 'error',
   },
 });

@@ -7,6 +7,7 @@ import { afterAll, describe, it } from 'vitest';
 
 import { noIdentityInAnonRule } from '../eslint/anon.js';
 import { boundariesRule } from '../eslint/boundaries.js';
+import { noRawStyleRule } from '../eslint/style.js';
 
 // RuleTester hooks into the test framework through these static fields (not in its type definitions).
 const hooks = /** @type {Record<string, unknown>} */ (/** @type {unknown} */ (RuleTester));
@@ -111,5 +112,30 @@ tester.run('erre/no-identity-in-anon', noIdentityInAnonRule, {
     bad(anonFile, "const a = c.req.header('authorization');"),
     bad(anonFile, "const ip = c.req.header('x-forwarded-for');"),
     bad(anonFile, 'const id = ctx.user;'),
+  ],
+});
+
+tester.run('erre/no-raw-style', noRawStyleRule, {
+  valid: [
+    ok('apps/mobile/src/app/index.tsx', 'const s = { color: colors.text.primary, fontSize: type.body.fontSize };'),
+    ok('apps/mobile/src/app/index.tsx', "const label = '#1 do ranking';"),
+    ok('packages/ui/src/tokens.ts', "const dark = { canvas: '#09090b', surface: 'rgba(24,24,27,0.5)' };"),
+    ok('packages/ui/src/components/Banner.tsx', 'const s = { fontSize: 40 };'),
+  ],
+  invalid: [
+    { ...bad('apps/mobile/src/app/index.tsx', "const s = { color: '#fff' };"), errors: [{ messageId: 'color' }] },
+    {
+      ...bad('modules/errometro/ui/Vote.tsx', "const s = { backgroundColor: 'rgba(0,0,0,0.5)' };"),
+      errors: [{ messageId: 'color' }],
+    },
+    {
+      ...bad('modules/errometro/ui/Vote.tsx', 'const s = { borderColor: `rgba(${rgb},0.3)` };'),
+      errors: [{ messageId: 'color' }],
+    },
+    { ...bad('apps/mobile/src/app/index.tsx', 'const s = { fontSize: 13 };'), errors: [{ messageId: 'fontSize' }] },
+    {
+      ...bad('apps/mobile/src/app/index.tsx', "const s = { color: 'hsl(200, 50%, 50%)' };"),
+      errors: [{ messageId: 'color' }],
+    },
   ],
 });
