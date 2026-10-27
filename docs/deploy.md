@@ -32,6 +32,26 @@ O mesmo teste roda localmente:
 DATABASE_ADMIN_URL=postgres://postgres:postgres@localhost:5432/postgres apps/api/scripts/smoke-image.sh
 ```
 
+## Ambiente de teste: Koyeb + Neon (antes da VPS)
+
+Para testar com o app no celular antes de usar a VPS do legado. Tudo no plano grátis. A API fica em Washington (Koyeb) e o banco perto dela (Neon, AWS us-east).
+
+1. **Banco (Neon):** crie o projeto (Postgres 16 ou 17, região AWS US East). Copie a connection string **direta**, sem `-pooler` no host: o runner de migrations e os jobs usam locks consultivos de sessão.
+2. **Papéis e tabelas**, da sua máquina, com a URL do dono do banco (`neondb_owner`) e três senhas fortes (`openssl rand -hex 24`):
+   ```sh
+   DATABASE_ADMIN_URL='postgresql://neondb_owner:...@ep-....aws.neon.tech/neondb?sslmode=require' \
+   ERRE_MIGRATOR_PASSWORD=... ERRE_APP_PASSWORD=... ERRE_JOBS_PASSWORD=... \
+   pnpm --filter @erre/db db:bootstrap
+   DATABASE_MIGRATOR_URL='postgresql://erre_migrator:<senha>@ep-....aws.neon.tech/neondb?sslmode=require' \
+   pnpm --filter @erre/db db:migrate
+   ```
+   O bootstrap funciona sem superusuário: cria os papéis com os padrões seguros e confere que nenhum tem `SUPERUSER`, `BYPASSRLS`, `CREATEROLE`, `CREATEDB` ou `REPLICATION` (testado num Postgres 16 com um dono só com `CREATEROLE`).
+3. **API (Koyeb):** Web Service a partir do GitHub, branch `main`, builder **Dockerfile** em `apps/api/Dockerfile`, contexto na raiz (o alvo padrão é a API). Instância Free, região Washington. Porta `3000` (HTTP, rota `/`), health check HTTP em `/v1/health`. Variáveis (as sensíveis como *Secret*): `DATABASE_URL` (`erre_app`), `DATABASE_JOBS_URL` (`erre_jobs`), `PUBLIC_API_URL` (o domínio `.koyeb.app` do serviço), `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `TRUSTED_ORIGINS=erre://`, `MODULES_ENABLED=errometro,eventos,avisos`. O Koyeb refaz o deploy a cada push na `main`.
+4. **Google:** URI de redirecionamento `https://<dominio>.koyeb.app/v1/auth/callback/google`.
+5. **Acordada:** a instância grátis dorme depois de 1 h sem tráfego, e com ela os jobs internos (fechar rodada, lembretes, eventos agendados). Um monitor grátis (cron-job.org ou UptimeRobot) chamando `GET /v1/health` a cada 15 min a mantém acordada.
+
+Limites: 512 MB e 0,1 vCPU, um serviço por conta, servidores fora do Brasil (latência maior). Para a virada, a VPS.
+
 ## Web (PWA)
 
 `pnpm --filter @erre/mobile build` gera `apps/mobile/dist`, um site estático. O servidor que hospedar precisa de:

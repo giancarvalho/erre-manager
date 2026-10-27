@@ -18,12 +18,26 @@ DECLARE
   r text;
 BEGIN
   FOREACH r IN ARRAY ARRAY['erre_migrator', 'erre_app', 'erre_jobs'] LOOP
+    -- CREATE ROLE defaults are NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS. Those attributes are
+    -- checked below instead of set: on managed Postgres (Neon, Supabase) the admin is not a superuser and may not
+    -- change them, even to turn them off.
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = r) THEN
-      EXECUTE format('CREATE ROLE %I LOGIN', r);
+      EXECUTE format('CREATE ROLE %I LOGIN PASSWORD %L', r, current_setting('erre.' || substr(r, 6) || '_password'));
+    ELSE
+      EXECUTE format('ALTER ROLE %I LOGIN PASSWORD %L', r, current_setting('erre.' || substr(r, 6) || '_password'));
     END IF;
-    EXECUTE format('ALTER ROLE %I LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS PASSWORD %L',
-      r, current_setting('erre.' || substr(r, 6) || '_password'));
+    IF EXISTS (
+      SELECT 1 FROM pg_roles
+      WHERE rolname = r AND (rolsuper OR rolcreatedb OR rolcreaterole OR rolreplication OR rolbypassrls)
+    ) THEN
+      RAISE EXCEPTION 'role % has an attribute it must not have (superuser, createdb, createrole, replication or bypassrls)', r;
+    END IF;
   END LOOP;
+  -- ALTER DEFAULT PRIVILEGES FOR ROLE erre_migrator (below) needs the admin to be a member of erre_migrator; a
+  -- superuser already is, a CREATEROLE admin (Postgres 16+) only has ADMIN OPTION on the roles it created.
+  IF NOT pg_has_role(current_user, 'erre_migrator', 'USAGE') THEN
+    EXECUTE format('GRANT erre_migrator TO %I', current_user);
+  END IF;
   EXECUTE format('GRANT CONNECT ON DATABASE %I TO erre_migrator, erre_app, erre_jobs', current_database());
 END
 $$;
