@@ -407,3 +407,13 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - A API vai para produção como imagem com um único arquivo JavaScript (`apps/api/Dockerfile`). As migrations rodam numa imagem separada (`--target migrate`), como `erre_migrator`, antes da API nova. O workflow `api-image.yml` só constrói e testa quando a API ou suas dependências mudam. O deploy em si espera P-010.
 **Motivo:** a biblioteca fazia o RSA em BigInt de JavaScript: ~350 ms de CPU por token, com o event loop travado. No OpenSSL leva ~1 ms, com resultado idêntico (testado contra a biblioteca e o vetor A.1). Imagem sem `node_modules` e sem código-fonte é menor e expõe menos. Migrations num passo à parte mantêm a API sem permissão de alterar o schema. Medições em `docs/desempenho.md`, passos em `docs/deploy.md`.
 
+
+### D-052 — Template de módulo e contrato v1 `[contrato]`
+**Data:** 2026-10-27 · **Status:** aceita (Sprint 20)
+**Decisão:**
+- **`pnpm create-module <id> [--nome] [--anon]`** (`tools/create-module`) gera o módulo a partir de `template/` e o registra na API, no app, nos `package.json` e no `.env.example`. O módulo gerado já tem manifesto, uma tabela com migration, rotas com permissão e Zod, LGPD, seção no hub, tela com os estados do DESIGN §9.15 e testes de contrato, matriz de permissões, isolamento e da UI.
+- **O CI gera um módulo a cada push** e roda Prettier, lint, typecheck e os testes dele, da API e do app: o template não pode ficar para trás quando o contrato mudar.
+- **Contrato:** `callModule` e `ModuleApiError` em `@erre/core/client` (o Errômetro e Eventos tinham cópias idênticas de `ok()` e de uma classe de erro; continuam com os nomes antigos por reexportação). `fakeModuleHost` em `apps/mobile/test/helpers` para os testes de tela.
+- **Pasta `tools/`** no workspace para ferramentas de desenvolvimento: o lint de fronteiras não deixa um pacote compartilhado (`packages/*`) importar o core, e o gerador valida o id com `manifestProblems`.
+- `docs/CONTRATO.md` vira v1, com o histórico das decisões `[contrato]`; `docs/criando-um-modulo.md` e `docs/guia-pr-e-migrations.md` são o caminho de quem chega no hackathon.
+**Motivo:** o contrato é o produto (AGENTS.md). Tudo que os dois módulos reais copiaram um do outro vira código do core ou do template, e um template testado no CI é o que garante que "seguir só o gerador e a documentação" continua funcionando.

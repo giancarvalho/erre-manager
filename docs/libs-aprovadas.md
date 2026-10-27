@@ -4,13 +4,16 @@ Toda biblioteca nova entra aqui antes de ser usada (AGENTS.md, regra 10). Biblio
 
 Legenda: ✅ verificado · ⏳ verificado só por build/export (falta aparelho) · — não se aplica.
 
+**Revisado no Sprint 20** contra os `package.json` do repositório: toda dependência externa está listada abaixo. Para um módulo do hackathon, o que já está aqui pode ser usado sem pedir; biblioteca nova segue a regra 10 do `AGENTS.md` (testar nas três plataformas e registrar aqui no mesmo PR).
+
 ## App (Expo)
 
 | Biblioteca | Versão | Android | iOS | Web | Motivo | Verificado em |
 |---|---|---|---|---|---|---|
 | `expo` (SDK) + `expo-router` | 58 | ⏳ | ⏳ | ✅ | Base do app (D-001, D-032) | Sprint 2: export das três plataformas, web testada no navegador |
 | `react-native` / `react` | 0.88 / 19.3 | ⏳ | ⏳ | ✅ | Fixadas pelo SDK 58 | Sprint 2 |
-| `react-native-web` | 0.21 | — | — | ✅ | Web/PWA | Sprint 2 |
+| `react-native-web` + `react-dom` | 0.21 / 19.3 | — | — | ✅ | Web/PWA | Sprint 2 |
+| `react-native-screens`, `react-native-worklets` | 4.30 / 0.13 | ⏳ | ⏳ | ✅ | Exigidas pelo Expo Router e pelo Reanimated 4 (versões fixadas pelo SDK) | Sprint 3: `expo-doctor` 20/20 |
 | `react-native-reanimated` | 4.7 | ⏳ | ⏳ | ✅ | Animações (brilho, pop) | Sprint 2: anel pulsante na web |
 | `react-native-safe-area-context` | 5.10 | ⏳ | ⏳ | ✅ | Safe areas | Sprint 2 |
 | `expo-status-bar` | 58 | ⏳ | ⏳ | — | Barra de status por tema | Sprint 2 |
@@ -55,10 +58,12 @@ Legenda: ✅ verificado · ⏳ verificado só por build/export (falta aparelho) 
 |---|---|---|
 | `typescript` | 6.0 | Não usar 7 enquanto `typescript-eslint` exigir `<6.1` (D-032) |
 | `vitest` | 5.0 | Testes unitários e de integração |
-| `tsx` | 4.23 | `dev` da API com recarga |
-| `esbuild` | 0.28 | Empacota a API para produção (inclui `@erre/*`, deixa as libs de fora) |
+| `tsx` | 4.23 | `dev` da API com recarga e scripts (`db:*`, `seed:dev`, `create-module`) |
+| `esbuild` | 0.28 | Empacota a API e o CLI de migrations para produção num arquivo cada, com as libs dentro (a imagem roda sem `node_modules`, D-051) |
 | `@babel/cli`, `@babel/core`, `@babel/preset-env` | 7.28 | Verificação manual do cliente da assinatura cega no Hermes (`prototypes/anon-vote` e `packages/anon-vote/hermes`) |
 | `eslint` + `typescript-eslint` + `eslint-plugin-react-hooks` | 9.39 / 8 / 7 | Lint. ESLint 9 e não 10: o plugin de hooks ainda não declara suporte ao 10 (D-034) |
+| `@eslint/js`, `globals` | 9.39 / 17.13 | Regras e globais base da configuração de lint (`packages/config`) |
+| `@types/node`, `@types/react`, `@types/pg`, `@types/jest`, `@types/web-push` | — | Tipos para o TypeScript |
 | `prettier` | 3.9 | Formatação |
 | `turbo` | 2.11 | Orquestra tarefas e cache no monorepo |
 | `jest` + `jest-expo` + `@testing-library/react-native` | 30 / 58 / 14 | Testes unitários do app com o preset do SDK |
