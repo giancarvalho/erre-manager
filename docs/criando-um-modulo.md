@@ -15,6 +15,8 @@ pnpm --filter @erre/db db:bootstrap
 pnpm check                                             # tudo verde antes de mexer
 ```
 
+Para rodar os testes, basta o Postgres e `DATABASE_ADMIN_URL`: cada execução cria e apaga um banco descartável. O `DATABASE_MIGRATOR_URL` e o `db:bootstrap` só são necessários para ver o módulo funcionando no seu banco local (passo 2).
+
 Escolha o **id** do módulo: letras minúsculas e números, começando por letra (`avisos`, `enquete`, `caronas`). Ele vira o nome da pasta, o prefixo das tabelas (`avisos_...`), das permissões (`avisos.ver`) e o caminho da API (`/v1/avisos`). Nomes reservados: `core`, `auth`, `me`, `communities`, `invites`, `modules`, `internal`, `profile`, `health`, `test`, `db`.
 
 ## 1. Gerar
@@ -78,9 +80,11 @@ Erros com `errors.forbidden()`, `errors.notFound('...')`, `errors.conflict(...)`
 
 Permissão nova vai no `manifest.ts` (`{ id: 'avisos.publicar', defaultRoles: ['owner', 'admin'] }`) e ganha um caso na matriz de `tests/integration/permissions.test.ts`. Rota nova sempre ganha um caso na matriz.
 
-Notificação: declare o tipo no manifesto (`notifications: [{ id: 'avisos.novo', label: 'Aviso novo', defaultEnabled: true }]`) e chame `ctx.notify({ userIds, type: 'avisos.novo', title, body, route: '/avisos' })`. Ela só sai depois do commit e respeita as preferências de cada pessoa.
+Notificação: declare o tipo no manifesto (`notifications: [{ id: 'avisos.novo', label: 'Aviso novo', defaultEnabled: true }]`) e chame `ctx.notify({ userIds, type: 'avisos.novo', title, body, route: '/avisos' })`. Ela só sai depois do commit e respeita as preferências de cada pessoa; o core acrescenta a comunidade à rota, para o toque abrir a comunidade certa. Para escolher os destinatários, `ctx.members.list()` devolve os membros aprovados (`{ userId, displayName, avatarVariant, role }`); em geral, tire quem fez a ação. No teste, `h.pushesAfter(() => ...)` devolve o que foi enviado (veja `modules/avisos/tests/integration/avisos.test.ts`).
 
 Dados pessoais: atualize `api/server/privacy.ts` para cada tabela nova que guarda algo de uma pessoa (o que exportar, o que apagar).
+
+Listas que crescem sem parar (avisos, comentários) precisam de limite. A v1 ainda não tem um padrão de paginação no contrato: use `limit` e um cursor por data (`?antes=<createdAt>`) e conte no PR com `[contrato]`.
 
 ## 5. Fazer as telas
 
@@ -137,6 +141,7 @@ Siga o [`guia-pr-e-migrations.md`](guia-pr-e-migrations.md): CI verde, checklist
 | Dúvida | Exemplo |
 |---|---|
 | Tabela filha, ciclo de vida (rascunho → ao vivo → fechado), job agendado | `modules/eventos` |
+| Módulo simples feito só com o gerador e este guia: autor, push, LGPD | `modules/avisos` |
 | Notificação, seção de perfil, intenção no convite (`joinIntents`) | `modules/errometro`, `modules/_contrato-teste` |
 | Voto anônimo de ponta a ponta | `modules/errometro/api/anon`, `modules/errometro/ui/anon.ts` |
 | Tudo o que o contrato oferece | [`CONTRATO.md`](CONTRATO.md) |

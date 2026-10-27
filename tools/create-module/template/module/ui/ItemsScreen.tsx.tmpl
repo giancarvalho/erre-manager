@@ -46,7 +46,9 @@ export function ItemsScreen() {
         </View>
       </Screen>
     );
-  if (items.isError) return <ErrorState message={items.error.message} onRetry={() => void items.refetch()} />;
+  if (items.isError) return (
+      <ErrorState message={items.error.message} onRetry={() => void items.refetch()} onBack={host.back} />
+    );
 
   const { canManage } = items.data;
   return (

@@ -392,7 +392,12 @@ describe('notify from a module', () => {
       200,
     );
     await on.runtime.notifier.idle();
-    expect(webSent).toEqual([{ endpoint: `https://push.example.com/membro-${fx.communityId}`, url: '/contratoteste' }]);
+    expect(webSent).toEqual([
+      {
+        endpoint: `https://push.example.com/membro-${fx.communityId}`,
+        url: `/contratoteste?comunidade=${fx.communityId}`,
+      },
+    ]);
   });
 
   it('preferences list the types of enabled modules only', async () => {

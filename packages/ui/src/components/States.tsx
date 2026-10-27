@@ -15,8 +15,19 @@ export function LoadingState({ label = 'Carregando…' }: { label?: string }) {
   );
 }
 
-/** What happened in plain words + "Tentar de novo" (DESIGN §9.15). */
-export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
+/**
+ * What happened in plain words + "Tentar de novo" (DESIGN §9.15). `onBack` adds "← Início", so a screen that failed
+ * to load is never a dead end.
+ */
+export function ErrorState({
+  message,
+  onRetry,
+  onBack,
+}: {
+  message: string;
+  onRetry?: () => void;
+  onBack?: () => void;
+}) {
   const { colors } = useTheme();
   return (
     <View style={[styles.center, { backgroundColor: colors.bg.canvas }]}>
@@ -24,6 +35,7 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
         {message}
       </Text>
       {onRetry ? <Button label="Tentar de novo" onPress={onRetry} /> : null}
+      {onBack ? <Button label="← Início" variant="ghost" onPress={onBack} /> : null}
     </View>
   );
 }

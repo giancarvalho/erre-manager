@@ -36,7 +36,7 @@ Leia antes: [`AGENTS.md`](../../AGENTS.md), [`ARQUITETURA.md`](ARQUITETURA.md), 
 | 17 | Eventos UI | G | 10, 16 | **sim** | concluído na web (revisão humana assíncrona, D-029; aparelho pendente) |
 | 18 | Perfil, troféus, página de membro, preferências e PWA | M | 15, 17 | não | concluído na web (P-003 e P-008 provisórios; links universais dependem do domínio) |
 | 19 | Segurança, LGPD, deploy e paridade final | G | 18 | **sim** | concluído no que não depende de P-010 (deploy e staging esperam a hospedagem; revisão final de paridade com o humano) |
-| 20 | Template de módulo e preparação do hackathon | M | 19 | **sim** | pendente |
+| 20 | Template de módulo e preparação do hackathon | M | 19 | **sim** | concluído (revisão humana assíncrona, D-029; pendências no relatório) |
 
 ### Trilhas paralelas
 

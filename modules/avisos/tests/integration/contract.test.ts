@@ -1,0 +1,30 @@
+// The module follows the contract: valid manifest, table names with the module prefix, schema = migrations,
+// indexes starting with community_id. Keep this file as it is.
+import { moduleProblems } from '@erre/core/server';
+import { tablePrefixProblems } from '@erre/core/testing';
+import { getTableConfig } from '@erre/db/pg-core';
+import { indexProblems, schemaDifferences } from '@erre/db/testing';
+import { describe, expect, inject, it } from 'vitest';
+
+import moduleApi from '../../api';
+import { tables } from '../../db/schema';
+import manifest from '../../manifest';
+
+describe('avisos module contract', () => {
+  it('passes the boot validation', () => {
+    expect(moduleProblems([moduleApi])).toEqual([]);
+  });
+
+  it('every table has the module prefix', () => {
+    expect(tablePrefixProblems(manifest, tables)).toEqual([]);
+  });
+
+  it('the Drizzle schema matches the migrations', async () => {
+    expect(await schemaDifferences(inject('db').admin, tables)).toEqual([]);
+  });
+
+  it('indexes start with community_id', async () => {
+    const names = tables.map((t) => getTableConfig(t).name);
+    expect(await indexProblems(inject('db').admin, { tables: names })).toEqual([]);
+  });
+});

@@ -19,6 +19,7 @@
   "dependencies": {
     "@babel/runtime": "7.29.10",
     "@better-auth/expo": "1.7.7",
+    "@erre/avisos": "workspace:*",
     "@erre/core": "workspace:*",
     "@erre/errometro": "workspace:*",
     "@erre/eventos": "workspace:*",

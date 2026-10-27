@@ -417,3 +417,15 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - **Pasta `tools/`** no workspace para ferramentas de desenvolvimento: o lint de fronteiras não deixa um pacote compartilhado (`packages/*`) importar o core, e o gerador valida o id com `manifestProblems`.
 - `docs/CONTRATO.md` vira v1, com o histórico das decisões `[contrato]`; `docs/criando-um-modulo.md` e `docs/guia-pr-e-migrations.md` são o caminho de quem chega no hackathon.
 **Motivo:** o contrato é o produto (AGENTS.md). Tudo que os dois módulos reais copiaram um do outro vira código do core ou do template, e um template testado no CI é o que garante que "seguir só o gerador e a documentação" continua funcionando.
+
+### D-053 — O que o módulo `avisos` mudou no contrato `[contrato]`
+**Data:** 2026-10-27 · **Status:** aceita (Sprint 20)
+**Decisão:**
+- **`notify()` põe a comunidade na rota:** o core acrescenta `?comunidade=<id>` (se a rota ainda não tiver) em rotas e jobs. Antes, cada módulo precisava saber essa convenção do app; o primeiro módulo feito só pela documentação errou isso.
+- **`pushesAfter(action)`** no harness de teste (antes cada módulo copiava o helper).
+- **`ErrorState` com `onBack`**, usado pelo template: uma tela de módulo que falhou ao carregar não fica sem saída. **`TextField` com `multiline`** ganha altura e padding de texto longo (DESIGN §9.2, proposta).
+- **Gerador:** acrescenta `/<id>/*` aos caminhos que abrem o app nativo; `domain/index.ts` como entrada de `@erre/<id>/domain`.
+- **Documentação:** forma de `ctx.members`, nome da comunidade, raiz `''` da API, ajudantes de teste (fixture, LGPD, saída de membro), paginação ainda sem padrão.
+- **Sem padrão de paginação nem estado "sem conexão" no app** por ora: ficam registrados no relatório do Sprint 20 como pendências do core.
+**Motivo:** cada item veio de uma dificuldade registrada pelo agente que criou o `avisos` sem contexto prévio (`relatorios/sprint-20-avisos-dificuldades.md`). O que dava para resolver no core ou no template foi resolvido para os próximos módulos não tropeçarem no mesmo lugar.
+

@@ -35,7 +35,7 @@ import { defineManifest } from '@erre/core/manifest';
 export default defineManifest({
   id: 'errometro',                 // letras minúsculas e números; nomes reservados: core, auth, me, communities, ...
   name: 'Errômetro',
-  icon: 'heart',
+  icon: 'heart',                  // texto livre; ainda não aparece no app (reservado para o menu)
   permissions: [{ id: 'errometro.votar', defaultRoles: ['owner', 'admin', 'moderador', 'membro'] }],
   menu: [{ label: 'Errômetro', route: '/errometro' }],
   notifications: [{ id: 'errometro.resultado_pronto', label: 'Resultado liberado', defaultEnabled: true }],
@@ -74,15 +74,15 @@ export default defineModuleApi(manifest, { api, anon, jobs, profileSections, onJ
 | Campo | O que é |
 |---|---|
 | `user` | `{ id, displayName }` de quem chamou |
-| `community` | `{ id, slug, name, createdAt }` validada pelo core (header `X-Community-Id` + membership aprovada). `createdAt` ancora o primeiro período de um módulo (D-043) |
+| `community` | `{ id, slug, name, createdAt }` validada pelo core (header `X-Community-Id` + membership aprovada). Na v1, `name` só tem letras minúsculas, números e hífens (como os grupos do legado) e é o que se mostra às pessoas. `createdAt` ancora o primeiro período de um módulo (D-043) |
 | `can(permission)` | papel da pessoa na comunidade tem a permissão? |
 | `tx` | transação Drizzle com RLS da comunidade; commit no sucesso, rollback se a rota lançar erro ou responder status ≥ 400 |
-| `notify(input)` | `{ userIds, type, title, body, route? }`; `type` declarado no manifesto. Enviado **depois do commit**, só a quem não desligou o tipo; no-op com o módulo ou o push desligado |
-| `members` | `list()`, `get(userId)`, `isApprovedMember(userId)`: membros aprovados com nome e avatar |
+| `notify(input)` | `{ userIds, type, title, body, route? }`; `type` declarado no manifesto. Enviado **depois do commit**, só a quem não desligou o tipo; no-op com o módulo ou o push desligado. Passe a rota simples (`'/avisos'`): o core acrescenta `?comunidade=<id>` para o push abrir na comunidade certa (D-053) |
+| `members` | `list()`, `get(userId)`, `isApprovedMember(userId)`: membros aprovados, cada um `{ userId, displayName, avatarVariant, role }`. Quem saiu ou foi removido não aparece: mostre "Ex-membro" para um id que não está na lista |
 
 Nada além disso. Precisou de mais? Registre `[contrato]` em `DECISOES.md` e proponha.
 
-- Montagem: `/v1/<id>/*`; a rota `'/'` do módulo responde em `/v1/<id>`, **sem barra no fim** (o roteamento é estrito). Sem sessão: 401. Sem comunidade válida: 403. Módulo desligado: 404 `MODULE_DISABLED`.
+- Montagem: `/v1/<id>/*`; a raiz do módulo se declara como `.get('', ...)` e responde em `/v1/<id>`, **sem barra no fim** (o roteamento é estrito; `.get('/', ...)` responderia só em `/v1/<id>/`). Sem sessão: 401. Sem comunidade válida: 403. Módulo desligado: 404 `MODULE_DISABLED`.
 - Erros: lance `AppError` (`errors.validation`, `forbidden`, `notFound`, `conflict`, `rule`). Entrada sempre validada com `validate('json' | 'query' | 'param', schema)`.
 
 ### 4.2 Rotas anônimas (`anon`) `[contrato]`
@@ -142,7 +142,14 @@ export default defineModuleUi(manifest, { hubSection: HubSection, profileSection
 
 ## 7. Testes do módulo
 
-- `@erre/core/testing`: `createModuleHarness({ urls, modules })` monta o core e o runtime sobre o banco de teste, sem `apps/api` (rotas autenticadas, anônimas e jobs com `runtime.runJob(id, now)`; `log` opcional para conferir o que é logado; `recordPush: true` grava os pushes em `pushes`, e `subscribe(user)` registra um aparelho falso). Também `installFakeGoogle`, `createTestUser`, `addMember`, `createRoleFixture` (uma pessoa por papel + pendente + de fora), `permissionMatrix`, `tablePrefixProblems`.
+- `@erre/core/testing`: `createModuleHarness({ urls, modules })` monta o core e o runtime sobre o banco de teste, sem `apps/api`:
+  - `h.req(user | null, método, caminho, { community, body, headers })` chama a API como a pessoa (`null`: sem sessão);
+  - `h.fixture(nome?)` cria uma comunidade com uma pessoa por papel, uma pendente e uma de fora (`fx.users.owner`, ..., `fx.users.outsider`); o nome segue a regra de nome de comunidade (minúsculas, números e hífens);
+  - `recordPush: true` grava os pushes; `h.subscribe(user)` registra um aparelho falso da pessoa e `h.pushesAfter(() => ...)` devolve os pushes que a ação mandou;
+  - `adminSecret: '...'` liga a exclusão LGPD: teste `data.export`/`data.delete` com `GET /v1/me/export` e `POST /v1/internal/users/:id/delete` (`Authorization: Bearer <segredo>`);
+  - saída de membro (para testar `onMemberLeft`): ``h.req(user, 'POST', `/v1/communities/${id}/leave`, { community: id })``;
+  - jobs com `h.runtime.runJob(id, now)`; `log` opcional para conferir o que é logado.
+- Também em `@erre/core/testing`: `installFakeGoogle`, `createTestUser`, `addMember`, `createRoleFixture` (uma pessoa por papel + pendente + de fora), `permissionMatrix`, `tablePrefixProblems`.
 - Banco de teste: um `globalSetup` com `createTestDatabase({ root })` (as migrations do módulo entram sozinhas). Exemplo em `modules/errometro/tests/integration/`.
 - `@erre/db/testing`: `createTestDatabase({ root, extraSources })`, `schemaDifferences`, `indexProblems` (índice de tabela de comunidade que não começa por `community_id`).
 - `moduleProblems([moduleApi])` deve ser `[]`.
@@ -168,5 +175,6 @@ export default defineModuleUi(manifest, { hubSection: HubSection, profileSection
 | D-049 | `ModuleHost.openMember(userId)` | §5 |
 | D-050 | `data: { export, delete }` (LGPD); limites de requisição no runtime | §4.6 |
 | D-052 | `callModule`/`ModuleApiError` no `@erre/core/client`; gerador e template testado no CI | §5, §7 |
+| D-053 | `notify()` acrescenta `?comunidade=<id>` à rota; `pushesAfter` no harness; `ErrorState` com `onBack`; contrato documentado onde o módulo `avisos` travou | §4.1, §7 |
 
 D-006 (grupos no core) foi substituída por D-026 e não vale mais.

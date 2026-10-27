@@ -25,6 +25,7 @@ Formato: ID, sprint que bloqueia, contexto, opções, recomendação. Quando res
 | P-019 | Sprint 18 | aberta |
 | P-020 | plano de dados (D-016) | aberta |
 | P-021 | plano de dados (D-016) | aberta |
+| P-022 | — (módulo `avisos`, Sprint 20) | decidida provisoriamente (A), confirmar |
 
 ---
 
@@ -169,4 +170,10 @@ Também: manter ou não um limite de membros por comunidade (no legado, 300 por 
 - **A. Migrar as duas como estão** e só vincular o Google à conta Google. Prós: simples e sem risco. Contras: a conta antiga fica órfã ou depende de P-020.
 - **B. Fundir numa só no ETL** (memberships, participações, troféus, comentários e alvos de votos da conta antiga passam para a conta Google). Contras: precisa de uma lista confirmada pelas pessoas; numa mesma rodada as duas contas podem ter sido alvo, e a fusão soma votos que o resultado fechado não somou.
 **Recomendação:** A, levantando os casos numa cópia do banco (mesmo `display_username` em contas de tipos diferentes) para o humano decidir um a um.
+
+### P-022 — Texto que a pessoa escreveu para a comunidade: apagar na exclusão?
+**Contexto:** na exclusão LGPD, o Errômetro apaga os comentários da pessoa, e Eventos mantém os eventos que ela criou (sem autor). No módulo `avisos` (Sprint 20), um aviso é texto livre da pessoa, mas escrito para a comunidade inteira. O `docs/lgpd.md` não diz qual regra vale para conteúdo assim.
+- **A. Apagar** (como os comentários). Prós: texto livre é dado pessoal; regra simples para os módulos. Contras: a comunidade perde o aviso.
+- **B. Manter sem autor** (como os eventos). Prós: o mural não perde história. Contras: o texto pode identificar a pessoa.
+**Recomendação:** A como regra geral para texto livre, com B só para estruturas da comunidade (eventos, configurações). Implementado A no `avisos`, provisório.
 

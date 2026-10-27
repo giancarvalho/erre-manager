@@ -75,6 +75,19 @@ class Rollback extends Error {}
 /** Headers an anonymous route may see. Cookies, Authorization and client IP never reach it (D-010). */
 const ANON_HEADERS = ['content-type', 'accept', 'accept-language'];
 
+/**
+ * The route a push opens, in the community it came from: the app switches to `?comunidade=<id>` before opening it
+ * (apps/mobile/src/app/(app)/_layout.tsx), so a person in several communities lands in the right one. Modules
+ * pass the plain route (Sprint 20, [contrato]); a route that already names the community is kept.
+ */
+export function routeInCommunity(route: string, communityId: string): string {
+  const [path = '/', query = ''] = route.split('?', 2);
+  const params = new URLSearchParams(query);
+  if (params.has('comunidade')) return route;
+  params.set('comunidade', communityId);
+  return `${path}?${params.toString()}`;
+}
+
 export function createModuleRuntime(deps: ModuleRuntimeDeps) {
   const { db, jobsDb, auth, modules, enabled, log } = deps;
   const problems = moduleProblems(modules);
@@ -105,12 +118,13 @@ export function createModuleRuntime(deps: ModuleRuntimeDeps) {
    * notify() for one transaction: collects messages and hands them to the notifier after commit. A no-op
    * for disabled modules (ARQUITETURA §5.4); the type's prefix names the module.
    */
-  function collector(): { notify: Notify; pending: NotifyInput[] } {
+  function collector(communityId: string): { notify: Notify; pending: NotifyInput[] } {
     const pending: NotifyInput[] = [];
     return {
       pending,
       notify: async (input) => {
-        if (isEnabled(input.type.split('.')[0] ?? '')) pending.push(input);
+        if (!isEnabled(input.type.split('.')[0] ?? '')) return;
+        pending.push({ ...input, route: routeInCommunity(input.route ?? '/', communityId) });
       },
     };
   }
@@ -144,7 +158,7 @@ export function createModuleRuntime(deps: ModuleRuntimeDeps) {
 
   async function buildContext(v: CommunityEnv['Variables']): Promise<ModuleContext> {
     const { tx, community: cc, user, can, afterCommit } = v;
-    const { notify, pending } = collector();
+    const { notify, pending } = collector(cc.id);
     afterCommit(() => notifier.dispatch(pending));
     const [row] = await tx
       .select({ slug: communities.slug, name: communities.name, createdAt: communities.createdAt })
@@ -283,7 +297,7 @@ export function createModuleRuntime(deps: ModuleRuntimeDeps) {
         for (const community of list) {
           const { id } = community;
           try {
-            const { notify, pending } = collector();
+            const { notify, pending } = collector(id);
             await withTenantTx(db, { communityId: id, userId: null }, (tx) =>
               job.run({ community, tx, notify, members: createMembersApi(tx, id), now }),
             );

@@ -16,6 +16,7 @@ export type TextFieldProps = Omit<TextInputProps, 'style' | 'placeholderTextColo
 
 /** Overline label above, help or error below (DESIGN §9.2). */
 export function TextField({ label, help, error, onFocus, onBlur, ...input }: TextFieldProps) {
+  // Long text (DESIGN §9.2): grows with the content from about four lines, text starting at the top.
   const { colors, name } = useTheme();
   const [focused, setFocused] = useState(false);
   const id = useId();
@@ -48,6 +49,7 @@ export function TextField({ label, help, error, onFocus, onBlur, ...input }: Tex
           type.body,
           { fontFamily: fonts['400'] },
           styles.input,
+          input.multiline && styles.multiline,
           { backgroundColor: colors.bg.input, borderColor, color: colors.text.primary },
           focused && { outlineColor: colors.border.focus, outlineWidth: 1, outlineStyle: 'solid' },
         ]}
@@ -68,4 +70,5 @@ export function TextField({ label, help, error, onFocus, onBlur, ...input }: Tex
 const styles = StyleSheet.create({
   wrap: { gap: space[1.5] },
   input: { minHeight: layout.minTouch, borderWidth: 1, borderRadius: radius.lg, paddingHorizontal: space[4] },
+  multiline: { minHeight: layout.minTouch * 2, paddingVertical: space[3], textAlignVertical: 'top' },
 });

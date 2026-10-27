@@ -7,7 +7,7 @@ const IOS_BUNDLE = app.expo.ios.bundleIdentifier;
 const ANDROID_PACKAGE = app.expo.android.package;
 
 /** Paths the native app opens instead of the browser: invites and every in-app route. */
-const APP_PATHS = ['/convite/*', '/errometro/*', '/eventos/*', '/comunidade/*', '/'];
+const APP_PATHS = ['/convite/*', '/errometro/*', '/eventos/*', '/avisos/*', '/comunidade/*', '/'];
 
 /** og:image (and og:url) absolute: WhatsApp and most crawlers ignore relative URLs. */
 export function absolutizeShareTags(html: string, webUrl: string): string {

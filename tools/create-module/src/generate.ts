@@ -1,5 +1,5 @@
 // Module generator (PLANO Sprint 20, task 1). Copies template/ with the placeholders replaced and registers the
-// module in the API, the app and .env.example. Pure file operations over a root folder, so tests can run it on a
+// module in the API, the app, its app links and .env.example. Pure file operations over a root folder, so tests can run it on a
 // copy of the workspace.
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -115,6 +115,15 @@ export function addDependency(packageJson: string, id: string): string {
   return `${JSON.stringify(pkg, null, 2)}\n`;
 }
 
+/** Adds '/<id>/*' to the paths the native app opens instead of the browser (universal links / app links). */
+export function addAppPath(source: string, id: string): string {
+  return source.replace(/^(const APP_PATHS = \[)([^\]]*)(\];)$/m, (_m, a, list: string, b) =>
+    list.includes(`'/${id}/*'`)
+      ? `${a}${list}${b}`
+      : `${a}${list.replace("'/comunidade/*'", `'/${id}/*', '/comunidade/*'`)}${b}`,
+  );
+}
+
 /** Adds the id to the example list of MODULES_ENABLED in the comment above it. */
 export function addToEnvExample(env: string, id: string): string {
   return env.replace(/^(# Modules turned on, comma separated \(e\.g\. )([a-z0-9,]+)(\))$/m, (_m, a, list, b) =>
@@ -154,5 +163,6 @@ export function generate(root: string, options: GenerateOptions): GenerateResult
   edit('apps/api/package.json', (s) => addDependency(s, opts.id));
   edit('apps/mobile/package.json', (s) => addDependency(s, opts.id));
   edit('apps/api/.env.example', (s) => addToEnvExample(s, opts.id));
+  edit('apps/mobile/src/web/well-known.ts', (s) => addAppPath(s, opts.id));
   return { created, changed };
 }

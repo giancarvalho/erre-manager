@@ -41,6 +41,10 @@ function fakeRoot(): string {
   write('apps/api/package.json', PKG('@erre/api'));
   write('apps/mobile/package.json', PKG('@erre/mobile'));
   write('apps/api/.env.example', '# Modules turned on, comma separated (e.g. errometro,eventos)\nMODULES_ENABLED=\n');
+  write(
+    'apps/mobile/src/web/well-known.ts',
+    "const APP_PATHS = ['/convite/*', '/errometro/*', '/comunidade/*', '/'];\n",
+  );
   mkdirSync(path.join(root, 'modules/eventos'), { recursive: true });
   return root;
 }
@@ -73,6 +77,7 @@ describe('generate', () => {
       'apps/api/src/modules.ts',
       'apps/mobile/package.json',
       'apps/mobile/src/modules.ts',
+      'apps/mobile/src/web/well-known.ts',
     ]);
 
     // Every placeholder is gone, and the name and type names went in.
@@ -95,6 +100,9 @@ describe('generate', () => {
       hono: '4.13.13',
     });
     expect(read('apps/api/.env.example')).toContain('(e.g. errometro,eventos,avisos)');
+    expect(read('apps/mobile/src/web/well-known.ts')).toContain(
+      "['/convite/*', '/errometro/*', '/avisos/*', '/comunidade/*', '/']",
+    );
   });
 
   it('with --anon, adds the anonymous route and its test', () => {

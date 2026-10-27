@@ -33,6 +33,11 @@ export type ModuleHarness = {
   pushes: RecordedPush[];
   /** Registers a fake Web Push device for the person, so notify() reaches them (with `recordPush`). */
   subscribe: (user: TestUser) => Promise<void>;
+  /**
+   * Runs `action` and returns the pushes it sent (with `recordPush` and a `subscribe`d device per person). Waits
+   * for the notifier, which sends after the commit.
+   */
+  pushesAfter: (action: () => Promise<unknown>) => Promise<RecordedPush[]>;
   close: () => Promise<void>;
 };
 
@@ -136,6 +141,13 @@ export function createModuleHarness({
     runtime,
     req,
     pushes,
+    async pushesAfter(action) {
+      await runtime.notifier.idle();
+      const before = pushes.length;
+      await action();
+      await runtime.notifier.idle();
+      return pushes.slice(before);
+    },
     async subscribe(user) {
       const endpoint = `https://push.example.com/${user.id}`;
       endpointOwner.set(endpoint, user.id);

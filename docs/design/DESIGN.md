@@ -295,6 +295,7 @@ Todos vivem em `packages/ui`. Cada componente tem: estados padrão, pressionado,
 - Foco: borda `border.focus` e anel de 1 px.
 - Erro: borda `danger.text`, mensagem abaixo em `caption` `danger.text`, shake + háptico de erro. A mensagem diz o que fazer ("Use só letras minúsculas, números e hífens.").
 - Ajuda: abaixo do campo em `caption` `text.muted`.
+- Texto longo (proposto no Sprint 20): `multiline`, altura mínima 96, padding vertical 12, texto a partir do topo; cresce com o conteúdo. Mostre o limite de caracteres na ajuda quando ele for curto.
 - Validação ao sair do campo ou ao enviar, não a cada tecla (exceto disponibilidade de nome, com debounce e estado "Verificando…").
 - Teclado certo para cada campo (`autoCapitalize="none"` em username e slug, `textContentType`, `autoComplete`), e "próximo campo" no botão de retorno.
 
@@ -371,7 +372,7 @@ Toda tela que carrega dados tem os quatro estados desenhados:
 |---|---|
 | Carregando | esqueleto com a forma do conteúdo (`bg.control`, pulso de opacidade 1,2 s); spinner só se a espera for imprevisível e curta |
 | Vazio | ícone ou emoji grande, uma frase do que é isso, uma ação para sair do vazio ("Nenhum evento ainda." + "Criar evento") |
-| Erro | o que aconteceu em linguagem simples + "Tentar de novo"; sem códigos técnicos |
+| Erro | o que aconteceu em linguagem simples + "Tentar de novo" e, numa tela de módulo, "← Início" (Sprint 20); sem códigos técnicos |
 | Sem conexão | aviso persistente no topo; ações que precisam de rede ficam desabilitadas com explicação |
 
 ### 9.16 Navegação e cabeçalho
