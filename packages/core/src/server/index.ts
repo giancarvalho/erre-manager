@@ -42,7 +42,13 @@ export {
   type NotifyInput,
   type ProfileSection,
 } from './modules/define';
-export { createModuleRuntime, type ModuleRuntime, type ModuleRuntimeDeps } from './modules/runtime';
+export {
+  createModuleRuntime,
+  DEFAULT_MODULE_RATE_LIMITS,
+  type ModuleRateLimits,
+  type ModuleRuntime,
+  type ModuleRuntimeDeps,
+} from './modules/runtime';
 export { moduleProblems, parseEnabledModules } from './modules/validate';
 export { defineManifest, type ModuleManifest } from '../shared/manifest';
 export {
@@ -57,3 +63,4 @@ export {
   type WebPushSubscription,
   type WebPushTransport,
 } from './notifications';
+export { createRateLimiter, rateLimit, type RateLimiter, type RateLimitRule } from './rate-limit';

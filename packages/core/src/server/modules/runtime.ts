@@ -1,7 +1,7 @@
 import { timingSafeEqual } from 'node:crypto';
 
 import { communities, eq, isUuid, withTenantTx, type Db, type Tx } from '@erre/db';
-import { Hono, type Context, type Next } from 'hono';
+import { Hono, type Context, type MiddlewareHandler, type Next } from 'hono';
 import { createMiddleware } from 'hono/factory';
 import cron from 'node-cron';
 import { z } from 'zod';
@@ -23,7 +23,8 @@ import {
   type WebPushTransport,
 } from '../notifications';
 import { coreProfiles } from '../schema';
-import { requireSession } from '../session';
+import { createRateLimiter, rateLimit, type RateLimitRule } from '../rate-limit';
+import { requireSession, type SessionEnv } from '../session';
 import { validate } from '../validate';
 import type { AnonEnv, ModuleApi, ModuleContext, ModuleEnv, Notify } from './define';
 import { moduleProblems } from './validate';
@@ -49,6 +50,21 @@ export type ModuleRuntimeDeps = {
     expo?: ExpoTransport | undefined;
     receiptDelayMs?: number;
   };
+  /**
+   * Request limits (Sprint 19): per person on module routes, stricter on token issuance, per community on
+   * anonymous routes (never per IP: they don't know who calls). Defaults below; `false` turns them off (tests).
+   */
+  rateLimits?: Partial<ModuleRateLimits> | false;
+};
+
+export type ModuleRateLimits = { user: RateLimitRule; token: RateLimitRule; anon: RateLimitRule };
+
+export const DEFAULT_MODULE_RATE_LIMITS: ModuleRateLimits = {
+  user: { windowMs: 60_000, max: 300 },
+  // A person needs one token per round or event; retries after an error stay well under this.
+  token: { windowMs: 60_000, max: 10 },
+  // A whole community voting at the same time (50 voters, a few requests each), with room for retries.
+  anon: { windowMs: 60_000, max: 600 },
 };
 
 class Rollback extends Error {}
@@ -110,6 +126,18 @@ export function createModuleRuntime(deps: ModuleRuntimeDeps) {
 
   const session = requireSession(auth);
   const community = requireCommunity(db);
+  const limits = deps.rateLimits === false ? null : { ...DEFAULT_MODULE_RATE_LIMITS, ...deps.rateLimits };
+  const limiter = createRateLimiter();
+  const pass: MiddlewareHandler = async (_c, next) => next();
+  const perUser = limits ? rateLimit<Context<SessionEnv>>(limiter, limits.user, (c) => `user:${c.var.user.id}`) : pass;
+  const perUserToken = limits
+    ? rateLimit<Context<SessionEnv>>(limiter, limits.token, (c) =>
+        /\/token$/.test(c.req.path) && c.req.method === 'POST' ? `token:${c.var.user.id}` : null,
+      )
+    : pass;
+  const perCommunityAnon = limits
+    ? rateLimit(limiter, limits.anon, (c) => `anon:${c.req.param('communityId') ?? ''}`)
+    : pass;
 
   async function buildContext(v: CommunityEnv['Variables']): Promise<ModuleContext> {
     const { tx, community: cc, user, can, afterCommit } = v;
@@ -170,7 +198,7 @@ export function createModuleRuntime(deps: ModuleRuntimeDeps) {
 
     // Anonymous routes run in their own app, on a copy of the request without identifying headers.
     const anonRoot = new Hono()
-      .use(`/v1/${id}/anon/c/:communityId/*`, anonContext)
+      .use(`/v1/${id}/anon/c/:communityId/*`, perCommunityAnon, anonContext)
       // Sub-apps carry their own Env types; the runtime mounts them as plain apps.
       .route(`/v1/${id}/anon/c/:communityId`, (mod.anon ?? new Hono()) as unknown as Hono)
       .notFound((c) => c.json({ code: 'NOT_FOUND', message: 'Rota não encontrada.' }, 404))
@@ -188,7 +216,7 @@ export function createModuleRuntime(deps: ModuleRuntimeDeps) {
 
     if (mod.api) {
       const authed = new Hono<CommunityEnv & ModuleEnv>()
-        .use('*', session, community, moduleContext)
+        .use('*', session, perUser, perUserToken, community, moduleContext)
         .route('/', mod.api as unknown as Hono<CommunityEnv & ModuleEnv>);
       app.route(`/v1/${id}`, authed);
     }

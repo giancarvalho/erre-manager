@@ -6,7 +6,7 @@ import { Hono } from 'hono';
 import { createCoreApi } from './app';
 import { createAuth } from './auth/auth';
 import { errorHandler } from './http';
-import { createModuleRuntime, type ModuleRuntime } from './modules/runtime';
+import { createModuleRuntime, type ModuleRuntime, type ModuleRuntimeDeps } from './modules/runtime';
 import type { ModuleApi } from './modules/define';
 import type { WebPushTransport } from './notifications';
 import { createRoleFixture, installFakeGoogle, type FakeGoogle, type RoleFixture, type TestUser } from './testing';
@@ -49,6 +49,7 @@ export function createModuleHarness({
   cronSecret,
   log = silent,
   recordPush = false,
+  rateLimits = false,
 }: {
   urls: { app: string; jobs: string };
   modules: readonly ModuleApi[];
@@ -58,6 +59,8 @@ export function createModuleHarness({
   log?: HarnessLog;
   /** Turns push on with a fake Web Push transport that records what would be sent. */
   recordPush?: boolean;
+  /** Module request limits (Sprint 19); off unless a test sets them. */
+  rateLimits?: ModuleRuntimeDeps['rateLimits'];
 }): ModuleHarness {
   const pushes: RecordedPush[] = [];
   const endpointOwner = new Map<string, string>();
@@ -87,6 +90,7 @@ export function createModuleHarness({
     cronSecret,
     log,
     push: recordPush ? { enabled: true, webPush } : { enabled: false },
+    rateLimits,
   });
   const core = createCoreApi({
     db,

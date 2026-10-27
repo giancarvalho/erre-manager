@@ -25,6 +25,15 @@ describe('api app', () => {
     expect(await res.json()).toEqual({ status: 'ok' });
   });
 
+  it('sends security headers on every response (Sprint 19)', async () => {
+    const res = await createApp({ logger: memoryLogger().logger }).request('/v1/health');
+    expect(res.headers.get('x-content-type-options')).toBe('nosniff');
+    expect(res.headers.get('x-frame-options')).toBe('DENY');
+    expect(res.headers.get('referrer-policy')).toBe('no-referrer');
+    expect(res.headers.get('strict-transport-security')).toMatch(/max-age=\d+/);
+    expect(res.headers.get('content-security-policy')).toBe("default-src 'none'; frame-ancestors 'none'");
+  });
+
   it('returns 404 in the standard error format', async () => {
     const res = await createApp({ logger: memoryLogger().logger }).request('/nope');
     expect(res.status).toBe(404);

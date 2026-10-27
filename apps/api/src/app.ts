@@ -1,6 +1,7 @@
 import { errorHandler, type CoreApi } from '@erre/core/server';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { secureHeaders } from 'hono/secure-headers';
 import type { Logger } from 'pino';
 
 import { createLogger } from './logger';
@@ -26,6 +27,17 @@ export function createApp({ logger = createLogger(), core, modules, webOrigins =
       'request',
     );
   });
+
+  // nosniff, frame-ancestors none, no referrer to other sites, HSTS (only honored over HTTPS). The API serves JSON
+  // only: no page of its own to embed or to run scripts.
+  app.use(
+    '*',
+    secureHeaders({
+      xFrameOptions: 'DENY',
+      referrerPolicy: 'no-referrer',
+      contentSecurityPolicy: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] },
+    }),
+  );
 
   app.use(
     '/v1/*',

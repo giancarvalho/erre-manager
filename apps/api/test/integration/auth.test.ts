@@ -56,3 +56,41 @@ describe('API with the core mounted', () => {
     expect(bad.headers.get('access-control-allow-origin')).toBeNull();
   });
 });
+
+describe('session cookie in production (HTTPS)', () => {
+  it('is HttpOnly, Secure and SameSite=Lax, with the __Secure- prefix', async () => {
+    const httpsAuth = createAuth({
+      db,
+      baseURL: 'https://api.example.com',
+      secret: 'x'.repeat(40),
+      google: { clientId: 'cid', clientSecret: 'cs' },
+      trustedOrigins: ['https://app.example.com'],
+      rateLimit: { enabled: false },
+    });
+    const httpsApp = createApp({
+      logger: createLogger({ level: 'silent' }),
+      core: createCoreApi({ db, auth: httpsAuth, trustedOrigins: ['https://app.example.com'] }),
+      webOrigins: ['https://app.example.com'],
+    });
+    const start = await httpsApp.request('https://api.example.com/v1/auth/sign-in/social', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', origin: 'https://app.example.com' },
+      body: JSON.stringify({ provider: 'google', callbackURL: 'https://app.example.com/' }),
+    });
+    const state = new URL(((await start.json()) as { url: string }).url).searchParams.get('state') ?? '';
+    const startCookies = start.headers.getSetCookie().map((c) => c.split(';')[0]!);
+    const code = google.codeFor({ sub: `https-${Date.now()}`, email: `https-${Date.now()}@example.com`, name: 'Cia' });
+    const callback = await httpsApp.request(
+      `https://api.example.com/v1/auth/callback/google?code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`,
+      { headers: { cookie: startCookies.join('; ') } },
+    );
+    const session = callback.headers
+      .getSetCookie()
+      .find((c) => c.includes('session_token=') && !c.includes('session_token=;'));
+    expect(session, callback.headers.getSetCookie().join('\n')).toBeDefined();
+    expect(session).toMatch(/^__Secure-erre\.session_token=/);
+    expect(session).toMatch(/; HttpOnly/i);
+    expect(session).toMatch(/; Secure/i);
+    expect(session).toMatch(/; SameSite=Lax/i);
+  });
+});
