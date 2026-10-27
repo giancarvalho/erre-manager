@@ -64,7 +64,7 @@ const api = createModuleApp().get('/rodada', async (c) => {
 });
 export type ErrometroApi = typeof api;         // o app usa com import type (D-009)
 
-export default defineModuleApi(manifest, { api, anon, jobs, profileSections, onJoinApproved, onMemberLeft });
+export default defineModuleApi(manifest, { api, anon, jobs, profileSections, onJoinApproved, onMemberLeft, data });
 ```
 
 ### 4.1 `ModuleContext` (`c.var.ctx`)
@@ -108,6 +108,10 @@ jobs: [{ id: 'errometro.fechar_rodadas', schedule: '*/15 * * * *', run: async (c
 - `onJoinApproved: { '<id>.participar': async ({ tx, communityId, userId, actorId }) => {...} }`: um handler por intenção do manifesto (validado no boot). Roda na transação da aprovação, em savepoint: se falhar, só a parte do módulo é desfeita e a pessoa entra. Regra de negócio que não cabe (ex.: limite de votantes) **não lança erro**: deixe na fila do módulo.
 - `onMemberLeft: async (ctx) => {...}`: rejeição, remoção ou saída. Mesma transação; **se falhar, nada muda** (500). Roda para todo módulo registrado, ligado ou não, para os dados ficarem consistentes se o módulo voltar.
 - Intenções de módulo desligado não aparecem nem são aceitas em convites.
+
+### 4.6 Dados pessoais (LGPD) `[contrato]`
+
+`data: { export: async ({ tx, communityId }, userId) => json | null, delete: async ({ tx, communityId }, userId) => {} }` em `defineModuleApi`. O core chama os dois em cada comunidade da pessoa, na transação dessa comunidade e sem sessão: `export` em `GET /v1/me/export`, `delete` na exclusão feita por quem opera (`POST /v1/internal/users/:id/delete` com `ADMIN_SECRET`). Rode para todo módulo registrado, ligado ou não. Votos anônimos nunca entram. Detalhes em [`docs/lgpd.md`](lgpd.md).
 
 ## 5. App (`ui/index.tsx`)
 

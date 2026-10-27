@@ -78,6 +78,24 @@ export type ModuleApiDefinition = {
   onJoinApproved?: Record<string, (ctx: MemberHookContext) => Promise<void>>;
   /** Called when someone leaves the community, is removed or has the request rejected. */
   onMemberLeft?: (ctx: MemberHookContext) => Promise<void>;
+  /** LGPD (Sprint 19): the person's data in one community, to export and to erase. */
+  data?: ModuleData;
+};
+
+/** Runs in the community's transaction (RLS of `communityId`), with no person in the session. */
+export type DataContext = { tx: Tx; communityId: string };
+
+export type ModuleData = {
+  /**
+   * What this module keeps about `userId` in the community, as plain JSON (null when nothing). Anonymous votes
+   * never come in: nothing links them to a person (R-ANON-03).
+   */
+  export: (ctx: DataContext, userId: string) => Promise<unknown>;
+  /**
+   * Erases what this module keeps about `userId` in the community. Runs before the account is deleted, in the
+   * same request; ids left in shared history (votes about the person, frozen results) stop pointing to anyone.
+   */
+  delete: (ctx: DataContext, userId: string) => Promise<void>;
 };
 
 export type ModuleApi = ModuleApiDefinition & { manifest: ModuleManifest };

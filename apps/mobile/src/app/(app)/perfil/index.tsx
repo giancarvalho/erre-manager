@@ -20,6 +20,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { ApiError } from '@/lib/api';
 import { useCommunity } from '@/lib/community';
+import { downloadMyData } from '@/lib/privacy';
 import { ProfileSections } from '@/lib/profile';
 import { useInstallState } from '@/lib/pwa';
 import { useMe, useSignOut, useUpdateProfile } from '@/lib/session';
@@ -53,6 +54,7 @@ function Profile({ me }: { me: NonNullable<ReturnType<typeof useMe>['data']> }) 
   const { colors } = useTheme();
   const [name, setName] = useState(me.displayName);
   const [error, setError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   async function saveName() {
     const parsed = DisplayNameSchema.safeParse(name);
@@ -150,6 +152,28 @@ function Profile({ me }: { me: NonNullable<ReturnType<typeof useMe>['data']> }) 
         <Button label="Notificações" variant="secondary" onPress={() => router.push('/notificacoes')} />
         <Button label="Aparência" variant="secondary" onPress={() => router.push('/perfil/aparencia')} />
         <Install />
+      </View>
+
+      <View style={styles.section}>
+        <Text variant="overline" tone="muted">
+          Seus dados
+        </Text>
+        <Text variant="caption" tone="muted">
+          Tudo o que o app guarda sobre você, num arquivo. Seus votos não entram: ninguém, nem o app, sabe quem votou o
+          quê. Para apagar sua conta, fale com quem administra o app.
+        </Text>
+        <Button
+          label="Baixar meus dados"
+          variant="secondary"
+          loading={exporting}
+          loadingLabel="Preparando…"
+          onPress={() => {
+            setExporting(true);
+            downloadMyData()
+              .catch(() => toast.show({ title: 'Não deu pra baixar seus dados.', tone: 'error' }))
+              .finally(() => setExporting(false));
+          }}
+        />
       </View>
 
       <Button

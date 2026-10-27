@@ -390,3 +390,12 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - **Pós-build web** (`scripts/finish-web.ts`): com `EXPO_PUBLIC_WEB_URL`, a imagem de compartilhamento vira URL absoluta; com `APPLE_TEAM_ID` e `ANDROID_CERT_SHA256`, gera `.well-known/apple-app-site-association` e `assetlinks.json`. Sem os valores, nada é gerado: nenhum valor inventado chega à produção.
 - **Nome na web:** "Errômetro" (DESIGN §2); o `app.json` continua "Erre" até a P-019.
 **Motivo:** fechar as telas transversais com o que os módulos já expõem (D-018) e deixar a web instalável sem serviço novo.
+
+### D-050 — Segurança e LGPD `[contrato]`
+**Data:** 2026-10-27 · **Status:** aceita (Sprint 19)
+**Decisão:**
+- **Limites de requisição** no runtime de módulos, em memória: por pessoa (300/min), emissão de token (10/min) e rotas anônimas **por comunidade** (600/min), nunca por IP, para a rota anônima continuar sem saber quem chama. Com mais de uma instância da API, o limite vira por instância.
+- **Headers de segurança** na API (`secureHeaders`) e teste do cookie de sessão em HTTPS. Revisão rota a rota em `docs/seguranca.md`.
+- **Contrato:** `data: { export, delete }` em `defineModuleApi`, chamado pelo core em cada comunidade da pessoa.
+- **Exportação** pela própria pessoa (`GET /v1/me/export`, "Baixar meus dados" no perfil). **Exclusão** por quem opera (`POST /v1/internal/users/:id/delete`, `ADMIN_SECRET`), recusada enquanto a pessoa for a única dona de uma comunidade com outros membros. Votos anônimos e resultados fechados ficam (o id deixa de apontar para alguém); comentários por ela e sobre ela saem.
+**Motivo:** o plano pede exclusão acionada por admin na v1; deixar comunidade sem dono quebraria a administração dela; o anonimato do voto impede (e dispensa) apagar votos por pessoa.

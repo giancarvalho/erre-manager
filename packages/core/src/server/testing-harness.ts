@@ -47,6 +47,7 @@ export function createModuleHarness({
   modules,
   enabled = modules.map((m) => m.manifest.id),
   cronSecret,
+  adminSecret,
   log = silent,
   recordPush = false,
   rateLimits = false,
@@ -55,6 +56,8 @@ export function createModuleHarness({
   modules: readonly ModuleApi[];
   enabled?: readonly string[];
   cronSecret?: string;
+  /** Turns on POST /v1/internal/users/:id/delete (LGPD). */
+  adminSecret?: string;
   /** Receives the runtime and error logs (e.g. to assert that nothing identifying is logged). */
   log?: HarnessLog;
   /** Turns push on with a fake Web Push transport that records what would be sent. */
@@ -88,6 +91,7 @@ export function createModuleHarness({
     modules,
     enabled: new Set(enabled),
     cronSecret,
+    adminSecret,
     log,
     push: recordPush ? { enabled: true, webPush } : { enabled: false },
     rateLimits,

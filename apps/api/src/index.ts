@@ -38,6 +38,7 @@ const runtime = createModuleRuntime({
   modules: MODULES,
   enabled: parseEnabledModules(env.MODULES_ENABLED, MODULES),
   cronSecret: env.CRON_SECRET,
+  adminSecret: env.ADMIN_SECRET,
   timezone: env.VOTING_TIMEZONE,
   log: logger,
   push: {

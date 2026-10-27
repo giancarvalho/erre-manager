@@ -23,6 +23,7 @@ import {
   type WebPushTransport,
 } from '../notifications';
 import { coreProfiles } from '../schema';
+import { deleteUserData, exportUserData, type ModuleDataEntry } from '../privacy';
 import { createRateLimiter, rateLimit, type RateLimitRule } from '../rate-limit';
 import { requireSession, type SessionEnv } from '../session';
 import { validate } from '../validate';
@@ -40,6 +41,8 @@ export type ModuleRuntimeDeps = {
   enabled: ReadonlySet<string>;
   /** Bearer token for POST /v1/internal/jobs/:id/run; without it the route is off. */
   cronSecret?: string | undefined;
+  /** Bearer token for POST /v1/internal/users/:id/delete (LGPD, operator only); without it the route is off. */
+  adminSecret?: string | undefined;
   /** Time zone of job schedules (D-020). */
   timezone?: string;
   log: Log;
@@ -303,13 +306,43 @@ export function createModuleRuntime(deps: ModuleRuntimeDeps) {
     }
   }
 
-  app.post('/v1/internal/jobs/:id/run', async (c) => {
-    if (!deps.cronSecret) throw errors.notFound();
+  /** Bearer secret check in constant time; a route whose secret is not configured doesn't exist. */
+  function requireBearer(c: Context, secret: string | undefined) {
+    if (!secret) throw errors.notFound();
     const given = Buffer.from((c.req.header('authorization') ?? '').replace(/^Bearer /, ''));
-    const expected = Buffer.from(deps.cronSecret);
+    const expected = Buffer.from(secret);
     if (given.length !== expected.length || !timingSafeEqual(given, expected))
       throw errors.unauthenticated('Credencial inválida.');
+  }
+
+  app.post('/v1/internal/jobs/:id/run', async (c) => {
+    requireBearer(c, deps.cronSecret);
     return c.json(await runJob(c.req.param('id')));
+  });
+
+  // ---- LGPD (Sprint 19): every registered module, on or off, so nothing is left behind ----
+  const dataEntries: ModuleDataEntry[] = modules.flatMap((m) =>
+    m.data ? [{ module: m.manifest.id, data: m.data }] : [],
+  );
+
+  app.get('/v1/me/export', session, async (c) => {
+    const user = c.var.user;
+    c.header('content-disposition', 'attachment; filename="meus-dados.json"');
+    return c.json(await exportUserData(db, user, dataEntries));
+  });
+
+  app.post('/v1/internal/users/:id/delete', validate('param', z.object({ id: z.uuid() })), async (c) => {
+    requireBearer(c, deps.adminSecret);
+    const result = await deleteUserData(db, c.req.valid('param').id, dataEntries);
+    if (result.ok) {
+      log.info({ communities: result.communities }, 'user data deleted');
+      return c.json({ deleted: true, communities: result.communities });
+    }
+    if (result.code === 'NOT_FOUND') throw errors.notFound('Pessoa não encontrada.');
+    throw errors.conflict(
+      'SOLE_OWNER',
+      `Essa pessoa é a única dona de: ${result.communities.join(', ')}. Passe a propriedade antes de excluir.`,
+    );
   });
 
   /** Schedules the jobs of enabled modules. Returns a function that stops them. */

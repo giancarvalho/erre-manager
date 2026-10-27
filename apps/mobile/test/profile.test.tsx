@@ -81,6 +81,7 @@ function mockApi(modules = true) {
     if (path === '/v1/modules') return modules ? [errometro, eventos] : [];
     if (path === '/v1/profile/u2/sections') return sections;
     if (path === '/v1/profile/u1/sections') return [];
+    if (path === '/v1/me/export') return { account: { email: me.email } };
     throw new Error(`unexpected ${path}`);
   });
 }
@@ -144,6 +145,8 @@ test('the hub opens my profile from the avatar; I change my name and color', asy
   await waitFor(() =>
     expect(api).toHaveBeenCalledWith('/v1/me/profile', { method: 'PATCH', body: { displayName: 'Aninha' } }),
   );
+  await fireEvent.press(screen.getByRole('button', { name: 'Baixar meus dados' }));
+  await waitFor(() => expect(api).toHaveBeenCalledWith('/v1/me/export'));
   await fireEvent.press(screen.getByLabelText('Rosa'));
   await waitFor(() =>
     expect(api).toHaveBeenCalledWith('/v1/me/profile', { method: 'PATCH', body: { avatarVariant: 'rose' } }),

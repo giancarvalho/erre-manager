@@ -25,6 +25,7 @@
     "zod": "4.6.5"
   },
   "devDependencies": {
+    "@erre/anon-vote": "workspace:*",
     "@erre/config": "workspace:*",
     "@erre/contrato-teste": "workspace:*",
     "@types/node": "22.20.5",

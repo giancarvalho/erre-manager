@@ -28,6 +28,8 @@ const EnvSchema = z.object({
   MODULES_ENABLED: z.string().default(''),
   /** Bearer token for POST /v1/internal/jobs/:id/run. Without it the route is off. */
   CRON_SECRET: z.string().min(32).optional(),
+  /** Turns on POST /v1/internal/users/:id/delete (LGPD erasure, operator only). Different from CRON_SECRET. */
+  ADMIN_SECRET: z.string().min(32).optional(),
   /** Global push kill switch (P-007, decision A). */
   PUSH_ENABLED: z
     .enum(['true', 'false'])

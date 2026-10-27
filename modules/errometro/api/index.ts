@@ -36,6 +36,7 @@ import { sendClosingReminder } from './server/reminders';
 import { signingKeyRepository, tokenIssuanceRepository } from './server/repositories';
 import { loadResults, memberTrophies } from './server/results';
 import { lockRound, resolveRound, saveReleaseConfig } from './server/round';
+import { errometroData } from './server/privacy';
 import { anon } from './anon';
 
 async function requirePermission(ctx: ModuleContext, permission: string) {
@@ -367,5 +368,6 @@ export default defineModuleApi(manifest, {
   onJoinApproved: {
     'errometro.participar': (ctx) => participateOnJoin(ctx.tx, ctx.communityId, ctx.userId, ctx.actorId),
   },
+  data: errometroData,
   onMemberLeft: (ctx) => participationOnLeave(ctx.tx, ctx.communityId, ctx.userId, ctx.actorId),
 });

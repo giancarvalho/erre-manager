@@ -31,6 +31,7 @@ import {
 } from './server/participants';
 import { signingKeyRepository, tokenIssuanceRepository } from './server/repositories';
 import { eventView, loadEventResults, memberTrophies } from './server/results';
+import { eventosData } from './server/privacy';
 import { anon } from './anon';
 
 async function requirePermission(ctx: ModuleContext, permission: string) {
@@ -279,5 +280,6 @@ export default defineModuleApi(manifest, {
   onJoinApproved: {
     'eventos.participar': (ctx) => participateOnJoin(ctx.tx, ctx.communityId, ctx.userId),
   },
+  data: eventosData,
   onMemberLeft: (ctx) => participationOnLeave(ctx.tx, ctx.communityId, ctx.userId),
 });
