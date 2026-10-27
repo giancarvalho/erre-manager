@@ -100,7 +100,7 @@ export const votes = createTenantTable(
   (t) => [
     primaryKey({ columns: [t.communityId, t.period, t.voterTag, t.targetId] }),
     index('errometro_votes_period_idx').on(t.communityId, t.period),
-    index('errometro_votes_voter_tag_idx').on(t.voterTag, t.communityId, t.period),
+    index('errometro_votes_community_voter_tag_idx').on(t.communityId, t.voterTag),
     index('errometro_votes_voted_at_idx').on(t.communityId, t.votedAt),
   ],
 );

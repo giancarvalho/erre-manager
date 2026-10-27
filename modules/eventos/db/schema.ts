@@ -129,7 +129,6 @@ export const votes = createTenantTable(
   },
   (t) => [
     primaryKey({ columns: [t.communityId, t.eventId, t.voterTag, t.targetId, t.emojiId] }),
-    index('eventos_votes_voter_tag_idx').on(t.voterTag, t.communityId, t.eventId),
     eventRef('eventos_votes_event_fk', t),
   ],
 );

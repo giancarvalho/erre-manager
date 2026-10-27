@@ -157,3 +157,36 @@ export async function schemaDifferences(url: string, tables: PgTable[]): Promise
     await client.end();
   }
 }
+
+/**
+ * Indexes of community tables that don't start with community_id (D-015, PLANO Sprint 19): a query of one
+ * community can't use them first, and RLS always filters by it. A primary key on `id` alone is fine (lookups by
+ * id). `allow` names deliberate exceptions. Returns "table.index (first column)"; empty means every index fits.
+ */
+export async function indexProblems(
+  url: string,
+  { tables, allow = [] }: { tables?: readonly string[]; allow?: readonly string[] } = {},
+): Promise<string[]> {
+  const client = new pg.Client({ connectionString: url });
+  await client.connect();
+  try {
+    const { rows } = await client.query<{ tbl: string; idx: string; col: string }>(
+      `SELECT t.relname AS tbl, i.relname AS idx, a.attname AS col
+         FROM pg_index x
+         JOIN pg_class i ON i.oid = x.indexrelid
+         JOIN pg_class t ON t.oid = x.indrelid
+         JOIN pg_namespace n ON n.oid = t.relnamespace
+         JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = x.indkey[0]
+        WHERE n.nspname = 'public'
+          AND EXISTS (SELECT 1 FROM pg_attribute c WHERE c.attrelid = t.oid AND c.attname = 'community_id' AND NOT c.attisdropped)
+          AND a.attname <> 'community_id'
+          AND NOT (x.indisprimary AND a.attname = 'id' AND x.indnatts = 1)
+          AND ($1::text[] IS NULL OR t.relname = ANY($1::text[]))
+        ORDER BY 1, 2`,
+      [tables ?? null],
+    );
+    return rows.filter((r) => !allow.includes(r.idx)).map((r) => `${r.tbl}.${r.idx} (${r.col})`);
+  } finally {
+    await client.end();
+  }
+}
