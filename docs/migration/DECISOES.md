@@ -399,3 +399,11 @@ Entradas marcadas `[contrato]` alimentam o template de módulo do hackathon (Spr
 - **Contrato:** `data: { export, delete }` em `defineModuleApi`, chamado pelo core em cada comunidade da pessoa.
 - **Exportação** pela própria pessoa (`GET /v1/me/export`, "Baixar meus dados" no perfil). **Exclusão** por quem opera (`POST /v1/internal/users/:id/delete`, `ADMIN_SECRET`), recusada enquanto a pessoa for a única dona de uma comunidade com outros membros. Votos anônimos e resultados fechados ficam (o id deixa de apontar para alguém); comentários por ela e sobre ela saem.
 **Motivo:** o plano pede exclusão acionada por admin na v1; deixar comunidade sem dono quebraria a administração dela; o anonimato do voto impede (e dispensa) apagar votos por pessoa.
+
+### D-051 — Assinatura cega no OpenSSL do Node; deploy da API em imagem empacotada
+**Data:** 2026-10-27 · **Status:** aceita (Sprint 19)
+**Decisão:**
+- A operação de chave privada da emissão de token (RSASP1, RFC 9474 §4.3) usa `privateDecrypt` com `RSA_NO_PADDING` do Node, com a verificação RSAVP1 da RFC antes de devolver. `@cloudflare/blindrsa-ts` continua na geração de chave e na verificação do voto, que já são nativas.
+- A API vai para produção como imagem com um único arquivo JavaScript (`apps/api/Dockerfile`). As migrations rodam numa imagem separada (`--target migrate`), como `erre_migrator`, antes da API nova. O workflow `api-image.yml` só constrói e testa quando a API ou suas dependências mudam. O deploy em si espera P-010.
+**Motivo:** a biblioteca fazia o RSA em BigInt de JavaScript: ~350 ms de CPU por token, com o event loop travado. No OpenSSL leva ~1 ms, com resultado idêntico (testado contra a biblioteca e o vetor A.1). Imagem sem `node_modules` e sem código-fonte é menor e expõe menos. Migrations num passo à parte mantêm a API sem permissão de alterar o schema. Medições em `docs/desempenho.md`, passos em `docs/deploy.md`.
+

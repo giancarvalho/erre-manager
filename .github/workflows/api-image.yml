@@ -1,0 +1,111 @@
+name: API image
+
+# Builds the API and migrate images (apps/api/Dockerfile) and smoke-tests them against a disposable Postgres,
+# only when @erre/api or one of its workspace dependencies changed (PLANO, Sprint 19, task 4).
+# Nothing is pushed or deployed yet: the registry and host depend on P-010.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: api-image-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      TURBO_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Affected
+        id: affected
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          base=""
+          if [ "$EVENT" = "pull_request" ]; then
+            base="origin/${BASE_REF}"
+          elif [ "$EVENT" = "push" ] && git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            base="$BEFORE"
+          fi
+          if [ -z "$base" ]; then
+            echo "No base to compare with: building."
+            echo "build=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          names=$(pnpm -s turbo ls --filter="...[${base}]" --output=json 2>/dev/null | jq -r '.packages.items[].name')
+          if echo "$names" | grep -qx '@erre/api'; then
+            echo "build=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "@erre/api and its dependencies are unchanged: skipping."
+            echo "build=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: docker/setup-buildx-action@v3
+        if: steps.affected.outputs.build == 'true'
+
+      - name: Build migrate image
+        if: steps.affected.outputs.build == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          target: migrate
+          tags: erre-migrate
+          load: true
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build API image
+        if: steps.affected.outputs.build == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          tags: erre-api
+          load: true
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke test
+        if: steps.affected.outputs.build == 'true'
+        env:
+          DATABASE_ADMIN_URL: postgres://postgres:postgres@localhost:5432/postgres
+        run: apps/api/scripts/smoke-image.sh

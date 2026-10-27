@@ -2,9 +2,10 @@
 // are all inlined, so the deploy needs only dist/ and Node (no node_modules).
 import { build } from 'esbuild';
 
+// dist/index.js is the API; dist/migrate.js is the migrations CLI (@erre/db) for the separate migrate step.
 await build({
-  entryPoints: ['src/index.ts'],
-  outfile: 'dist/index.js',
+  entryPoints: { index: 'src/index.ts', migrate: '../../packages/db/src/cli.ts' },
+  outdir: 'dist',
   bundle: true,
   platform: 'node',
   format: 'esm',

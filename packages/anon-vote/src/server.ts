@@ -2,11 +2,18 @@
 // RFC 9474 blind RSA signatures (RSABSSA-SHA384-PSS-Randomized) on @cloudflare/blindrsa-ts + WebCrypto (Node).
 // The server certifies "an eligible member who hasn't voted yet" without learning which one: a stored vote's
 // voter_tag can't be traced back to a person even with full database access.
-import { createHash, webcrypto } from 'node:crypto';
+import {
+  constants,
+  createHash,
+  createPrivateKey,
+  privateDecrypt,
+  webcrypto,
+  type JsonWebKey as NodeJwk,
+} from 'node:crypto';
 
 import { RSABSSA } from '@cloudflare/blindrsa-ts';
 
-import { base64UrlToBytes, bytesToBase64Url, bytesToBigInt } from './client';
+import { base64UrlToBytes, bytesToBase64Url, bytesToBigInt, modPow } from './client';
 import type { SigningKeyRepository, TokenIssuanceRepository } from './repositories';
 
 const MODULUS_LENGTH = 2048;
@@ -53,8 +60,28 @@ export async function blindSign(privateKeyJwk: JsonWebKey, blindedMsgB64: string
     throw new InvalidBlindedMessage('malformed base64url');
   }
   if (blinded.length !== BLINDED_MESSAGE_BYTES) throw new InvalidBlindedMessage('unexpected size');
-  const key = await subtle.importKey('jwk', privateKeyJwk, IMPORT, true, ['sign']);
-  return bytesToBase64Url(await suite().blindSign(key, blinded));
+  return bytesToBase64Url(blindSignBytes(privateKeyJwk, blinded));
+}
+
+/**
+ * RFC 9474 §4.3 BlindSign: s = RSASP1(sk, m), then RSAVP1(pk, s) must give m back. The private-key operation runs
+ * in OpenSSL (raw RSA with CRT and blinding): the pure-JS BigInt version in @cloudflare/blindrsa-ts took ~350 ms
+ * of CPU per token and blocked the event loop (Sprint 19, performance). Output is identical (RSA is
+ * deterministic); test/server.test.ts checks it against the library and the RFC test vector.
+ */
+export function blindSignBytes(privateKeyJwk: JsonWebKey, blinded: Uint8Array): Uint8Array {
+  if (!privateKeyJwk.n || !privateKeyJwk.e || !privateKeyJwk.d) throw new Error('not an RSA private key');
+  const n = bytesToBigInt(base64UrlToBytes(privateKeyJwk.n));
+  const e = bytesToBigInt(base64UrlToBytes(privateKeyJwk.e));
+  const modulusBytes = base64UrlToBytes(privateKeyJwk.n).length;
+  const m = bytesToBigInt(blinded);
+  if (blinded.length !== modulusBytes || m >= n) throw new InvalidBlindedMessage('message representative out of range');
+  // Node's JsonWebKey type differs from the DOM one only in typing; the value is the same JWK.
+  const key = createPrivateKey({ key: privateKeyJwk as NodeJwk, format: 'jwk' });
+  const s = privateDecrypt({ key, padding: constants.RSA_NO_PADDING }, blinded);
+  // Fault check from the RFC: a wrong CRT result must never leave the server (it would leak a factor of n).
+  if (modPow(bytesToBigInt(s), e, n) !== m) throw new Error('blind signature failed verification');
+  return new Uint8Array(s);
 }
 
 /**

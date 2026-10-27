@@ -1,10 +1,25 @@
 // Portado de queridometro@7c5c5bf:src/domain/voting/blind-signature.test.ts, com o cliente JS puro (D-011)
 // no lugar das funções de cliente do @cloudflare/blindrsa-ts.
+import { randomBytes, webcrypto } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+
+import { RSABSSA } from '@cloudflare/blindrsa-ts';
 import { describe, expect, it } from 'vitest';
 
-import { bytesToBase64Url, finishToken, prepare, startToken } from '../src/client';
+import {
+  bigIntToBytes,
+  bytesToBase64Url,
+  bytesToBigInt,
+  bytesToHex,
+  finishToken,
+  hexToBytes,
+  modInverse,
+  prepare,
+  startToken,
+} from '../src/client';
 import {
   blindSign,
+  blindSignBytes,
   BLINDED_MESSAGE_BYTES,
   generateSigningKeyPair,
   InvalidBlindedMessage,
@@ -101,6 +116,55 @@ describe('blind signature', () => {
     );
     await expect(blindSign(keys.privateKeyJwk, '!!!')).rejects.toBeInstanceOf(InvalidBlindedMessage);
     expect(BLINDED_MESSAGE_BYTES).toBe(256);
+  });
+});
+
+describe('native blind signing (Sprint 19, performance)', () => {
+  const subtle = webcrypto.subtle as unknown as SubtleCrypto;
+  const IMPORT = { name: 'RSA-PSS', hash: 'SHA-384' } as const;
+
+  it('gives the same bytes as @cloudflare/blindrsa-ts', async () => {
+    const keys = await generateSigningKeyPair();
+    const key = await subtle.importKey('jwk', keys.privateKeyJwk, IMPORT, true, ['sign']);
+    const suite = RSABSSA.SHA384.PSS.Randomized();
+    for (let i = 0; i < 2; i++) {
+      const { blindedMsgB64 } = startToken(publicJwk(keys.publicKeyJwk));
+      const blinded = Uint8Array.from(Buffer.from(blindedMsgB64, 'base64url'));
+      expect(bytesToHex(blindSignBytes(keys.privateKeyJwk, blinded))).toBe(
+        bytesToHex(await suite.blindSign(key, blinded)),
+      );
+    }
+  }, 30_000);
+
+  it('reproduces blind_sig of RFC 9474 A.1', () => {
+    const v = JSON.parse(readFileSync(new URL('./rfc9474-a1.json', import.meta.url), 'utf8')) as Record<string, string>;
+    const big = (hex: string) => bytesToBigInt(hexToBytes(hex));
+    const [p, q, d, n] = [big(v.p!), big(v.q!), big(v.d!), big(v.n!)];
+    const size = hexToBytes(v.n!).length;
+    const b64 = (x: bigint, len?: number) => {
+      const bytes = bigIntToBytes(x, len ?? Math.ceil(x.toString(16).length / 2));
+      return bytesToBase64Url(bytes);
+    };
+    const jwk: JsonWebKey = {
+      kty: 'RSA',
+      n: b64(n, size),
+      e: bytesToBase64Url(hexToBytes(v.e!)),
+      d: b64(d, size),
+      p: b64(p),
+      q: b64(q),
+      dp: b64(d % (p - 1n)),
+      dq: b64(d % (q - 1n)),
+      qi: b64(modInverse(q, p)),
+    };
+    expect(bytesToHex(blindSignBytes(jwk, hexToBytes(v.blinded_msg!)))).toBe(v.blind_sig);
+  });
+
+  it('refuses a value outside [0, n)', async () => {
+    const keys = await generateSigningKeyPair();
+    expect(() => blindSignBytes(keys.privateKeyJwk, new Uint8Array(BLINDED_MESSAGE_BYTES).fill(0xff))).toThrow(
+      InvalidBlindedMessage,
+    );
+    expect(() => blindSignBytes(keys.privateKeyJwk, randomBytes(10))).toThrow(InvalidBlindedMessage);
   });
 });
 

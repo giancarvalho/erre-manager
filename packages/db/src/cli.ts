@@ -6,7 +6,9 @@ import { fileURLToPath } from 'node:url';
 import { bootstrapRoles } from './bootstrap';
 import { discoverSources, migrate, rollbackLast } from './migrations';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
+// MIGRATIONS_ROOT: folder laid out like the repo (packages/*/migrations, modules/*/db/migrations). Set by the
+// migrate image (apps/api/Dockerfile), where this file is bundled and no longer sits inside the repo.
+const root = process.env.MIGRATIONS_ROOT ?? path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 
 function env(name: string): string {
   const value = process.env[name];
