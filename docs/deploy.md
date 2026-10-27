@@ -51,7 +51,20 @@ DATABASE_ADMIN_URL=postgres://postgres:postgres@localhost:5432/postgres apps/api
 | `preview` | testes com o grupo antes de publicar | interna (APK) |
 | `production` | build de loja, número de build automático | — |
 
-As variáveis (`EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_WEB_URL`) ficam nos ambientes do EAS (`development`, `preview`, `production`), não no repositório. Para rodar: projeto no EAS, `eas init`, `eas build --profile preview`. Um cliente de desenvolvimento (`expo-dev-client`) não foi adicionado: seria uma dependência nova a validar nas três plataformas.
+As variáveis (`EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_WEB_URL`) ficam nos ambientes do EAS (`development`, `preview`, `production`), não no repositório.
+
+### Build Android no CI (`.github/workflows/android.yml`)
+
+Roda no EAS a cada push na `main` que mexe no app (perfil `preview`) ou à mão (Actions → Android build → Run workflow). Sem o segredo `EXPO_TOKEN`, só avisa e passa. Configuração, uma vez:
+
+1. **Conta:** crie uma conta (ou organização) em expo.dev.
+2. **Projeto:** na sua máquina, em `apps/mobile`: `npx eas-cli@latest login` e `npx eas-cli@latest init`. O `init` cria o projeto e grava `extra.eas.projectId` e `owner` no `app.json`: faça commit disso.
+3. **Assinatura:** `npx eas-cli@latest credentials -p android` → perfil `preview` → gerar uma keystore nova (fica guardada no EAS). O build no CI não é interativo e não consegue criar a keystore sozinho. Antes, confirme o `android.package` (`com.erre.app`): ele não muda depois que o app for para a loja.
+4. **Variáveis do app** por ambiente: `npx eas-cli@latest env:create --environment preview --name EXPO_PUBLIC_API_URL --value https://... --visibility plaintext` (e `EXPO_PUBLIC_WEB_URL`). Nunca `EXPO_PUBLIC_DEV_GALLERY` em `production`.
+5. **Token:** expo.dev → Account settings → Access tokens → criar (de preferência de um "robot user" da organização, com acesso só ao projeto). No GitHub: Settings → Secrets and variables → Actions → New repository secret, nome `EXPO_TOKEN`.
+6. **Teste:** Actions → Android build → Run workflow (`preview`). O log traz o link do build; o APK sai em expo.dev → projeto → Builds, com QR code para instalar.
+
+O plano gratuito do EAS tem fila e limite mensal de builds: por isso o automático é só na `main`, e o job não espera o build terminar (`--no-wait`). Um cliente de desenvolvimento (`expo-dev-client`) não foi adicionado: seria uma dependência nova a validar nas três plataformas.
 
 ## Pendente (P-010)
 

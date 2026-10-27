@@ -1,0 +1,81 @@
+name: Android build
+
+# Android build on EAS (apps/mobile/eas.json, docs/deploy.md). Off until the EXPO_TOKEN secret exists: without
+# it the job only says so and succeeds. Nothing is sent to the stores (no `eas submit`).
+# - manual: Actions → Android build → Run workflow, choosing the profile;
+# - automatic: each push to main that touches the app, with the `preview` profile (internal APK).
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: Perfil do eas.json
+        type: choice
+        options: [preview, development, production]
+        default: preview
+  push:
+    branches: [main]
+    paths:
+      - 'apps/mobile/**'
+      - 'packages/ui/**'
+      - 'packages/core/src/client/**'
+      - 'packages/core/src/shared/**'
+      - 'packages/emoji/**'
+      - 'packages/anon-vote/**'
+      - 'modules/*/ui/**'
+      - 'modules/*/domain/**'
+      - 'modules/*/manifest.ts'
+      - 'pnpm-lock.yaml'
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      PROFILE: ${{ inputs.profile || 'preview' }}
+    steps:
+      - name: Token
+        id: token
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "EXPO_TOKEN não configurado: veja docs/deploy.md (App, EAS). Nada a fazer."
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v5
+        if: steps.token.outputs.ok == 'true'
+
+      - uses: pnpm/action-setup@v4
+        if: steps.token.outputs.ok == 'true'
+
+      - uses: actions/setup-node@v5
+        if: steps.token.outputs.ok == 'true'
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - if: steps.token.outputs.ok == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - uses: expo/expo-github-action@v8
+        if: steps.token.outputs.ok == 'true'
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      # The build runs on EAS servers; --no-wait frees the runner (the link to the build shows in the log, and the
+      # APK in expo.dev → project → Builds).
+      - name: EAS build
+        if: steps.token.outputs.ok == 'true'
+        working-directory: apps/mobile
+        run: eas build --platform android --profile "$PROFILE" --non-interactive --no-wait
