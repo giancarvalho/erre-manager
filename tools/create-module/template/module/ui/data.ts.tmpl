@@ -1,0 +1,48 @@
+// Data of the __Nome__ UI: the typed client of the module's API (D-009) with React Query. callModule returns the
+// JSON or throws ModuleApiError with a pt-BR message ready to show.
+import { callModule, useModuleClient, useModuleHost } from '@erre/core/client';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { InferResponseType } from 'hono/client';
+
+import type { __Pascal__Api } from '../api';
+import type { NewItem } from '../domain/schemas';
+
+export function use__Pascal__Client() {
+  return useModuleClient<__Pascal__Api>('__id__');
+}
+
+type Client = ReturnType<typeof use__Pascal__Client>;
+export type ItemList = InferResponseType<Client['index']['$get'], 200>;
+export type Item = ItemList['items'][number];
+
+/** Query keys always include the community: switching community never shows another one's data. */
+const keys = { items: (communityId: string) => ['__id__', communityId, 'items'] as const };
+
+export function useItems() {
+  const client = use__Pascal__Client();
+  const { community } = useModuleHost();
+  return useQuery({
+    queryKey: keys.items(community.id),
+    queryFn: () => callModule(() => client.index.$get()) as Promise<ItemList>,
+  });
+}
+
+export function useCreateItem() {
+  const client = use__Pascal__Client();
+  const { community } = useModuleHost();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: NewItem) => callModule(() => client.index.$post({ json: input })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.items(community.id) }),
+  });
+}
+
+export function useDeleteItem() {
+  const client = use__Pascal__Client();
+  const { community } = useModuleHost();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => callModule(() => client[':id'].$delete({ param: { id } })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.items(community.id) }),
+  });
+}

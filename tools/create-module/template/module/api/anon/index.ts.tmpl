@@ -1,0 +1,7 @@
+// Anonymous routes of __Nome__, at /v1/__id__/anon/c/<communityId>/... (ARQUITETURA §4.5). The context has only
+// the community and the transaction: no session, cookie, Authorization, IP or user (AGENTS.md, rule 9; the lint
+// rule erre/no-identity-in-anon checks this folder). Anything an anonymous route writes must be authorized by a
+// blind-signed token from @erre/anon-vote; see modules/errometro/api/anon for a complete example.
+import { createAnonApp } from '@erre/core/server';
+
+export const anon = createAnonApp().get('/ping', (c) => c.json({ ok: true }));

@@ -1,0 +1,65 @@
+// __Nome__ UI with a fake host: the API answers are the routes below (paths relative to /v1/__id__).
+import moduleUi, { ItemsScreen } from '@erre/__id__/ui';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+
+import { fakeModuleHost, json } from './helpers/module-host';
+
+const ITEM = { id: '22222222-2222-4222-8222-222222222222', title: 'Primeiro', createdBy: 'u1', createdAt: '2026-05-01T12:00:00.000Z' };
+
+describe('__Nome__', () => {
+  it('hub section shows the latest item', async () => {
+    const { wrap, host } = fakeModuleHost('__id__', { 'GET ': () => json({ items: [ITEM], canManage: false }) });
+    const Section = moduleUi.hubSection!;
+    await render(wrap(<Section community={host.community} />));
+    expect(await screen.findByText('Mais recente: Primeiro')).toBeTruthy();
+  });
+
+  it('a member sees the list without the form', async () => {
+    const { wrap } = fakeModuleHost('__id__', { 'GET ': () => json({ items: [ITEM], canManage: false }) });
+    await render(wrap(<ItemsScreen />));
+    expect(await screen.findByText('Primeiro')).toBeTruthy();
+    expect(screen.queryByLabelText('Novo item')).toBeNull();
+    expect(screen.queryByText('Apagar')).toBeNull();
+  });
+
+  it('empty list', async () => {
+    const { wrap } = fakeModuleHost('__id__', { 'GET ': () => json({ items: [], canManage: false }) });
+    await render(wrap(<ItemsScreen />));
+    expect(await screen.findByText('Nada por aqui ainda.')).toBeTruthy();
+  });
+
+  it('whoever manages adds (with validation) and deletes with confirmation', async () => {
+    let items = [ITEM];
+    const { wrap, calls } = fakeModuleHost(
+      '__id__',
+      {
+        'GET ': () => json({ items, canManage: true }),
+        'POST ': (body) => {
+          const created = { ...ITEM, id: '33333333-3333-4333-8333-333333333333', title: (body as { title: string }).title };
+          items = [created, ...items];
+          return json({ id: created.id }, 201);
+        },
+        [`DELETE /${ITEM.id}`]: () => {
+          items = items.filter((i) => i.id !== ITEM.id);
+          return json({ ok: true });
+        },
+      },
+      'owner',
+    );
+    await render(wrap(<ItemsScreen />));
+    await screen.findByText('Primeiro');
+
+    await fireEvent.press(screen.getByText('Adicionar'));
+    expect(await screen.findByText('Escreva um título.')).toBeTruthy();
+    expect(calls.some((c) => c.method === 'POST')).toBe(false);
+
+    await fireEvent.changeText(screen.getByLabelText('Novo item'), 'Segundo');
+    await fireEvent.press(screen.getByText('Adicionar'));
+    expect(await screen.findByText('Segundo')).toBeTruthy();
+    expect(calls).toContainEqual({ method: 'POST', path: '', body: { title: 'Segundo' } });
+
+    await fireEvent.press(screen.getAllByText('Apagar')[1]!);
+    await fireEvent.press(await screen.findByText('Apagar Primeiro'));
+    await waitFor(() => expect(screen.queryByText('Primeiro')).toBeNull());
+  });
+});

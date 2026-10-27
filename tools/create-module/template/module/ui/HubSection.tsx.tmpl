@@ -1,0 +1,26 @@
+// Section of __Nome__ in the community hub (D-033). Short: a glance and, below it, the menu entry of the manifest.
+import type { HubSectionProps } from '@erre/core/client';
+import { Skeleton, space, Text } from '@erre/ui';
+import { StyleSheet, View } from 'react-native';
+
+import { useItems } from './data';
+
+export function HubSection(_props: HubSectionProps) {
+  const items = useItems();
+  return (
+    <View style={styles.box}>
+      <Text variant="titleMd">__Nome__</Text>
+      {items.isPending ? (
+        <Skeleton width="60%" />
+      ) : items.isError ? (
+        <Text tone="muted">{items.error.message}</Text>
+      ) : (
+        <Text tone="secondary">
+          {items.data.items[0] ? `Mais recente: ${items.data.items[0].title}` : 'Nada por aqui ainda.'}
+        </Text>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({ box: { gap: space[2] } });

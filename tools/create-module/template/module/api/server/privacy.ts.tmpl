@@ -1,0 +1,21 @@
+// LGPD (docs/lgpd.md): what __Nome__ keeps about a person in a community, and how to erase it. The core calls
+// this in every community of the person. Decide per table: delete what is personal; keep what belongs to the
+// community (and say so here).
+import type { ModuleData } from '@erre/core/server';
+import { and, eq } from '@erre/db';
+
+import { items } from '../../db/schema';
+
+export const __id__Data: ModuleData = {
+  async export({ tx, communityId }, userId) {
+    const created = await tx
+      .select({ title: items.title, createdAt: items.createdAt })
+      .from(items)
+      .where(and(eq(items.communityId, communityId), eq(items.createdBy, userId)));
+    return created.length ? { itemsCreated: created } : null;
+  },
+
+  async delete({ tx, communityId }, userId) {
+    await tx.delete(items).where(and(eq(items.communityId, communityId), eq(items.createdBy, userId)));
+  },
+};

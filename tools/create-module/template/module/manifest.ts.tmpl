@@ -1,0 +1,15 @@
+// __Nome__: what the module declares to the core (ARQUITETURA §5). Pure metadata, read by the API and the app.
+import { defineManifest } from '@erre/core/manifest';
+
+export default defineManifest({
+  id: '__id__',
+  name: '__Nome__',
+  icon: 'sparkles',
+  permissions: [
+    // Each permission starts with "__id__."; defaultRoles is who gets it in a new community.
+    { id: '__id__.ver', defaultRoles: ['owner', 'admin', 'moderador', 'membro'] },
+    { id: '__id__.gerenciar', defaultRoles: ['owner', 'admin'] },
+  ],
+  // Entry shown below the module's section in the community hub.
+  menu: [{ label: '__Nome__', route: '/__id__' }],
+});

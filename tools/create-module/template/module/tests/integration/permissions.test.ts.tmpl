@@ -1,0 +1,50 @@
+// Permission matrix: for each route, who gets in (status ≠ 403) and who gets 403. The fixture has one person
+// per role, a pending member and someone from outside the community. Add one case per new route.
+import { createModuleHarness, permissionMatrix, type RoleFixture } from '@erre/core/testing';
+import { afterAll, beforeAll, describe, expect, inject, it } from 'vitest';
+
+import moduleApi from '../../api';
+
+const h = createModuleHarness({ urls: inject('db'), modules: [moduleApi] });
+let fx: RoleFixture;
+beforeAll(async () => {
+  fx = await h.fixture();
+});
+afterAll(() => h.close());
+
+describe('permissions (matrix)', () => {
+  it('list: every approved member (__id__.ver)', async () => {
+    const { problems } = await permissionMatrix(fx, ['owner', 'admin', 'moderador', 'membro'], (u) =>
+      h.req(u, 'GET', '/v1/__id__', { community: fx.communityId }),
+    );
+    expect(problems).toEqual([]);
+  });
+
+  it('create: owner and admin (__id__.gerenciar)', async () => {
+    const { problems } = await permissionMatrix(fx, ['owner', 'admin'], (u) =>
+      h.req(u, 'POST', '/v1/__id__', { community: fx.communityId, body: { title: 'Matriz' } }),
+    );
+    expect(problems).toEqual([]);
+  });
+
+  it('delete: owner and admin (__id__.gerenciar)', async () => {
+    const { problems } = await permissionMatrix(fx, ['owner', 'admin'], async (u) => {
+      const created = await h.req(fx.users.owner, 'POST', '/v1/__id__', {
+        community: fx.communityId,
+        body: { title: 'Para apagar' },
+      });
+      const { id } = (await created.json()) as { id: string };
+      return h.req(u, 'DELETE', `/v1/__id__/${id}`, { community: fx.communityId });
+    });
+    expect(problems).toEqual([]);
+  });
+});
+
+describe('validation', () => {
+  it('refuses an empty or unknown body with 400', async () => {
+    for (const body of [{ title: '   ' }, { title: 'ok', extra: 1 }, {}]) {
+      const res = await h.req(fx.users.owner, 'POST', '/v1/__id__', { community: fx.communityId, body });
+      expect(res.status, JSON.stringify(body)).toBe(400);
+    }
+  });
+});

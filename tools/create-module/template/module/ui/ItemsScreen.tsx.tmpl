@@ -1,0 +1,137 @@
+// Main screen of __Nome__ (/__id__): the list, a form for whoever can manage, and deleting with confirmation.
+// Only components and tokens of @erre/ui (docs/design/DESIGN.md): loading, empty and error states included.
+import { ModuleApiError, useModuleHost } from '@erre/core/client';
+import {
+  Button,
+  Card,
+  ConfirmDialog,
+  EmptyState,
+  ErrorState,
+  Screen,
+  ScreenHeader,
+  Skeleton,
+  space,
+  Text,
+  TextField,
+  useToast,
+} from '@erre/ui';
+import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+
+import { NewItemSchema } from '../domain/schemas';
+import { useCreateItem, useDeleteItem, useItems, type Item } from './data';
+
+const dateFormat = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+export function ItemsScreen() {
+  const host = useModuleHost();
+  const items = useItems();
+  const [deleting, setDeleting] = useState<Item | null>(null);
+  const remove = useDeleteItem();
+  const toast = useToast();
+
+  const header = (
+    <>
+      <Button label="← Início" variant="ghost" onPress={host.back} />
+      <ScreenHeader overline="__Nome__" title="__Nome__" description="O que a comunidade registrou por aqui." />
+    </>
+  );
+  if (items.isPending)
+    return (
+      <Screen>
+        {header}
+        <View style={styles.list} accessibilityLabel="Carregando" accessible>
+          <Skeleton height={64} />
+          <Skeleton height={64} />
+        </View>
+      </Screen>
+    );
+  if (items.isError) return <ErrorState message={items.error.message} onRetry={() => void items.refetch()} />;
+
+  const { canManage } = items.data;
+  return (
+    <Screen>
+      {header}
+      {canManage ? <NewItemForm /> : null}
+      {items.data.items.length === 0 ? (
+        <EmptyState emoji="✨" message="Nada por aqui ainda." />
+      ) : (
+        <View style={styles.list}>
+          {items.data.items.map((item) => (
+            <Card key={item.id}>
+              <Text variant="label">{item.title}</Text>
+              <Text variant="caption" tone="muted">
+                {dateFormat.format(new Date(item.createdAt))}
+              </Text>
+              {canManage ? (
+                <Button
+                  label="Apagar"
+                  variant="destructive"
+                  accessibilityHint={`Apaga "${item.title}" para todo mundo`}
+                  onPress={() => setDeleting(item)}
+                />
+              ) : null}
+            </Card>
+          ))}
+        </View>
+      )}
+      <ConfirmDialog
+        visible={deleting !== null}
+        title="Apagar item?"
+        message="Ele some para todo mundo da comunidade."
+        confirmLabel={deleting ? `Apagar ${deleting.title}` : 'Apagar'}
+        loadingLabel="Apagando…"
+        loading={remove.isPending}
+        onCancel={() => setDeleting(null)}
+        onConfirm={() =>
+          deleting &&
+          remove.mutate(deleting.id, {
+            onSuccess: () => {
+              setDeleting(null);
+              toast.show({ title: 'Item apagado.' });
+            },
+            onError: (err) => toast.show({ title: err.message, tone: 'error' }),
+          })
+        }
+      />
+    </Screen>
+  );
+}
+
+function NewItemForm() {
+  const create = useCreateItem();
+  const [title, setTitle] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  function submit() {
+    const parsed = NewItemSchema.safeParse({ title });
+    if (!parsed.success) {
+      setError(parsed.error.issues[0]?.message ?? 'Confira o título.');
+      return;
+    }
+    setError(null);
+    create.mutate(parsed.data, {
+      onSuccess: () => setTitle(''),
+      onError: (err) => setError(err instanceof ModuleApiError ? err.message : 'Não deu pra salvar. Tente de novo.'),
+    });
+  }
+
+  return (
+    <View style={styles.form}>
+      <TextField
+        label="Novo item"
+        value={title}
+        onChangeText={setTitle}
+        error={error}
+        returnKeyType="done"
+        onSubmitEditing={submit}
+      />
+      <Button label="Adicionar" loadingLabel="Salvando…" loading={create.isPending} variant="primary" onPress={submit} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  list: { gap: space[3], marginTop: space[4] },
+  form: { gap: space[3] },
+});

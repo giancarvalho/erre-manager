@@ -1,0 +1,60 @@
+// API of __Nome__, mounted by the core at /v1/__id__. Every route already has a session, a community validated
+// against the person's membership and `ctx.tx`, a transaction limited to that community by RLS (ARQUITETURA §4).
+// What is left to each route: check the permission and validate the input with Zod.
+import { createModuleApp, defineModuleApi, errors, validate, type ModuleContext } from '@erre/core/server';
+import { and, desc, eq } from '@erre/db';
+import { z } from 'zod';
+
+import { items } from '../db/schema';
+import { NewItemSchema } from '../domain/schemas';
+import manifest from '../manifest';
+// <anon>
+import { anon } from './anon';
+// </anon>
+import { __id__Data } from './server/privacy';
+
+async function requirePermission(ctx: ModuleContext, permission: string) {
+  if (!(await ctx.can(permission))) throw errors.forbidden();
+}
+
+const api = createModuleApp()
+  // GET /v1/__id__ (the module root has no trailing slash).
+  .get('', async (c) => {
+    const { ctx } = c.var;
+    await requirePermission(ctx, '__id__.ver');
+    const rows = await ctx.tx.select().from(items).orderBy(desc(items.createdAt));
+    return c.json({
+      items: rows.map((r) => ({ id: r.id, title: r.title, createdBy: r.createdBy, createdAt: r.createdAt })),
+      canManage: await ctx.can('__id__.gerenciar'),
+    });
+  })
+  .post('', validate('json', NewItemSchema), async (c) => {
+    const { ctx } = c.var;
+    await requirePermission(ctx, '__id__.gerenciar');
+    const [row] = await ctx.tx
+      .insert(items)
+      .values({ communityId: ctx.community.id, title: c.req.valid('json').title, createdBy: ctx.user.id })
+      .returning({ id: items.id });
+    return c.json({ id: row!.id }, 201);
+  })
+  .delete('/:id', validate('param', z.object({ id: z.uuid() })), async (c) => {
+    const { ctx } = c.var;
+    await requirePermission(ctx, '__id__.gerenciar');
+    const deleted = await ctx.tx
+      .delete(items)
+      .where(and(eq(items.communityId, ctx.community.id), eq(items.id, c.req.valid('param').id)))
+      .returning({ id: items.id });
+    if (deleted.length === 0) throw errors.notFound('Item não encontrado.');
+    return c.json({ ok: true });
+  });
+
+/** Type of the API for the typed client of the UI (useModuleClient<__Pascal__Api>). */
+export type __Pascal__Api = typeof api;
+
+export default defineModuleApi(manifest, {
+  api,
+  // <anon>
+  anon,
+  // </anon>
+  data: __id__Data,
+});

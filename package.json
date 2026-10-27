@@ -13,7 +13,8 @@
     "test:e2e": "turbo run test:e2e",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "pnpm format:check && turbo run lint typecheck test build"
+    "check": "pnpm format:check && turbo run lint typecheck test build",
+    "create-module": "pnpm --filter @erre/create-module -s create-module"
   },
   "devDependencies": {
     "prettier": "3.9.10",

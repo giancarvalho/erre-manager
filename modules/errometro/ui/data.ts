@@ -1,35 +1,13 @@
 // Data hooks of the Errômetro UI over the typed client (D-009). Errors become pt-BR messages.
-import { useModuleClient, useModuleHost } from '@erre/core/client';
+import { callModule, useModuleClient, useModuleHost } from '@erre/core/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { InferResponseType } from 'hono/client';
 
 import type { ErrometroApi } from '../api';
 
-export const NETWORK_ERROR = 'Sem conexão com o servidor. Confira sua internet.';
-
-export class ErrometroError extends Error {
-  constructor(
-    readonly status: number,
-    readonly code: string,
-    message: string,
-  ) {
-    super(message);
-    this.name = 'ErrometroError';
-  }
-}
-
-/** Throws ErrometroError with the API's { code, message } (or a network message) when the call fails. */
-export async function ok<T>(call: () => Promise<{ ok: boolean; status: number; json: () => Promise<T> }>): Promise<T> {
-  let res;
-  try {
-    res = await call();
-  } catch {
-    throw new ErrometroError(0, 'NETWORK_ERROR', NETWORK_ERROR);
-  }
-  if (res.ok) return res.json();
-  const body = (await res.json().catch(() => null)) as { code?: string; message?: string } | null;
-  throw new ErrometroError(res.status, body?.code ?? 'UNKNOWN', body?.message ?? 'Algo deu errado. Tente de novo.');
-}
+// Shared with every module since Sprint 20 (@erre/core/client); the old names stay for this module's code.
+export { ModuleApiError as ErrometroError, NETWORK_ERROR } from '@erre/core/client';
+export const ok = callModule;
 
 export function useErrometroClient() {
   return useModuleClient<ErrometroApi>('errometro');

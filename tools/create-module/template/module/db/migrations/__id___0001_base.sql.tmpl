@@ -1,0 +1,15 @@
+-- __Nome__: first tables. One migration per change; the next one is __id___0002_<descricao>.sql.
+
+CREATE TABLE __id___items (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  community_id uuid NOT NULL REFERENCES communities(id),
+  title text NOT NULL,
+  created_by uuid NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+-- Turns on RLS by community and gives the app roles access (packages/db/migrations/db_0001_base.sql).
+SELECT erre_tenant_table('__id___items');
+CREATE INDEX __id___items_community_created_idx ON __id___items (community_id, created_at);
+
+-- migrate:down
+DROP TABLE __id___items;

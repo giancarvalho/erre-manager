@@ -1,35 +1,13 @@
 // Data hooks of the Eventos UI over the typed client (D-009). Errors become pt-BR messages.
-import { useModuleClient, useModuleHost } from '@erre/core/client';
+import { callModule, useModuleClient, useModuleHost } from '@erre/core/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { InferRequestType, InferResponseType } from 'hono/client';
 
 import type { EventosApi } from '../api';
 
-export const NETWORK_ERROR = 'Sem conexão com o servidor. Confira sua internet.';
-
-export class EventosError extends Error {
-  constructor(
-    readonly status: number,
-    readonly code: string,
-    message: string,
-  ) {
-    super(message);
-    this.name = 'EventosError';
-  }
-}
-
-/** Throws EventosError with the API's { code, message } (or a network message) when the call fails. */
-export async function ok<T>(call: () => Promise<{ ok: boolean; status: number; json: () => Promise<T> }>): Promise<T> {
-  let res;
-  try {
-    res = await call();
-  } catch {
-    throw new EventosError(0, 'NETWORK_ERROR', NETWORK_ERROR);
-  }
-  if (res.ok) return res.json();
-  const body = (await res.json().catch(() => null)) as { code?: string; message?: string } | null;
-  throw new EventosError(res.status, body?.code ?? 'UNKNOWN', body?.message ?? 'Algo deu errado. Tente de novo.');
-}
+// Shared with every module since Sprint 20 (@erre/core/client); the old names stay for this module's code.
+export { ModuleApiError as EventosError, NETWORK_ERROR } from '@erre/core/client';
+export const ok = callModule;
 
 export function useEventosClient() {
   return useModuleClient<EventosApi>('eventos');

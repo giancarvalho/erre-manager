@@ -1,0 +1,19 @@
+// Tables of __Nome__. Every table is per community: created with createTenantTable (adds community_id and is
+// covered by RLS), named "__id___<something>", listed in `tables` and created by a migration in db/migrations.
+// The contract test fails if this file and the migrations disagree.
+import { createTenantTable } from '@erre/db';
+import { index, text, timestamp, uuid } from '@erre/db/pg-core';
+
+export const items = createTenantTable(
+  '__id___items',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    title: text('title').notNull(),
+    createdBy: uuid('created_by').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  // Indexes always start with community_id.
+  (t) => [index('__id___items_community_created_idx').on(t.communityId, t.createdAt)],
+);
+
+export const tables = [items];
