@@ -23,6 +23,12 @@ function NoCommunity() {
         description="Crie uma para chamar a galera, ou abra o link de convite que alguém te mandou."
       />
       <Button label="Criar comunidade" variant="primary" fullWidth onPress={() => router.push('/comunidades/nova')} />
+      <Button
+        label="Entrar com o código de convite"
+        variant="secondary"
+        fullWidth
+        onPress={() => router.push('/convite' as never)}
+      />
       <PendingRequests />
       <Account />
     </Screen>

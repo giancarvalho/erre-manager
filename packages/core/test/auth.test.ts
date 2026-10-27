@@ -2,7 +2,7 @@ import { eq } from '@erre/db';
 import { afterAll, beforeAll, describe, expect, it, inject } from 'vitest';
 
 import { SESSION_EXPIRES_IN } from '../src/server/auth/auth';
-import { authSession, authUser } from '../src/server/schema';
+import { authAccount, authSession, authUser, coreProfiles } from '../src/server/schema';
 import { signInWithGoogle } from '../src/server/testing';
 import { CLIENT_ID, ORIGIN, setupCore } from './helpers';
 
@@ -181,5 +181,40 @@ describe('logs', () => {
     const all = core.logs.join('\n');
     expect(all).not.toContain(token);
     expect(all).not.toContain(p.email);
+  });
+});
+
+// Assumptions of the data plan (D-016, MAPEAMENTO-DADOS.md): the ETL keeps the legacy user ids and writes
+// auth_user + core_profiles (+ auth_account when the legacy row has google_id) before anyone signs in.
+describe('users created by the data migration', () => {
+  async function legacyUser(p: { email: string; name: string }, googleSub?: string) {
+    const id = crypto.randomUUID();
+    await core.db.insert(authUser).values({ id, name: p.name, email: p.email, emailVerified: true });
+    if (googleSub) await core.db.insert(authAccount).values({ userId: id, accountId: googleSub, providerId: 'google' });
+    await core.db
+      .insert(coreProfiles)
+      .values({ userId: id, displayName: 'Nome do legado', avatarVariant: 'emerald', nameConfirmedAt: new Date() });
+    return id;
+  }
+
+  it('a legacy Google user signs in as the same id, keeping the profile', async () => {
+    const p = person();
+    const id = await legacyUser(p, p.sub);
+    const res = await signInWithGoogle(core.app, core.google, p, { origin: ORIGIN });
+    expect(await (await me(res.cookie)).json()).toMatchObject({
+      id,
+      displayName: 'Nome do legado',
+      avatarVariant: 'emerald',
+      nameConfirmed: true,
+    });
+  });
+
+  it('a user created with only an e-mail is linked on the first Google sign-in with that e-mail', async () => {
+    const p = person();
+    const id = await legacyUser(p);
+    const res = await signInWithGoogle(core.app, core.google, p, { origin: ORIGIN });
+    expect(((await (await me(res.cookie)).json()) as { id: string }).id).toBe(id);
+    const accounts = await core.db.select().from(authAccount).where(eq(authAccount.userId, id));
+    expect(accounts.map((a) => [a.providerId, a.accountId])).toEqual([['google', p.sub]]);
   });
 });

@@ -26,6 +26,12 @@ export default function ChooseCommunity() {
           </Card>
         ))}
       </View>
+      <Button
+        label="Entrar com o código de convite"
+        variant="secondary"
+        fullWidth
+        onPress={() => router.push('/convite' as never)}
+      />
     </Screen>
   );
 }

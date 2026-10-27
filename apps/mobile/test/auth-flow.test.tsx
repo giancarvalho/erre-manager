@@ -1,7 +1,7 @@
 import type { Me } from '@erre/core/client';
 import { ThemeProvider } from '@erre/ui';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { renderRouter } from 'expo-router/testing-library';
 import type { ReactNode } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -14,6 +14,9 @@ import NewCommunity from '../src/app/(app)/comunidades/nova';
 import Home from '../src/app/(app)/index';
 import SignIn from '../src/app/(auth)/entrar';
 import InviteScreen from '../src/app/convite/[codigo]';
+import EnterInvite from '../src/app/convite/index';
+import NotFound from '../src/app/+not-found';
+import { ErrorBoundary } from '../src/app/_layout';
 import OnboardingName from '../src/app/onboarding/nome';
 import { ApiError } from '@/lib/api';
 
@@ -119,6 +122,8 @@ async function open(url: string) {
       '(app)/comunidades/index': ChooseCommunity,
       '(app)/comunidades/nova': NewCommunity,
       'convite/[codigo]': InviteScreen,
+      'convite/index': EnterInvite,
+      '+not-found': NotFound,
     },
     { initialUrl: url },
   );
@@ -241,4 +246,38 @@ test('revoked invite says so, without a retry', async () => {
   await open('/convite/revogado');
   expect(await screen.findByText(/Esse convite não vale mais/)).toBeTruthy();
   expect(screen.queryByText('Tentar de novo')).toBeNull();
+});
+
+const CODE = 'AAAAAAAAAAAAAAAAAAAAAAsegredo12345';
+
+test('without a community: paste the invite link and land on the invite (CORE-07)', async () => {
+  mockMe(baseMe);
+  await open('/');
+  await fireEvent.press(await screen.findByText('Entrar com o código de convite'));
+  expect(screen).toHavePathname('/convite');
+  const field = screen.getByLabelText('Link ou código do convite');
+  await fireEvent.changeText(field, 'olha o convite: nada');
+  await fireEvent.press(screen.getByText('Continuar'));
+  expect(await screen.findByText(/Isso não parece um convite/)).toBeTruthy();
+  await fireEvent.changeText(field, `  https://errometro.app/convite/${CODE}  `);
+  await fireEvent.press(screen.getByText('Continuar'));
+  expect(await screen.findByText('turma-do-convite')).toBeTruthy();
+  expect(screen).toHavePathname(`/convite/${CODE}`);
+});
+
+test('an unknown route says so and leads home (CORE-23)', async () => {
+  mockMe(baseMe);
+  await open('/nao-existe');
+  expect(await screen.findByText('Essa página não existe ou mudou de lugar.')).toBeTruthy();
+  await fireEvent.press(screen.getByText('Ir para o início'));
+  expect(await screen.findByText('Você ainda não está em nenhuma comunidade')).toBeTruthy();
+});
+
+test('a render error shows plain words and retries (CORE-23)', async () => {
+  const retry = jest.fn(async () => undefined);
+  await render(<ErrorBoundary error={new Error('detalhe interno')} retry={retry} />);
+  expect(await screen.findByText('Algo deu errado por aqui. Tente de novo.')).toBeTruthy();
+  expect(screen.queryByText(/detalhe interno/)).toBeNull();
+  await fireEvent.press(screen.getByText('Tentar de novo'));
+  expect(retry).toHaveBeenCalled();
 });

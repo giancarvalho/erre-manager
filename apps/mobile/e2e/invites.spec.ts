@@ -79,3 +79,36 @@ test('invite link → request → approval → member → leave; revoked link st
   await guest.goto(link);
   await expect(guest.getByText(/Esse convite não vale mais/)).toBeVisible();
 });
+
+test('pasting the invite link on the empty hub opens the invite (CORE-07)', async ({ browser }) => {
+  const community = `colar-${Date.now().toString(36)}`;
+  const owner = await person(browser, 'Dona');
+  await owner.goto('/');
+  await signIn(owner);
+  await owner.getByRole('button', { name: 'Continuar' }).click();
+  await owner.getByRole('button', { name: 'Criar comunidade' }).click();
+  await owner.getByLabel('Nome da comunidade').fill(community);
+  await owner.getByRole('button', { name: 'Criar comunidade' }).click();
+  await owner.getByRole('button', { name: 'Convidar pessoas' }).click();
+  await owner.getByRole('button', { name: 'Criar link de convite' }).click();
+  const link = (await owner.getByLabel('Link de convite', { exact: true }).textContent())!.trim();
+
+  const guest = await person(browser, 'Colador');
+  await guest.goto('/');
+  await signIn(guest);
+  await guest.getByRole('button', { name: 'Continuar' }).click(); // onboarding
+  await guest.getByRole('button', { name: 'Entrar com o código de convite' }).click();
+  await guest.getByLabel('Link ou código do convite').fill('não é convite');
+  await guest.getByRole('button', { name: 'Continuar' }).click();
+  await expect(guest.getByText(/Isso não parece um convite/)).toBeVisible();
+  await guest.getByLabel('Link ou código do convite').fill(link);
+  await guest.getByRole('button', { name: 'Continuar' }).click();
+  await expect(guest.getByRole('heading', { name: community })).toBeVisible();
+  await expect(guest.getByRole('button', { name: 'Pedir para entrar' })).toBeVisible();
+});
+
+test('an unknown address shows the not-found screen (CORE-23)', async ({ page }) => {
+  await page.goto('/isso-nao-existe');
+  await expect(page.getByText('Essa página não existe ou mudou de lugar.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Ir para o início' })).toBeVisible();
+});

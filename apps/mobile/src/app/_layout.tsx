@@ -4,10 +4,10 @@ import { Geist_500Medium } from '@expo-google-fonts/geist/500Medium';
 import { Geist_600SemiBold } from '@expo-google-fonts/geist/600SemiBold';
 import { Geist_700Bold } from '@expo-google-fonts/geist/700Bold';
 import { GeistMono_400Regular } from '@expo-google-fonts/geist-mono/400Regular';
-import { ThemeProvider, ToastProvider, useTheme } from '@erre/ui';
+import { ErrorState, ThemeProvider, ToastProvider, useTheme } from '@erre/ui';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, type ErrorBoundaryProps } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
@@ -67,5 +67,17 @@ export default function RootLayout() {
         </ThemeProvider>
       </QueryClientProvider>
     </SafeAreaProvider>
+  );
+}
+
+/**
+ * A render error anywhere below (CORE-23). It replaces the root layout, so it brings its own theme. Plain
+ * words, no technical detail (DESIGN §9.15); `retry` renders the tree again.
+ */
+export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
+  return (
+    <ThemeProvider>
+      <ErrorState message="Algo deu errado por aqui. Tente de novo." onRetry={() => void retry()} />
+    </ThemeProvider>
   );
 }

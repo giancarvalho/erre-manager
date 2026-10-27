@@ -16,7 +16,7 @@ Classificação: **igual** = migrar como está · **mudança** = migrar com muda
 | CORE-04 | Onboarding do nome de exibição | `/onboarding/name` · `updateProfileAction` | R-MEM-08 | igual | core | 5 | concluído |
 | CORE-05 | Sessão deslizante e última comunidade visitada | `src/middleware.ts` · `clearLastGroupFromSessionAction`, `refreshSessionLastGroupAction` | R-MEM-09 | mudança: comunidade escolhida no app, nunca na sessão (D-014) | core | 5–6 | sessão deslizante concluída (Sprint 5); comunidade no Sprint 6 |
 | CORE-06 | Criar comunidade (assistente: como funciona, identidade, nome, tipo) | modal da landing · `wizardIdentityStepAction`, `createGroupWizardAction` | R-MEM-07 | mudança: qualquer usuário cria comunidade (D-022); o "tipo" (clássico/personalizado) vira configuração inicial do Errômetro | core + errometro | 6, 12 | criar comunidade concluído (Sprint 6); tipo do Errômetro no Sprint 12 |
-| CORE-07 | Entrar digitando o nome/código | "Entrar com o nome do grupo" · `lookupGroupByNameAction` | R-MEM-07 | mudança: código de convite revogável em vez do slug público (P-015) | core | 7 | pendente |
+| CORE-07 | Entrar digitando o nome/código | "Entrar com o nome do grupo" · `lookupGroupByNameAction` | R-MEM-07 | mudança: código de convite revogável em vez do slug público (P-015) | core | 7 | concluído na web (Sprint 19: colar o link ou o código em `/convite`, a partir do hub sem comunidade e da troca de comunidade); aparelho pendente |
 | CORE-08 | Pedido de entrada pelo link (com votação junto) | `/group/[id]` (convite universal) · `requestJoinAction` | R-MEM-02, R-MEM-05 | mudança: um pedido só com intenção `errometro.participar` (D-023) | core | 7 | core concluído (intenção pronta no contrato; `errometro.participar` no Sprint 12) |
 | CORE-09 | Pedido de entrada só na comunidade | hub · `requestGroupOnlyJoinAction` | R-MEM-02 | igual | core | 7 | concluído |
 | CORE-10 | Aprovar, rejeitar, remover membro | `/group/[id]/settings` · `approveMemberAction`, `rejectMemberAction`, `removeMemberAction` | R-MEM-01, R-MEM-03, R-MEM-05 | igual (com cascata para a votação via `onJoinApproved`) | core | 7 | concluído (cascata para módulos via `onMemberLeft`) |
@@ -32,7 +32,7 @@ Classificação: **igual** = migrar como está · **mudança** = migrar com muda
 | CORE-20 | Ícones PWA, manifest, apple-icon | `api/pwa-icons/[size]`, `manifest.ts`, `icon.tsx`, `apple-icon.tsx` | — | mudança: ícones estáticos (P-008) | app | 18 | concluído (Sprint 18: manifest, ícones estáticos e maskable, apple-touch-icon; P-008 A provisório) |
 | CORE-21 | Imagem OG | `api/og` | — | decidir em P-008 | app/api | 18 | concluído (Sprint 18: imagem estática, URL absoluta no build com `EXPO_PUBLIC_WEB_URL`; P-008) |
 | CORE-22 | Links universais iOS | `.well-known/apple-app-site-association` | — | igual (mais `assetlinks.json` Android) | app | 18 | gerador pronto (Sprint 18, iOS e Android); pendente: domínio, Team ID e certificado, `associatedDomains`/`intentFilters` no app |
-| CORE-23 | Páginas de erro | `error.tsx`, `global-error.tsx`, `GlobalErrorCatcher` | — | mudança: `ErrorState` (DESIGN §9.15) | app | 10, 18 | pendente |
+| CORE-23 | Páginas de erro | `error.tsx`, `global-error.tsx`, `GlobalErrorCatcher` | — | mudança: `ErrorState` (DESIGN §9.15) | app | 10, 18 | concluído na web (Sprint 19: `+not-found` e `ErrorBoundary` na raiz com `ErrorState`, sem detalhe técnico); aparelho pendente |
 
 ## Errômetro
 
@@ -47,7 +47,7 @@ Classificação: **igual** = migrar como está · **mudança** = migrar com muda
 | ERR-07 | Tela de votação (grade, legenda, ordenação, barra de envio) | `/group/[id]/vote` · `src/components/voting/*` | R-ANON-05, R-ANON-06 | mudança: React Native + design system | errometro | 14 | concluído na web (Sprint 14); aparelho pendente |
 | ERR-08 | Votos lembrados no dispositivo | `src/lib/voting/remembered-votes.ts` | — | mudança: AsyncStorage | errometro | 14 | concluído (Sprint 14) |
 | ERR-09 | Token guardado no dispositivo | `src/lib/voting/client-token.ts` | R-ANON-07 | mudança: SecureStore no nativo | errometro | 14 | concluído na web (Sprint 14); secure store a validar em aparelho |
-| ERR-10 | Caminho de voto HMAC do demo | `submitVotesAction`, `submitVotesFormAction`, `SubmitVotesBar.tsx` | R-ANON-08, R-ANON-09 | descartar se P-003 descartar o demo | — | — | aguardando P-003 (demo); não portado |
+| ERR-10 | Caminho de voto HMAC do demo | `submitVotesAction`, `submitVotesFormAction`, `SubmitVotesBar.tsx` | R-ANON-08, R-ANON-09 | descartar se P-003 descartar o demo | — | — | não portado: descartado com o demo (P-003 A, provisório) |
 | ERR-11 | Cadência e horário de liberação | settings · `saveGroupReleaseConfigAction` | R-CAL-02, R-CAL-04 | igual (inclui fechamento forçado ao mudar cadência) | errometro | 12, 15 | concluído na web (Sprint 15); aparelho pendente |
 | ERR-12 | Emojis do grupo (catálogo + personalizados) | settings · `saveGroupEmojiConfigAction` | R-EMO-01 a 05 | igual | errometro | 12, 15 | concluído na web (Sprint 15); aparelho pendente |
 | ERR-13 | Fechamento automático das rodadas | `instrumentation.ts`, `api/cron/close-daily-snapshots` | R-RES-01 a 05 | mudança: job do manifesto, por comunidade (D-013) | errometro | 13 | concluído (Sprint 13) |
@@ -59,7 +59,7 @@ Classificação: **igual** = migrar como está · **mudança** = migrar com muda
 | ERR-19 | Resultados: ranking, dias, troféus, compartilhar | `/results` · `src/components/results/*`, `share-message.ts` | R-RES-06, R-RES-10, R-TRO-01 a 03 | mudança: React Native | errometro | 13, 15 | concluído na web (Sprint 15); aparelho pendente |
 | ERR-20 | Comentários nos resultados | `postCommentAction`, `editCommentAction`, `deleteCommentAction`, `getCommentsAction` | R-COM-01, R-COM-02 | igual | errometro | 13, 15 | concluído na web (Sprint 15); aparelho pendente |
 | ERR-21 | Troféus no perfil | `group-trophy-tally.ts`, `src/components/trophies/*` | R-TRO-01 | mudança: `profileSections` (D-018) | errometro | 13, 18 | concluído na web (Sprint 18, perfil e página de membro); aparelho pendente |
-| ERR-22 | Tela "Resultados reservados" | `ResultsPaywall.tsx` | R-RES-06 | descartar com o demo (P-003) | — | — | aguardando P-003 (demo); não portado |
+| ERR-22 | Tela "Resultados reservados" | `ResultsPaywall.tsx` | R-RES-06 | descartar com o demo (P-003) | — | — | não portado: descartado com o demo (P-003 A, provisório) |
 
 ## Eventos
 
@@ -84,6 +84,6 @@ Classificação: **igual** = migrar como está · **mudança** = migrar com muda
 | ID | Funcionalidade | Legado | Classif. | Status |
 |---|---|---|---|---|
 | OUT-01 | Mural/apresentações e reações | `/group/[id]/wall` · `submitPresentationAction`, `deletePresentationAction`, `setPresentationTemplateAction`, `toggleReactionAction`, `src/components/wall/*` | backlog (D-004) | backlog |
-| OUT-02 | Grupo demo | `demo` virtual, `SubmitVotesBar`, `ResultsPaywall` | descartar? (P-003) | pendente |
+| OUT-02 | Grupo demo | `demo` virtual, `SubmitVotesBar`, `ResultsPaywall` | descartar? (P-003) | descartado provisoriamente (P-003 A): landing com "Como funciona" |
 | OUT-03 | Shell Capacitor | `android/`, `ios/`, `capacitor.config.ts` | descartar (substituído por Expo, D-001) | descartado |
 | OUT-04 | Scripts de diagnóstico e `drop-all-records` | `scripts/*` | descartar | descartado |

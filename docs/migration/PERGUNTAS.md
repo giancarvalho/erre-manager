@@ -22,6 +22,9 @@ Formato: ID, sprint que bloqueia, contexto, opções, recomendação. Quando res
 | P-016 | Sprint 14 | aberta |
 | P-017 | Sprint 15 | aberta (paridade com o legado até a resposta) |
 | P-018 | Sprint 15 | decidida provisoriamente (A), confirmar |
+| P-019 | Sprint 18 | aberta |
+| P-020 | plano de dados (D-016) | aberta |
+| P-021 | plano de dados (D-016) | aberta |
 
 ---
 
@@ -153,3 +156,17 @@ Também: manter ou não um limite de membros por comunidade (no legado, 300 por 
 - **B. "Erre" em tudo**, com o Errômetro como módulo. Contras: muda a marca conhecida; landing e PWA mudam.
 - **C. Como está:** "Errômetro" na web, "Erre" na loja. Contras: duas marcas.
 **Recomendação:** A para a migração (é o nome que os 200 usuários conhecem), revendo quando houver mais módulos.
+
+### P-020 — Contas do legado só com usuário + chave
+**Contexto:** no legado, quem se cadastrou com usuário + chave não tem e-mail nem `google_id`. O app novo só tem login Google (D-017) e exige e-mail. Fato testado: um usuário criado pelo ETL só com e-mail (mesmo id do legado, perfil e histórico) é vinculado automaticamente no primeiro login Google com esse e-mail.
+- **A. Coletar o e-mail Google de cada pessoa antes da virada** (formulário ou mensagem no grupo), e o ETL cria a conta com esse e-mail. Prós: nada se perde (troféus, votos recebidos, comentários, participação); nenhum código novo. Contras: trabalho manual. Um e-mail errado entrega a conta a outra pessoa, então o e-mail tem de vir da própria pessoa.
+- **B. Código de resgate no app novo:** quem opera gera um código por conta antiga, e a pessoa, já logada com o Google, digita o código para assumir o perfil antigo. Prós: sem coleta de e-mail. Contras: tela e rota novas no core (fusão de perfil), mais um sprint.
+- **C. Não migrar essas contas:** a pessoa começa do zero. O histórico fica com um id sem dono, como numa exclusão. Contras: perde troféus e histórico.
+**Recomendação:** A, com C para quem não responder até a virada (a conta pode ser recuperada depois rodando o ETL só para ela). Antes, contar quantas são (consulta em `MAPEAMENTO-DADOS.md`).
+
+### P-021 — Mesma pessoa com duas contas no legado
+**Contexto:** o legado não liga as duas formas de login: alguém que entrou por usuário + chave e depois pelo Google tem duas contas, com memberships, troféus e comentários separados. Os votos que a pessoa deu são anônimos e não pertencem a nenhuma das duas.
+- **A. Migrar as duas como estão** e só vincular o Google à conta Google. Prós: simples e sem risco. Contras: a conta antiga fica órfã ou depende de P-020.
+- **B. Fundir numa só no ETL** (memberships, participações, troféus, comentários e alvos de votos da conta antiga passam para a conta Google). Contras: precisa de uma lista confirmada pelas pessoas; numa mesma rodada as duas contas podem ter sido alvo, e a fusão soma votos que o resultado fechado não somou.
+**Recomendação:** A, levantando os casos numa cópia do banco (mesmo `display_username` em contas de tipos diferentes) para o humano decidir um a um.
+
